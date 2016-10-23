@@ -18,11 +18,14 @@ class JUnitXmlError(Exception):
 
 class Attr:
     "XML element attribute descriptor."
+
     def __init__(self, name=None):
         self.name = name
+
     def __get__(self, instance, cls):
         "Gets value from attribute, return None if attribute doesn't exist."
         return instance._elem.attrib.get(self.name)
+
     def __set__(self, instance, value):
         "Sets XML element attribute."
         instance._elem.attrib[self.name] = value
@@ -46,19 +49,24 @@ class junitxml(type):
 
 class Element(metaclass=junitxml):
     "Base class for all Junit elements."
+
     def __init__(self, name):
         self._elem = etree.Element(name)
+
     def __hash__(self):
         return hash(etree.tostring(self._elem))
+
     def append(self, elem):
         "Append an child element to current element."
         self._elem.append(elem._elem)
+
     @classmethod
     def fromstring(cls, text):
         "Construct Junit objects with XML string."
         instance = cls()
         instance._elem = etree.fromstring(text)
         return instance
+
     @classmethod
     def fromelem(cls, elem):
         "Constructs Junit objects with an element."
@@ -70,33 +78,41 @@ class Element(metaclass=junitxml):
             if isinstance(getattr(instance, attr), Attr):
                 setattr(instance, attr, instance._elem.attrib.get(attr))
         return instance
+
     def iterchildren(self, Child):
         "Iterate through specified Child type elements."
         elems = self._elem.iterfind(Child._tag)
         for elem in elems:
             yield Child.fromelem(elem)
+
     def child(self, Child):
         "Find a single child of specified type."
         elem = self._elem.find(Child._tag)
         return Child.fromelem(elem)
+
     def remove(self, instance):
         for elem in self._elem.iterfind(instance._tag):
             child = instance.__class__.fromelem(elem)
             if child == instance:
                 self._elem.remove(child._elem)
+
     def tostring(self):
         "Converts element to XML string."
-        return etree.tostring(self._elem, encoding = 'utf-8', pretty_print=True)
+        return etree.tostring(self._elem, encoding='utf-8', pretty_print=True)
 
 
 class JUnitXml(Element):
     _tag = 'testsuites'
+
     def __init__(self):
         super().__init__(self._tag)
+
     def __iter__(self):
         return super().iterchildren(TestSuite)
+
     def __len__(self):
         return len(list(self.__iter__()))
+
     def __add__(self, other):
         result = JUnitXml()
         for suite in self:
@@ -104,12 +120,15 @@ class JUnitXml(Element):
         for suite in other:
             result.add_testsuite(suite)
         return result
+
     def __iadd__(self, other):
         for suite in other:
             self.add_testsuite(suite)
         return self
+
     def add_testsuite(self, suite):
         self.append(suite)
+
     @classmethod
     def fromfile(cls, filepath):
         instance = cls()
@@ -118,6 +137,7 @@ class JUnitXml(Element):
         if instance._elem.tag != cls._tag:
             raise JUnitXmlError("Invalid format.")
         return instance
+
     def write(self, filepath):
         tree = etree.ElementTree(self._elem)
         tree.write(filepath, encoding='utf-8', xml_declaration=True)
@@ -132,18 +152,23 @@ class TestSuite(Element):
     tests = Attr()
     failures = Attr()
     errors = Attr()
+
     def __init__(self, name=None):
         super().__init__(self._tag)
         if name:
             self.name = name
+
     def __iter__(self):
         return super().iterchildren(TestCase)
+
     def __len__(self):
         return len(list(self.__iter__()))
+
     def remove_testcase(self, testcase):
         for case in self:
             if case == testcase:
-               super().remove(case)
+                super().remove(case)
+
     def update_case_count(self):
         tests = errors = failures = 0
         for case in self:
@@ -155,6 +180,7 @@ class TestSuite(Element):
         self.tests = str(tests)
         self.errors = str(errors)
         self.failures = str(failures)
+
     def add_property(self, name, value):
         props = self.child(Properties)
         if props is None:
@@ -162,16 +188,20 @@ class TestSuite(Element):
             self.append(props)
         prop = Property(name, value)
         props.add_property(prop)
+
     def add_testcase(self, testcase):
         self.append(testcase)
+
     def add_suite(self, suite):
         self.append(suite)
+
     def properties(self):
         props = self.child(Properties)
         if props is None:
             return
         for prop in props:
             yield prop
+
     def remove_property(self, property):
         props = self.child(Properties)
         if props is None:
@@ -179,6 +209,7 @@ class TestSuite(Element):
         for prop in props:
             if prop == property:
                 props.remove(property)
+
     def testsuites(self):
         for suite in self.iterchildren(TestSuite):
             yield suite
@@ -186,10 +217,13 @@ class TestSuite(Element):
 
 class Properties(Element):
     _tag = 'properties'
+
     def __init__(self):
         super().__init__(self._tag)
+
     def add_property(self, property):
         self.append(property)
+
     def __iter__(self):
         return super().iterchildren(Property)
 
@@ -198,12 +232,14 @@ class Property(Element):
     _tag = 'property'
     name = Attr()
     value = Attr()
+
     def __init__(self, name=None, value=None):
         super().__init__(self._tag)
         if name:
             self.name = name
         if value:
             self.value = value
+
     def __eq__(self, other):
         return self.name == other.name
 
@@ -212,32 +248,37 @@ class Result(Element):
     _tag = None
     message = Attr()
     type = Attr()
+
     def __init__(self, message=None, type=None):
         super().__init__(self._tag)
         if message:
             self.message = message
         if type:
             self.type = type
+
     def __eq__(self, other):
-        return (self._tag == other._tag and 
-                self.type == other.type and 
+        return (self._tag == other._tag and
+                self.type == other.type and
                 self.message == other.message)
 
 
 class Skipped(Result):
     _tag = 'skipped'
+
     def __eq__(self, other):
         return super().__eq__(other)
 
 
 class Failure(Result):
     _tag = 'failure'
+
     def __eq__(self, other):
         return super().__eq__(other)
 
 
 class Error(Result):
     _tag = 'error'
+
     def __eq__(self, other):
         return super().__eq__(other)
 
@@ -248,13 +289,17 @@ class TestCase(Element):
     classname = Attr()
     time = Attr()
     _possible_results = {Failure, Error, Skipped}
+
     def __init__(self):
         super().__init__(self._tag)
+
     def __hash__(self):
         return super().__hash__()
+
     def __eq__(self, other):
         # TODO: May not work correctly of unreliable hash method is used.
         return hash(self) == hash(other)
+
     @property
     def result(self):
         "One of the Failure, Skipped, and Error objects."
@@ -269,6 +314,7 @@ class TestCase(Element):
             return None
         else:
             return results[0]
+
     @result.setter
     def result(self, value):
         # First remove all existing results
@@ -278,12 +324,14 @@ class TestCase(Element):
                 self.remove(result)
         # Then add current result
         self.append(value)
+
     @property
     def system_out(self):
         elem = self.child(SystemOut)
         if elem is not None:
             return elem.text
         return None
+
     @system_out.setter
     def system_out(self, value):
         out = self.child(SystemOut)
@@ -292,12 +340,14 @@ class TestCase(Element):
         else:
             out = SystemOut(value)
             self.append(out)
+
     @property
     def system_err(self):
         elem = self.child(SystemErr)
         if elem is not None:
             return elem.text
         return None
+
     @system_err.setter
     def system_err(self, value):
         err = self.child(SystemErr)
@@ -311,12 +361,15 @@ class TestCase(Element):
 class System(Element):
     "Parent class for SystemOut and SystemErr"
     _tag = ''
+
     def __init__(self, content=None):
         super().__init__(self._tag)
         self.text = content
+
     @property
     def text(self):
         return self._elem.text
+
     @text.setter
     def text(self, value):
         self._elem.text = value

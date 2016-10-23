@@ -4,6 +4,7 @@ from xml.etree import ElementTree as etree
 
 
 class Test_JunitXml(unittest.TestCase):
+
     def test_fromstring(self):
         text = """<testsuites><testsuite name="suitename1">
         <testcase name="testname1">
@@ -13,6 +14,7 @@ class Test_JunitXml(unittest.TestCase):
         </testcase></testsuite></testsuites>"""
         result = JUnitXml.fromstring(text)
         self.assertEqual(len(result), 2)
+
     def test_add_suite(self):
         suite1 = TestSuite()
         suite2 = TestSuite()
@@ -20,6 +22,7 @@ class Test_JunitXml(unittest.TestCase):
         result.add_testsuite(suite1)
         result.add_testsuite(suite2)
         self.assertEqual(len(result), 2)
+
     def test_construct_xml(self):
         suite1 = TestSuite()
         suite1.name = 'suite1'
@@ -35,6 +38,7 @@ class Test_JunitXml(unittest.TestCase):
         case = suite[0].findall('testcase')
         self.assertEqual(len(case), 1)
         self.assertEqual(case[0].attrib['name'], 'case1')
+
     def test_add(self):
         result1 = JUnitXml()
         suite1 = TestSuite()
@@ -44,6 +48,7 @@ class Test_JunitXml(unittest.TestCase):
         result2.add_testsuite(suite2)
         result3 = result1 + result2
         self.assertEqual(len(result3), 2)
+
     def test_iadd(self):
         result1 = JUnitXml()
         suite1 = TestSuite()
@@ -56,12 +61,15 @@ class Test_JunitXml(unittest.TestCase):
 
 
 class Test_RealFile(unittest.TestCase):
+
     def setUp(self):
         import tempfile
         self.tmp = tempfile.mktemp(suffix='.xml')
+
     def tearDown(self):
         import os
         os.remove(self.tmp)
+
     def test_fromfile(self):
         text = """<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
@@ -93,6 +101,7 @@ class Test_RealFile(unittest.TestCase):
         case_results = [Failure, Skipped, type(None)]
         for case, result in zip(suite2, case_results):
             self.assertIsInstance(case.result, result)
+
     def test_write(self):
         suite1 = TestSuite()
         suite1.name = 'suite1'
@@ -107,7 +116,9 @@ class Test_RealFile(unittest.TestCase):
         self.assertIn('suite1', text)
         self.assertIn('case1', text)
 
+
 class Test_TestSuite(unittest.TestCase):
+
     def test_fromstring(self):
         text = """<testsuite name="suitename">
         <testcase name="testname">
@@ -117,6 +128,7 @@ class Test_TestSuite(unittest.TestCase):
         suite.update_case_count()
         self.assertEqual(suite.name, 'suitename')
         self.assertEqual(suite.tests, '1')
+
     def test_props_fromstring(self):
         text = """<testsuite name="suitename">
         <properties><property name="name1" value="value1"/></properties>
@@ -125,12 +137,14 @@ class Test_TestSuite(unittest.TestCase):
         for prop in suite.properties():
             self.assertEqual(prop.name, 'name1')
             self.assertEqual(prop.value, 'value1')
+
     def test_len(self):
         text = """<testsuite name="suitename"><testcase name="testname"/>
         <testcase name="testname2"/>
         </testsuite>"""
         suite = TestSuite.fromstring(text)
         self.assertEqual(len(suite), 2)
+
     def test_add_case(self):
         suite = TestSuite()
         case1 = TestCase()
@@ -145,12 +159,14 @@ class Test_TestSuite(unittest.TestCase):
         self.assertEqual(suite.tests, '3')
         self.assertEqual(suite.failures, '1')
         self.assertEqual(suite.errors, '1')
+
     def test_add_property(self):
         suite = TestSuite()
         suite.add_property('name1', 'value1')
         res_prop = next(suite.properties())
         self.assertEqual(res_prop.name, 'name1')
         self.assertEqual(res_prop.value, 'value1')
+
     def test_remove_case(self):
         suite = TestSuite()
         case1 = TestCase()
@@ -161,6 +177,7 @@ class Test_TestSuite(unittest.TestCase):
         suite.add_testcase(case2)
         suite.remove_testcase(case1)
         self.assertEqual(len(suite), 1)
+
     def test_remove_property(self):
         suite = TestSuite()
         suite.add_property('name1', 'value1')
@@ -170,6 +187,7 @@ class Test_TestSuite(unittest.TestCase):
             if prop.name == 'name2':
                 suite.remove_property(prop)
         self.assertEqual(len(list(suite.properties())), 2)
+
     def test_suite_in_suite(self):
         suite = TestSuite('parent')
         childsuite = TestSuite('child')
@@ -178,6 +196,7 @@ class Test_TestSuite(unittest.TestCase):
 
 
 class Test_TestCase(unittest.TestCase):
+
     def test_fromstring(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
@@ -189,6 +208,7 @@ class Test_TestCase(unittest.TestCase):
         self.assertIsInstance(case.result, Failure)
         self.assertEqual(case.system_out, "System out")
         self.assertEqual(case.system_err, "System err")
+
     def test_illegal_xml_multi_results(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
@@ -197,6 +217,7 @@ class Test_TestCase(unittest.TestCase):
         """
         case = TestCase.fromstring(text)
         self.assertRaises(JUnitXmlError)
+
     def test_case_attributes(self):
         case = TestCase()
         case.name = 'testname'
@@ -207,6 +228,7 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.classname, 'testclassname')
         self.assertEqual(case.time, '15.123')
         self.assertIsInstance(case.result, Skipped)
+
     def test_case_output(self):
         case = TestCase()
         case.system_err = 'error message'
@@ -217,32 +239,38 @@ class Test_TestCase(unittest.TestCase):
         case.system_out = 'out2'
         self.assertEqual(case.system_err, 'error2')
         self.assertEqual(case.system_out, 'out2')
+
     def test_set_multiple_results(self):
         case = TestCase()
         case.result = Skipped()
         case.result = Failure()
         self.assertIsInstance(case.result, Failure)
+
     def test_monkypatch(self):
         TestCase.id = Attr('id')
         case = TestCase()
         case.id = "100"
         self.assertEqual(case.id, "100")
+
     def test_equal(self):
         case = TestCase()
         case.name = 'test1'
         case2 = TestCase()
         case2.name = 'test1'
         self.assertEqual(case, case2)
+
     def test_not_equal(self):
         case = TestCase()
         case.name = 'test1'
         case2 = TestCase()
         case2.name = 'test2'
         self.assertNotEqual(case, case2)
+
     def test_from_elem(self):
         elem = etree.Element('testcase', name='case1')
         case = TestCase.fromelem(elem)
         self.assertEqual(case.name, 'case1')
+
     def test_to_string(self):
         case = TestCase()
         case.name = 'test1'

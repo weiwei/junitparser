@@ -11,8 +11,9 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
 There are already a lot of modules that converts JUnit/xUnit XML from a
 specific format, but you may run into some proprietory or less-known formats
-and you want to convert them and feed the result to another tool. This is where
-junitparser come into handy.
+and you want to convert them and feed the result to another tool, or, you may
+want to manipulate the results in your own way. This is where junitparser come
+into handy.
 
 Why junitparser?
 ----------------
@@ -25,7 +26,8 @@ Why junitparser?
   elements and attributes. junitparser aims to support them all, by
   monkeypatching and subclassing some base classes.
 * Pythonic. You can manipulate test cases and suites in a pythonic way.
-* Simplicity. No external dependencies. Though it will use lxml if available.
+* Simplicity. One single code file. No external dependencies. Though it will 
+  use lxml if available.
 
 Installation
 -------------
@@ -133,17 +135,28 @@ There may be once in 1000 years you want to it this way, but anyways::
 TODO
 ----
 
+* XML 1.0 and 1.1 compatibilities.
+* More tests, especially test for errors.
 
 Notes
 -----
 
-Python 2 is not supported. Currently there is no plan to support Python 2.
+Python 2 is *not* supported. Currently there is no plan to support Python 2.
 
-There are some other packages providing similar functionalities,
-https://pypi.python.org/pypi/xunitparser/
-https://pypi.python.org/pypi/xunitgen
-https://pypi.python.org/pypi/xunitmerge
-https://pypi.python.org/pypi/junit-xml
+There are some other packages providing similar functionalities. They are
+out there for a longer time, but might not be as fun as junitparser:
+
+* xunitparser_: Read JUnit/XUnit XML files and map them to Python objects
+* xunitgen_: Generate xUnit.xml files
+* xunitmerge_: Utility for merging multiple XUnit xml reports into a single 
+  xml report.
+* `junit-xml`_: Creates JUnit XML test result documents that can be read by
+  tools such as Jenkins
+
+_xunitparser: https://pypi.python.org/pypi/xunitparser/
+_xunitgen: https://pypi.python.org/pypi/xunitgen
+_xunitmerge: https://pypi.python.org/pypi/xunitmerge
+_`junit-xml`: https://pypi.python.org/pypi/junit-xml
 
 
 
