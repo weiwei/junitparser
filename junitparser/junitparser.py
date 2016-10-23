@@ -106,6 +106,7 @@ class JUnitXml(Element):
 
     def __init__(self):
         super().__init__(self._tag)
+        self.filepath = None
 
     def __iter__(self):
         return super().iterchildren(TestSuite)
@@ -132,14 +133,17 @@ class JUnitXml(Element):
     @classmethod
     def fromfile(cls, filepath):
         instance = cls()
+        instance.filepath = filepath
         tree = etree.parse(filepath)
         instance._elem = tree.getroot()
         if instance._elem.tag != cls._tag:
             raise JUnitXmlError("Invalid format.")
         return instance
 
-    def write(self, filepath):
+    def write(self, filepath=None):
         tree = etree.ElementTree(self._elem)
+        if not filepath:
+            filepath = self.filepath
         tree.write(filepath, encoding='utf-8', xml_declaration=True)
 
 
