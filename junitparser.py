@@ -98,7 +98,7 @@ class Element(metaclass=junitxml):
 
     def tostring(self):
         "Converts element to XML string."
-        return etree.tostring(self._elem, encoding='utf-8', pretty_print=True)
+        return etree.tostring(self._elem, encoding='utf-8')
 
 
 class JUnitXml(Element):
