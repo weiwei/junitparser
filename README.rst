@@ -32,6 +32,8 @@ Why junitparser?
 Installation
 -------------
 
+::
+
     pip install junitparser
 
 Usage
@@ -114,10 +116,10 @@ And you get the following output::
 Create XML with custom element
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There may be once in 1000 years you want to it this way, but anyways::
+There may be once in 1000 years you want to it this way, but anyways:
 
 .. code-block:: python
-
+    
     from junitparser import Element, Attr, TestSuite
 
     # Suppose you want to add element Custom to TestSuite.
@@ -153,16 +155,7 @@ out there for a longer time, but might not be as fun as junitparser:
 * `junit-xml`_: Creates JUnit XML test result documents that can be read by
   tools such as Jenkins
 
-_xunitparser: https://pypi.python.org/pypi/xunitparser/
-_xunitgen: https://pypi.python.org/pypi/xunitgen
-_xunitmerge: https://pypi.python.org/pypi/xunitmerge
-_`junit-xml`: https://pypi.python.org/pypi/junit-xml
-
-
-
-
-Usage
------
-
-
-_`junit-xml`: https://pypi.python.org/pypi/junit-xml
+.. _xunitparser: https://pypi.python.org/pypi/xunitparser
+.. _xunitgen: https://pypi.python.org/pypi/xunitgen
+.. _xunitmerge: https://pypi.python.org/pypi/xunitmerge
+.. _`junit-xml`: https://pypi.python.org/pypi/junit-xml
