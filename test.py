@@ -68,7 +68,8 @@ class Test_RealFile(unittest.TestCase):
 
     def tearDown(self):
         import os
-        os.remove(self.tmp)
+        if os.path.exists(self.tmp):
+            os.remove(self.tmp)
 
     def test_fromfile(self):
         text = """<?xml version="1.0" encoding="UTF-8"?>
@@ -115,6 +116,34 @@ class Test_RealFile(unittest.TestCase):
             text = f.read()
         self.assertIn('suite1', text)
         self.assertIn('case1', text)
+
+    def test_write_nonascii(self):
+        suite1 = TestSuite()
+        suite1.name = 'suite1'
+        case1 = TestCase()
+        case1.name = '用例1'
+        suite1.add_testcase(case1)
+        result = JUnitXml()
+        result.add_testsuite(suite1)
+        result.write(self.tmp)
+        with open(self.tmp, encoding='utf-8') as f:
+            text = f.read()
+        self.assertIn('suite1', text)
+        self.assertIn('用例1', text)
+
+    def test_read_written_xml(self):
+        suite1 = TestSuite()
+        suite1.name = 'suite1'
+        case1 = TestCase()
+        case1.name = '用例1'
+        suite1.add_testcase(case1)
+        result = JUnitXml()
+        result.add_testsuite(suite1)
+        result.write(self.tmp)
+        xml =  JUnitXml.fromfile(self.tmp)
+        suite = next(iter(xml))
+        case = next(iter(suite))
+        self.assertEqual(case.name, '用例1')
 
 
 class Test_TestSuite(unittest.TestCase):
@@ -276,6 +305,27 @@ class Test_TestCase(unittest.TestCase):
         case.name = 'test1'
         case_str = case.tostring()
         self.assertIn(b'test1', case_str)
+
+    def test_to_nonascii_string(self):
+        case = TestCase()
+        case.name = '测试1'
+        case.result = Failure('失败', '类型')
+        case_str = case.tostring()
+        self.assertIn('测试1', case_str.decode())
+        self.assertIn('失败', case_str.decode())
+        self.assertIn('类型', case_str.decode())
+
+    def test_system_out(self):
+        case = TestCase()
+        case.name = 'case1'
+        case.system_out = "output"
+        self.assertEqual(case.system_out, "output")
+
+    def test_system_err(self):
+        case = TestCase()
+        case.name = 'case1'
+        case.system_err = "error"
+        self.assertEqual(case.system_err, "error")
 
 if __name__ == '__main__':
     unittest.main()
