@@ -12,7 +12,7 @@ install:
 # command to run tests
 script:
   - py.test test.py
-  - flake8 .
+  # - flake8 .
   - coverage run test.py
 after_success:
   - coveralls
