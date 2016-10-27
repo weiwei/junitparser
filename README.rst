@@ -42,6 +42,9 @@ Usage
 Create Junit XML format reports from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+You have some test result data, and you want to convert them into junit.xml
+format.
+
 .. code-block:: python
 
     from junitparser import TestCase, TestSuite, JunitXml, Skipped, Error
@@ -67,6 +70,8 @@ Create Junit XML format reports from scratch
 Read and manipulate exiting JUnit/xUnit XML files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+You have some existing junit.xml files, and you want to modify the content.
+
 .. code-block:: python
 
     from junitparser import JUnitXml
@@ -81,6 +86,8 @@ Read and manipulate exiting JUnit/xUnit XML files
 
 Merge XML files
 ~~~~~~~~~~~~~~~
+
+You have two or more XML files, and you want to merge them into one.
 
 .. code-block:: python
 
@@ -97,12 +104,13 @@ Merge XML files
 Create XML with custom attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+You want to use an attribute that is not supported by default.
+
 .. code-block:: python
 
     from junitparser import TestCase, Attr
 
-    # The id attribute is not supported by default
-    # But we can support it by monky patching
+    # Add the custom attribute
     TestCase.id = Attr('id')
     case = TestCase()
     case.id = '123'
@@ -116,22 +124,40 @@ And you get the following output::
 Create XML with custom element
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There may be once in 1000 years you want to it this way, but anyways:
+There may be once in 1000 years you want to it this way, but anyways.
+Suppose you want to add element CustomElement to TestCase.
 
 .. code-block:: python
     
     from junitparser import Element, Attr, TestSuite
 
-    # Suppose you want to add element Custom to TestSuite.
-    # You can create the new element by subclassing Element,
-    # Then add custom attributes to it.
-    class Custom(Element):
+    # Create the new element by subclassing Element,
+    # and add custom attributes to it.
+    class CustomElement(Element):
         _tag = 'custom'
         foo = Attr()
         bar = Attr()
 
-    # Then monkeypatch TestSuite to handle Custom
-    # TODO: Tricky part, update later
+    testcase = TestCase()
+    custom = CustomElement()
+    testcase.append(custom)
+    # To find a single sub-element:
+    testcase.child(CustomElement)
+    # To iterate over custom elements:
+    for custom in testcase.iterchildren(CustomElement):
+        ... # Do things with custom element
+
+
+Test
+----
+
+You can run the cases directly::
+
+    python test.py
+
+Or use pytest::
+
+    pytest test.py
 
 
 TODO
