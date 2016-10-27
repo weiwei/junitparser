@@ -3,6 +3,11 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
 
 .. image:: https://travis-ci.org/gastlygem/junitparser.svg?branch=master
 
+.. image:: https://coveralls.io/repos/github/gastlygem/junitparser/badge.svg?branch=master
+   :target: https://coveralls.io/github/gastlygem/junitparser?branch=master
+
+
+
 What does it do?
 ----------------
 
