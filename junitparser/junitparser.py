@@ -24,11 +24,19 @@ class Attr:
 
     def __get__(self, instance, cls):
         "Gets value from attribute, return None if attribute doesn't exist."
-        return instance._elem.attrib.get(self.name)
+
+        value = instance._elem.attrib.get(self.name)
+        if not value and isinstance(instance, TestSuite):
+            auto_attrs = ['tests', 'failures', 'errors', 'skipped']
+            if self.name in auto_attrs:
+                instance.update_case_count()
+                value = instance._elem.attrib.get(self.name)
+        return value
 
     def __set__(self, instance, value):
         "Sets XML element attribute."
-        instance._elem.attrib[self.name] = value
+        if value is not None:
+            instance._elem.attrib[self.name] = value
 
 
 def attributed(cls):
@@ -155,11 +163,11 @@ class TestSuite(Element):
     tests = Attr()
     failures = Attr()
     errors = Attr()
+    skipped = Attr()
 
     def __init__(self, name=None):
         super().__init__(self._tag)
-        if name:
-            self.name = name
+        self.name = name
 
     def __iter__(self):
         return super().iterchildren(TestCase)
@@ -173,16 +181,19 @@ class TestSuite(Element):
                 super().remove(case)
 
     def update_case_count(self):
-        tests = errors = failures = 0
+        tests = errors = failures = skipped = 0
         for case in self:
             tests += 1
             if isinstance(case.result, Failure):
                 failures += 1
             elif isinstance(case.result, Error):
                 errors += 1
+            elif isinstance(case.result, Skipped):
+                skipped += 1
         self.tests = str(tests)
         self.errors = str(errors)
         self.failures = str(failures)
+        self.skipped = str(skipped)
 
     def add_property(self, name, value):
         props = self.child(Properties)
@@ -238,10 +249,8 @@ class Property(Element):
 
     def __init__(self, name=None, value=None):
         super().__init__(self._tag)
-        if name:
-            self.name = name
-        if value:
-            self.value = value
+        self.name = name
+        self.value = value
 
     def __eq__(self, other):
         return self.name == other.name
@@ -293,8 +302,9 @@ class TestCase(Element):
     time = Attr()
     _possible_results = {Failure, Error, Skipped}
 
-    def __init__(self):
+    def __init__(self, name=None):
         super().__init__(self._tag)
+        self.name = name
 
     def __hash__(self):
         return super().__hash__()

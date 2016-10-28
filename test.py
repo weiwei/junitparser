@@ -225,13 +225,25 @@ class Test_TestSuite(unittest.TestCase):
         case2.result = Failure()
         case3 = TestCase()
         case3.result = Error()
+        case4 = TestCase()
+        case4.result = Skipped()
         suite.add_testcase(case1)
         suite.add_testcase(case2)
         suite.add_testcase(case3)
+        suite.add_testcase(case4)
         suite.update_case_count()
-        self.assertEqual(suite.tests, '3')
+        self.assertEqual(suite.tests, '4')
         self.assertEqual(suite.failures, '1')
         self.assertEqual(suite.errors, '1')
+        self.assertEqual(suite.skipped, '1')
+
+    def test_case_count(self):
+        suite = TestSuite()
+        case1 = TestCase()
+        suite.add_testcase(case1)
+        #suite.update_case_count()
+        self.assertEqual(suite.tests, '1')
+        self.assertEqual(suite.failures, '0')
 
     def test_add_property(self):
         suite = TestSuite()
