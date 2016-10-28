@@ -26,17 +26,32 @@ class Attr:
         "Gets value from attribute, return None if attribute doesn't exist."
 
         value = instance._elem.attrib.get(self.name)
-        if not value and isinstance(instance, TestSuite):
-            auto_attrs = ['tests', 'failures', 'errors', 'skipped']
-            if self.name in auto_attrs:
-                instance.update_case_count()
-                value = instance._elem.attrib.get(self.name)
+        if not value and self._is_container(instance):
+            instance.update_statistics()
+            value = instance._elem.attrib.get(self.name)
+        if self._is_int() and value is not None:
+            value = int(value)
+        elif self._is_float() and value is not None:
+            value = float(value)
         return value
 
     def __set__(self, instance, value):
         "Sets XML element attribute."
         if value is not None:
-            instance._elem.attrib[self.name] = value
+            instance._elem.attrib[self.name] = str(value)
+
+    def _is_int(self):
+        int_attrs = ['tests', 'failures', 'errors', 'skipped']
+        return self.name in int_attrs
+
+    def _is_float(self):
+        return self.name == 'time'
+
+    def _is_container(self, instance):
+        for container in [TestSuite, JUnitXml]:
+            if isinstance(instance, container):
+                return True
+        return False
 
 
 def attributed(cls):
@@ -58,7 +73,7 @@ class junitxml(type):
 class Element(metaclass=junitxml):
     "Base class for all Junit elements."
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         self._elem = etree.Element(name)
 
     def __hash__(self):
@@ -108,10 +123,16 @@ class Element(metaclass=junitxml):
 
 class JUnitXml(Element):
     _tag = 'testsuites'
+    name = Attr()
+    time = Attr()
+    tests = Attr()
+    failures = Attr()
+    errors = Attr()
 
-    def __init__(self):
+    def __init__(self, name=None):
         super().__init__(self._tag)
         self.filepath = None
+        self.name = name
 
     def __iter__(self):
         return super().iterchildren(TestSuite)
@@ -135,6 +156,22 @@ class JUnitXml(Element):
     def add_testsuite(self, suite):
         self.append(suite)
 
+    def update_statistics(self):
+        "Update test count, time, etc."
+        time = 0
+        tests = failures = errors = 0
+        for suite in self:
+            suite.update_case_count()
+            tests += suite.tests
+            failures += suite.failures
+            errors += suite.errors
+            time += suite.time
+        self.tests = tests
+        self.failures = failures
+        self.errors = errors
+        self.time = time
+        
+
     @classmethod
     def fromfile(cls, filepath):
         instance = cls()
@@ -145,13 +182,21 @@ class JUnitXml(Element):
             raise JUnitXmlError("Invalid format.")
         return instance
 
-    def write(self, filepath=None):
+    def write(self, filepath=None, pretty=False):
         tree = etree.ElementTree(self._elem)
         if not filepath:
             filepath = self.filepath
         if not filepath:
             raise JUnitXmlError("Missing filepath argument.")
-        tree.write(filepath, encoding='utf-8', xml_declaration=True)
+
+        if pretty:
+            from xml.dom.minidom import parseString
+            text = etree.tostring(self._elem)
+            xml = parseString(text)
+            with open(filepath, 'wb') as xmlfile:
+                xmlfile.write(xml.toprettyxml(encoding='utf-8'))
+        else:
+            tree.write(filepath, encoding='utf-8', xml_declaration=True)
 
 
 class TestSuite(Element):
@@ -180,8 +225,10 @@ class TestSuite(Element):
             if case == testcase:
                 super().remove(case)
 
-    def update_case_count(self):
+    def update_statistics(self):
+        "Updates test count and test time."
         tests = errors = failures = skipped = 0
+        time = 0
         for case in self:
             tests += 1
             if isinstance(case.result, Failure):
@@ -190,10 +237,13 @@ class TestSuite(Element):
                 errors += 1
             elif isinstance(case.result, Skipped):
                 skipped += 1
-        self.tests = str(tests)
-        self.errors = str(errors)
-        self.failures = str(failures)
-        self.skipped = str(skipped)
+            if case.time is not None:
+                time += case.time
+        self.tests = tests
+        self.errors = errors
+        self.failures = failures
+        self.skipped = skipped
+        self.time = time
 
     def add_property(self, name, value):
         props = self.child(Properties)

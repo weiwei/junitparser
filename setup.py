@@ -9,11 +9,11 @@ def read(fname):
         return ''
 
 setup(name='junitparser',
-      version='0.3',
+      version='0.5',
       description='Manipulates JUnit/xUnit Result XML files',
       long_description=read('README.rst'),
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache Software License',
           'Topic :: Text Processing',

@@ -99,7 +99,7 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(list(suite2.properties())), 3)
         self.assertEqual(len(suite2), 3)
         self.assertEqual(suite2.name, 'JUnitXmlReporter.constructor')
-        self.assertEqual(suite2.tests, '3')
+        self.assertEqual(suite2.tests, 3)
         case_results = [Failure, Skipped, type(None)]
         for case, result in zip(suite2, case_results):
             self.assertIsInstance(case.result, result)
@@ -189,6 +189,20 @@ class Test_RealFile(unittest.TestCase):
         with self.assertRaises(JUnitXmlError):
             result = case.result
 
+    def test_write_pretty(self):
+        suite1 = TestSuite()
+        suite1.name = 'suite1'
+        case1 = TestCase()
+        case1.name = '用例1'
+        suite1.add_testcase(case1)
+        result = JUnitXml()
+        result.add_testsuite(suite1)
+        result.write(self.tmp, pretty=True)
+        xml = JUnitXml.fromfile(self.tmp)
+        suite = next(iter(xml))
+        case = next(iter(suite))
+        self.assertEqual(case.name, '用例1')
+
 
 class Test_TestSuite(unittest.TestCase):
 
@@ -198,9 +212,9 @@ class Test_TestSuite(unittest.TestCase):
         <failure message="failure message" type="FailureType"/>
         </testcase></testsuite>"""
         suite = TestSuite.fromstring(text)
-        suite.update_case_count()
+        suite.update_statistics()
         self.assertEqual(suite.name, 'suitename')
-        self.assertEqual(suite.tests, '1')
+        self.assertEqual(suite.tests, 1)
 
     def test_props_fromstring(self):
         text = """<testsuite name="suitename">
@@ -231,19 +245,19 @@ class Test_TestSuite(unittest.TestCase):
         suite.add_testcase(case2)
         suite.add_testcase(case3)
         suite.add_testcase(case4)
-        suite.update_case_count()
-        self.assertEqual(suite.tests, '4')
-        self.assertEqual(suite.failures, '1')
-        self.assertEqual(suite.errors, '1')
-        self.assertEqual(suite.skipped, '1')
+        suite.update_statistics()
+        self.assertEqual(suite.tests, 4)
+        self.assertEqual(suite.failures, 1)
+        self.assertEqual(suite.errors, 1)
+        self.assertEqual(suite.skipped, 1)
 
     def test_case_count(self):
         suite = TestSuite()
         case1 = TestCase()
         suite.add_testcase(case1)
         #suite.update_case_count()
-        self.assertEqual(suite.tests, '1')
-        self.assertEqual(suite.failures, '0')
+        self.assertEqual(suite.tests, 1)
+        self.assertEqual(suite.failures, 0)
 
     def test_add_property(self):
         suite = TestSuite()
@@ -312,11 +326,11 @@ class Test_TestCase(unittest.TestCase):
         case = TestCase()
         case.name = 'testname'
         case.classname = 'testclassname'
-        case.time = '15.123'
+        case.time = 15.123
         case.result = Skipped()
         self.assertEqual(case.name, 'testname')
         self.assertEqual(case.classname, 'testclassname')
-        self.assertEqual(case.time, '15.123')
+        self.assertEqual(case.time, 15.123)
         self.assertIsInstance(case.result, Skipped)
 
     def test_case_output(self):

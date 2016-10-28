@@ -7,6 +7,7 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
    :target: https://coveralls.io/github/gastlygem/junitparser?branch=master
 
 
+.. warning:: Alpha software. APIs subject to change. Use with caution.
 
 What does it do?
 ----------------
