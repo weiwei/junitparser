@@ -1,5 +1,6 @@
 import unittest
-from junitparser import TestCase, TestSuite, Skipped, Failure, Error, Attr, JUnitXmlError, JUnitXml
+from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
+                         JUnitXmlError, JUnitXml, Property)
 from xml.etree import ElementTree as etree
 
 
@@ -103,6 +104,21 @@ class Test_RealFile(unittest.TestCase):
         for case, result in zip(suite2, case_results):
             self.assertIsInstance(case.result, result)
 
+    def test_file_is_not_xml(self):
+        text = "Not really an xml file"
+        with open(self.tmp, 'w') as f:
+            f.write(text)
+        with self.assertRaises(Exception):
+            xml = JUnitXml.fromfile(self.tmp)
+            # Raises lxml.etree.XMLSyntaxError
+
+    def test_illegal_xml_file(self):
+        text = "<some></some>"
+        with open(self.tmp, 'w') as f:
+            f.write(text)
+        with self.assertRaises(JUnitXmlError):
+            xml = JUnitXml.fromfile(self.tmp)
+        
     def test_write(self):
         suite1 = TestSuite()
         suite1.name = 'suite1'
@@ -116,6 +132,17 @@ class Test_RealFile(unittest.TestCase):
             text = f.read()
         self.assertIn('suite1', text)
         self.assertIn('case1', text)
+
+    def test_write_noarg(self):
+        suite1 = TestSuite()
+        suite1.name = 'suite1'
+        case1 = TestCase()
+        case1.name = 'case1'
+        suite1.add_testcase(case1)
+        result = JUnitXml()
+        result.add_testsuite(suite1)
+        with self.assertRaises(JUnitXmlError):
+            result.write()
 
     def test_write_nonascii(self):
         suite1 = TestSuite()
@@ -140,10 +167,27 @@ class Test_RealFile(unittest.TestCase):
         result = JUnitXml()
         result.add_testsuite(suite1)
         result.write(self.tmp)
-        xml =  JUnitXml.fromfile(self.tmp)
+        xml = JUnitXml.fromfile(self.tmp)
         suite = next(iter(xml))
         case = next(iter(suite))
         self.assertEqual(case.name, '用例1')
+
+    def test_multi_results_in_case(self):
+        # Has to be a binary string to include xml declarations.
+        text = b"""<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+   <testsuite name="JUnitXmlReporter.constructor">
+      <testcase classname="JUnitXmlReporter.constructor" name="should default path to an empty string" time="0.006">
+         <failure message="test failure">Assertion failed</failure>
+         <skipped />
+      </testcase>
+   </testsuite>
+</testsuites>"""
+        xml = JUnitXml.fromstring(text)
+        suite = next(iter(xml))
+        case = next(iter(suite))
+        with self.assertRaises(JUnitXmlError):
+            result = case.result
 
 
 class Test_TestSuite(unittest.TestCase):
@@ -216,6 +260,11 @@ class Test_TestSuite(unittest.TestCase):
             if prop.name == 'name2':
                 suite.remove_property(prop)
         self.assertEqual(len(list(suite.properties())), 2)
+
+    def test_remove_property_from_none(self):
+        suite = TestSuite()
+        suite.remove_property(Property('key', 'value'))
+        # Nothing should happen
 
     def test_suite_in_suite(self):
         suite = TestSuite('parent')
@@ -318,14 +367,22 @@ class Test_TestCase(unittest.TestCase):
     def test_system_out(self):
         case = TestCase()
         case.name = 'case1'
+        self.assertIsNone(case.system_out)
         case.system_out = "output"
         self.assertEqual(case.system_out, "output")
 
     def test_system_err(self):
         case = TestCase()
         case.name = 'case1'
+        self.assertIsNone(case.system_err)
         case.system_err = "error"
         self.assertEqual(case.system_err, "error")
+
+    def test_result_eq(self):
+        # TODO: Weird, need to think of a better API
+        self.assertEqual(Failure('A'), Failure('A'))
+        self.assertNotEqual(Skipped('B'), Skipped('A'))
+        self.assertNotEqual(Error('C'), Error('B'))
 
 if __name__ == '__main__':
     unittest.main()

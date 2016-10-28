@@ -74,9 +74,6 @@ class Element(metaclass=junitxml):
             return
         instance = cls()
         instance._elem = elem
-        for attr in vars(instance):
-            if isinstance(getattr(instance, attr), Attr):
-                setattr(instance, attr, instance._elem.attrib.get(attr))
         return instance
 
     def iterchildren(self, Child):
@@ -144,6 +141,8 @@ class JUnitXml(Element):
         tree = etree.ElementTree(self._elem)
         if not filepath:
             filepath = self.filepath
+        if not filepath:
+            raise JUnitXmlError("Missing filepath argument.")
         tree.write(filepath, encoding='utf-8', xml_declaration=True)
 
 
