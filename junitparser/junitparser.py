@@ -161,7 +161,7 @@ class JUnitXml(Element):
         time = 0
         tests = failures = errors = 0
         for suite in self:
-            suite.update_case_count()
+            suite.update_statistics()
             tests += suite.tests
             failures += suite.failures
             errors += suite.errors
