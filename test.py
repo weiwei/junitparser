@@ -60,6 +60,16 @@ class Test_JunitXml(unittest.TestCase):
         result1 += result2
         self.assertEqual(len(result1), 2)
 
+    def test_xml_statistics(self):
+        result1 = JUnitXml()
+        suite1 = TestSuite()
+        result1.add_testsuite(suite1)
+        result2 = JUnitXml()
+        suite2 = TestSuite()
+        result2.add_testsuite(suite2)
+        result3 = result1 + result2
+        result3.update_statistics()
+
 
 class Test_RealFile(unittest.TestCase):
 
@@ -118,7 +128,7 @@ class Test_RealFile(unittest.TestCase):
             f.write(text)
         with self.assertRaises(JUnitXmlError):
             xml = JUnitXml.fromfile(self.tmp)
-        
+
     def test_write(self):
         suite1 = TestSuite()
         suite1.name = 'suite1'
@@ -255,7 +265,6 @@ class Test_TestSuite(unittest.TestCase):
         suite = TestSuite()
         case1 = TestCase()
         suite.add_testcase(case1)
-        #suite.update_case_count()
         self.assertEqual(suite.tests, 1)
         self.assertEqual(suite.failures, 0)
 
@@ -297,6 +306,22 @@ class Test_TestSuite(unittest.TestCase):
         childsuite = TestSuite('child')
         suite.add_suite(childsuite)
         self.assertEqual(len(list(suite.testsuites())), 1)
+
+    def test_case_time(self):
+        suite = TestSuite()
+        case1 = TestCase()
+        case1.name = 'test1'
+        case1.time = 15
+        suite.add_testcase(case1)
+        suite.update_statistics()
+        self.assertEqual(suite.time, 15)
+
+    def test_wrong_attr_type(self):
+        suite = TestSuite()
+        with self.assertRaises(TypeError):
+            suite.time = 'abc'
+        with self.assertRaises(TypeError):
+            suite.tests = 10.5
 
 
 class Test_TestCase(unittest.TestCase):
