@@ -220,6 +220,22 @@ class TestSuite(Element):
     def __len__(self):
         return len(list(self.__iter__()))
 
+    def __eq__(self, other):
+        return (self.name == other.name and
+                self.hostname == other.hostname and
+                self.timestamp = other.timestamp) and \
+                props_eq(self.properties, other.properties)
+        def prop_eq(props1, props2):
+            props1 = list(props1)
+            props2 = list(props2)
+            if len(props1) != len(props2):
+                return False
+            props1.sort(key=lambda x: x.name)
+            props2.sort(key=lambda x: x.name)
+            zipped = zip(props1, props2)
+            return all([x == y for x, y in zipped])
+
+
     def remove_testcase(self, testcase):
         for case in self:
             if case == testcase:
@@ -303,7 +319,7 @@ class Property(Element):
         self.value = value
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == other.name and self.value == other.value
 
 
 class Result(Element):
