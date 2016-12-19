@@ -32,7 +32,7 @@ Why junitparser?
   elements and attributes. junitparser aims to support them all, by
   monkeypatching and subclassing some base classes.
 * Pythonic. You can manipulate test cases and suites in a pythonic way.
-* Simplicity. One single code file. No external dependencies. Though it will 
+* Simplicity. One single code file. No external dependencies. Though it will
   use lxml if available.
 
 Installation
@@ -66,7 +66,7 @@ format.
     suite.add_property('build', '55')
     suite.add_testcase(case1)
     suite.add_testcase(case2)
-	suite.delete_testcase(case2)
+	  suite.delete_testcase(case2)
 
     # Add suite to JunitXml
     xml = JunitXml()
@@ -114,18 +114,17 @@ You want to use an attribute that is not supported by default.
 
 .. code-block:: python
 
-    from junitparser import TestCase, Attr
+    from junitparser import TestCase, Attr, IntAttr, FloatAttr
 
     # Add the custom attribute
-    TestCase.id = Attr('id')
+    TestCase.id = IntAttr('id')
+    TestCase.rate = FloatAttr('rate')
+    TestCase.custom = Attr('custom')
     case = TestCase()
-    case.id = '123'
+    case.id = 123
+    case.rate = 0.95
+    case.custom = 'foobar'
 
-    print(case.tostring())
-
-And you get the following output::
-
-    b'<testcase id="123"/>\n'
 
 Create XML with custom element
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,7 +133,7 @@ There may be once in 1000 years you want to it this way, but anyways.
 Suppose you want to add element CustomElement to TestCase.
 
 .. code-block:: python
-    
+
     from junitparser import Element, Attr, TestSuite
 
     # Create the new element by subclassing Element,
@@ -182,7 +181,7 @@ out there for a longer time, but might not be as fun as junitparser:
 
 * xunitparser_: Read JUnit/XUnit XML files and map them to Python objects
 * xunitgen_: Generate xUnit.xml files
-* xunitmerge_: Utility for merging multiple XUnit xml reports into a single 
+* xunitmerge_: Utility for merging multiple XUnit xml reports into a single
   xml report.
 * `junit-xml`_: Creates JUnit XML test result documents that can be read by
   tools such as Jenkins

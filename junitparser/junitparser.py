@@ -17,22 +17,14 @@ class JUnitXmlError(Exception):
 
 
 class Attr:
-    "XML element attribute descriptor."
+    "XML element attribute descriptor, for string values."
 
     def __init__(self, name=None):
         self.name = name
 
     def __get__(self, instance, cls):
         "Gets value from attribute, return None if attribute doesn't exist."
-
         value = instance._elem.attrib.get(self.name)
-        if not value and self._is_container(instance):
-            instance.update_statistics()
-            value = instance._elem.attrib.get(self.name)
-        if self._is_int() and value is not None:
-            value = int(value)
-        elif self._is_float() and value is not None:
-            value = float(value)
         return value
 
     def __set__(self, instance, value):
@@ -40,18 +32,33 @@ class Attr:
         if value is not None:
             instance._elem.attrib[self.name] = str(value)
 
-    def _is_int(self):
-        int_attrs = ['tests', 'failures', 'errors', 'skipped']
-        return self.name in int_attrs
 
-    def _is_float(self):
-        return self.name == 'time'
+class IntAttr(Attr):
+    "Integer attributes"
+    def __get__(self, instance, cls):
+        result = super().__get__(instance, cls)
+        if result is None:
+            instance.update_statistics()
+            result = super().__get__(instance, cls)
+        return int(result) if result else None
+    def __set__(self, instance, value):
+        if not isinstance(value, int):
+            raise TypeError("Expected integer value.")
+        super().__set__(instance, value)
 
-    def _is_container(self, instance):
-        for container in [TestSuite, JUnitXml]:
-            if isinstance(instance, container):
-                return True
-        return False
+
+class FloatAttr(Attr):
+    "Float attributes."
+    def __get__(self, instance, cls):
+        result = super().__get__(instance, cls)
+        if result is None:
+            instance.update_statistics()
+            result = super().__get__(instance, cls)
+        return float(result) if result else None
+    def __set__(self, instance, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise TypeError("Expected float value.")
+        super().__set__(instance, value)
 
 
 def attributed(cls):
@@ -124,10 +131,10 @@ class Element(metaclass=junitxml):
 class JUnitXml(Element):
     _tag = 'testsuites'
     name = Attr()
-    time = Attr()
-    tests = Attr()
-    failures = Attr()
-    errors = Attr()
+    time = FloatAttr()
+    tests = IntAttr()
+    failures = IntAttr()
+    errors = IntAttr()
 
     def __init__(self, name=None):
         super().__init__(self._tag)
@@ -161,7 +168,7 @@ class JUnitXml(Element):
         time = 0
         tests = failures = errors = 0
         for suite in self:
-            suite.update_case_count()
+            suite.update_statistics()
             tests += suite.tests
             failures += suite.failures
             errors += suite.errors
@@ -170,7 +177,7 @@ class JUnitXml(Element):
         self.failures = failures
         self.errors = errors
         self.time = time
-        
+
 
     @classmethod
     def fromfile(cls, filepath):
@@ -203,12 +210,12 @@ class TestSuite(Element):
     _tag = 'testsuite'
     name = Attr()
     hostname = Attr()
-    time = Attr()
+    time = FloatAttr()
     timestamp = Attr()
-    tests = Attr()
-    failures = Attr()
-    errors = Attr()
-    skipped = Attr()
+    tests = IntAttr()
+    failures = IntAttr()
+    errors = IntAttr()
+    skipped = IntAttr()
 
     def __init__(self, name=None):
         super().__init__(self._tag)
@@ -365,7 +372,7 @@ class TestCase(Element):
     _tag = 'testcase'
     name = Attr()
     classname = Attr()
-    time = Attr()
+    time = FloatAttr()
     _possible_results = {Failure, Error, Skipped}
 
     def __init__(self, name=None):
@@ -435,6 +442,9 @@ class TestCase(Element):
         else:
             err = SystemErr(value)
             self.append(err)
+
+    def update_statistics(self):
+        pass
 
 
 class System(Element):
