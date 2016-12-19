@@ -86,6 +86,15 @@ class Element(metaclass=junitxml):
     def __hash__(self):
         return hash(etree.tostring(self._elem))
 
+    def __repr__(self):
+        tag = self._elem.tag
+        keys = sorted(self._elem.attrib.keys())
+        if keys:
+            attrs_str = ' '.join(['%s="%s"' % (key, self._elem.attrib[key]) for key in keys])
+            return '''<Element '%s' %s>''' % (tag, attrs_str)
+        else:
+            return '''<Element '%s'>''' % tag
+
     def append(self, elem):
         "Append an child element to current element."
         self._elem.append(elem._elem)
@@ -228,11 +237,8 @@ class TestSuite(Element):
         return len(list(self.__iter__()))
 
     def __eq__(self, other):
-        return (self.name == other.name and
-                self.hostname == other.hostname and
-                self.timestamp = other.timestamp) and \
-                props_eq(self.properties, other.properties)
-        def prop_eq(props1, props2):
+
+        def props_eq(props1, props2):
             props1 = list(props1)
             props2 = list(props2)
             if len(props1) != len(props2):
@@ -242,6 +248,10 @@ class TestSuite(Element):
             zipped = zip(props1, props2)
             return all([x == y for x, y in zipped])
 
+        return (self.name == other.name and
+                self.hostname == other.hostname and
+                self.timestamp == other.timestamp) and \
+                props_eq(self.properties(), other.properties())
 
     def remove_testcase(self, testcase):
         for case in self:
@@ -314,6 +324,18 @@ class Properties(Element):
     def __iter__(self):
         return super().iterchildren(Property)
 
+    def __eq__(self, other):
+        p1 = list(self)
+        p2 = list(other)
+        p1.sort()
+        p2.sort()
+        if len(p1) != len(p2):
+            return False
+        for e1, e2 in zip(p1, p2):
+            if e1 != e2:
+                return False
+        return True
+        
 
 class Property(Element):
     _tag = 'property'
@@ -327,6 +349,10 @@ class Property(Element):
 
     def __eq__(self, other):
         return self.name == other.name and self.value == other.value
+
+    def __lt__(self, other):
+        "Supports sort() for properties."
+        return self.name > other.name
 
 
 class Result(Element):
@@ -383,7 +409,7 @@ class TestCase(Element):
         return super().__hash__()
 
     def __eq__(self, other):
-        # TODO: May not work correctly of unreliable hash method is used.
+        # TODO: May not work correctly if unreliable hash method is used.
         return hash(self) == hash(other)
 
     @property

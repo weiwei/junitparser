@@ -9,7 +9,7 @@ def read(fname):
         return ''
 
 setup(name='junitparser',
-      version='0.8',
+      version='0.8.1',
       description='Manipulates JUnit/xUnit Result XML files',
       long_description=read('README.rst'),
       classifiers=[

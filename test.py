@@ -1,6 +1,7 @@
 import unittest
+from copy import deepcopy
 from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
-                         JUnitXmlError, JUnitXml, Property)
+                         JUnitXmlError, JUnitXml, Property, Properties)
 from xml.etree import ElementTree as etree
 
 
@@ -323,6 +324,19 @@ class Test_TestSuite(unittest.TestCase):
         with self.assertRaises(TypeError):
             suite.tests = 10.5
 
+    def test_suite_eq(self):
+        suite = TestSuite()
+        suite.add_property('name1', 'value1')
+        suite2 = deepcopy(suite)
+        self.assertEqual(suite, suite2)
+
+    def test_suite_ne(self):
+        suite = TestSuite()
+        suite.add_property('name1', 'value1')
+        suite2 = deepcopy(suite)
+        suite2.add_property('name2', 'value2')
+        self.assertNotEqual(suite, suite2)
+
 
 class Test_TestCase(unittest.TestCase):
 
@@ -434,6 +448,65 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(Failure('A'), Failure('A'))
         self.assertNotEqual(Skipped('B'), Skipped('A'))
         self.assertNotEqual(Error('C'), Error('B'))
+
+
+class Test_Properties(unittest.TestCase):
+
+    def test_property_repr1(self):
+        prop1 = Property('prop1', '1')
+        self.assertEqual(prop1.__repr__(), '<Element \'property\' name="prop1" value="1">')
+
+    def test_property_repr2(self):
+        prop1 = TestSuite()
+        self.assertEqual(prop1.__repr__(), '<Element \'testsuite\'>')
+
+    def test_property_eq(self):
+        prop1 = Property('prop1', '1')
+        prop2 = Property('prop1', '1')
+        self.assertEqual(prop1, prop2)
+
+    def test_property_ne(self):
+        prop1 = Property('prop1', '1')
+        prop2 = Property('prop1', '2')
+        self.assertNotEqual(prop1, prop2)
+
+    def test_properties_eq(self):
+        prop1 = Property('prop1', '1')
+        prop2 = Property('prop1', '2')
+        prop3 = deepcopy(prop1) # Note: an attribute can only be used at one place.
+        prop4 = deepcopy(prop2)
+        props1 = Properties()
+        props1.add_property(prop1)
+        props1.add_property(prop2)
+        props2 = Properties()
+        props2.add_property(prop3)
+        props2.add_property(prop4)
+        self.assertEqual(props1, props2)
+
+    def test_properties_ne(self):
+        prop1 = Property('prop1', '1')
+        prop2 = Property('prop1', '2')
+        prop3 = deepcopy(prop1)
+        prop4 = deepcopy(prop1)
+        props1 = Properties()
+        props1.add_property(prop1)
+        props1.add_property(prop2)
+        props2 = Properties()
+        props2.add_property(prop3)
+        props2.add_property(prop4)
+        self.assertNotEqual(props1, props2)
+
+    def test_properties_ne2(self):
+        prop1 = Property('prop1', '1')
+        prop2 = Property('prop1', '2')
+        prop3 = deepcopy(prop1)
+        props1 = Properties()
+        props1.add_property(prop1)
+        props1.add_property(prop2)
+        props2 = Properties()
+        props2.add_property(prop3)
+        self.assertNotEqual(props1, props2)
+
 
 if __name__ == '__main__':
     unittest.main()
