@@ -191,8 +191,6 @@ Changelog
 ---------
 
 0.9.0
-+++++
 
 * Supports xmls with ``testcase`` as root node.
 * First beta release.
-
