@@ -1,3 +1,4 @@
+import os
 import unittest
 from copy import deepcopy
 from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
@@ -61,6 +62,56 @@ class Test_JunitXml(unittest.TestCase):
         result1 += result2
         self.assertEqual(len(result1), 2)
 
+    def test_add_two_same_suites(self):
+        suite1 = TestSuite()
+        case1 = TestCase(name='case1')
+        suite1.add_testcase(case1)
+        suite2 = TestSuite()
+        case2 = TestCase(name='case2')
+        suite2.add_testcase(case2)
+        suite3 = TestSuite()
+        suite2.add_testsuite(suite3)
+        result = suite1 + suite2
+        self.assertIsInstance(result, TestSuite)
+        self.assertEqual(len(list(iter(result))), 2)
+        self.assertEqual(len(list(iter(result.testsuites()))), 1)
+
+    def test_iadd_two_same_suites(self):
+        suite1 = TestSuite()
+        case1 = TestCase(name='case1')
+        suite1.add_testcase(case1)
+        suite2 = TestSuite()
+        case2 = TestCase(name='case2')
+        suite2.add_testcase(case2)
+        suite3 = TestSuite()
+        suite2.add_testsuite(suite3)
+        suite1 += suite2
+        self.assertIsInstance(suite1, TestSuite)
+        self.assertEqual(len(list(iter(suite1))), 2)
+        self.assertEqual(len(list(iter(suite1.testsuites()))), 1)
+
+    def test_add_two_different_suites(self):
+        suite1 = TestSuite(name='suite1')
+        case1 = TestCase(name='case1')
+        suite1.add_testcase(case1)
+        suite2 = TestSuite(name='suite2')
+        case2 = TestCase(name='case2')
+        suite2.add_testcase(case2)
+        result = suite1 + suite2
+        self.assertIsInstance(result, JUnitXml)
+        self.assertEqual(len(list(iter(result))), 2)
+
+    def test_iadd_two_different_suites(self):
+        suite1 = TestSuite(name='suite1')
+        case1 = TestCase(name='case1')
+        suite1.add_testcase(case1)
+        suite2 = TestSuite(name='suite2')
+        case2 = TestCase(name='case2')
+        suite2.add_testcase(case2)
+        suite1 += suite2
+        self.assertIsInstance(suite1, JUnitXml)
+        self.assertEqual(len(list(iter(suite1))), 2)
+
     def test_xml_statistics(self):
         result1 = JUnitXml()
         suite1 = TestSuite()
@@ -79,7 +130,6 @@ class Test_RealFile(unittest.TestCase):
         self.tmp = tempfile.mktemp(suffix='.xml')
 
     def tearDown(self):
-        import os
         if os.path.exists(self.tmp):
             os.remove(self.tmp)
 
@@ -114,6 +164,47 @@ class Test_RealFile(unittest.TestCase):
         case_results = [Failure, Skipped, type(None)]
         for case, result in zip(suite2, case_results):
             self.assertIsInstance(case.result, result)
+
+    def test_fromfile_without_testsuites_tag(self):
+        text = """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="JUnitXmlReporter.constructor" errors="0" skipped="1" tests="3" failures="1" time="0.006" timestamp="2013-05-24T10:23:58">
+    <properties>
+        <property name="java.vendor" value="Sun Microsystems Inc." />
+        <property name="compiler.debug" value="on" />
+        <property name="project.jdk.classpath" value="jdk.classpath.1.6" />
+    </properties>
+    <testcase classname="JUnitXmlReporter.constructor" name="should default path to an empty string" time="0.006">
+        <failure message="test failure">Assertion failed</failure>
+    </testcase>
+    <testcase classname="JUnitXmlReporter.constructor" name="should default consolidate to true" time="0">
+        <skipped />
+    </testcase>
+    <testcase classname="JUnitXmlReporter.constructor" name="should default useDotNotation to true" time="0" />
+</testsuite>"""
+        with open(self.tmp, 'w') as f:
+            f.write(text)
+        xml = JUnitXml.fromfile(self.tmp)
+        cases = list(iter(xml))
+        properties = list(iter(xml.properties()))
+        self.assertEqual(len(properties), 3)
+        self.assertEqual(len(cases), 3)
+        self.assertEqual(xml.name, 'JUnitXmlReporter.constructor')
+        self.assertEqual(xml.tests, 3)
+        case_results = [Failure, Skipped, type(None)]
+        for case, result in zip(xml, case_results):
+            self.assertIsInstance(case.result, result)
+
+    def test_write_xml_withouth_testsuite_tag(self):
+        suite = TestSuite()
+        suite.name = 'suite1'
+        case = TestCase()
+        case.name = 'case1'
+        suite.add_testcase(case)
+        suite.write(self.tmp)
+        with open(self.tmp) as f:
+            text = f.read()
+        self.assertIn('suite1', text)
+        self.assertIn('case1', text)
 
     def test_file_is_not_xml(self):
         text = "Not really an xml file"
@@ -305,7 +396,7 @@ class Test_TestSuite(unittest.TestCase):
     def test_suite_in_suite(self):
         suite = TestSuite('parent')
         childsuite = TestSuite('child')
-        suite.add_suite(childsuite)
+        suite.add_testsuite(childsuite)
         self.assertEqual(len(list(suite.testsuites())), 1)
 
     def test_case_time(self):

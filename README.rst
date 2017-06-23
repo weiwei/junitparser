@@ -7,8 +7,6 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
    :target: https://coveralls.io/github/gastlygem/junitparser?branch=master
 
 
-.. warning:: Alpha software. APIs subject to change. Use with caution.
-
 What does it do?
 ----------------
 
@@ -32,8 +30,6 @@ Why junitparser?
   elements and attributes. junitparser aims to support them all, by
   monkeypatching and subclassing some base classes.
 * Pythonic. You can manipulate test cases and suites in a pythonic way.
-* Simplicity. One single code file. No external dependencies. Though it will
-  use lxml if available.
 
 Installation
 -------------
@@ -103,9 +99,11 @@ You have two or more XML files, and you want to merge them into one.
     xml2 = JUnitXml('/path/to/junit2.xml')
 
     newxml = xml1 + xml2
-    # Alternatively, merge inplace
+    # Alternatively, merge in place
     xml1 += xml2
 
+Note that it won't check for duplicate entries. You need to deal with them on
+your own.
 
 Create XML with custom attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,13 +162,6 @@ Or use pytest::
 
     pytest test.py
 
-
-TODO
-----
-
-* XML 1.0 and 1.1 compatibilities.
-* More tests, especially test for errors.
-
 Notes
 -----
 
@@ -190,3 +181,18 @@ out there for a longer time, but might not be as fun as junitparser:
 .. _xunitgen: https://pypi.python.org/pypi/xunitgen
 .. _xunitmerge: https://pypi.python.org/pypi/xunitmerge
 .. _`junit-xml`: https://pypi.python.org/pypi/junit-xml
+
+Contribute
+----------
+
+Please do!
+
+Changelog
+---------
+
+0.9.0
++++++
+
+* Supports xmls with ``testcase`` as root node.
+* First beta release.
+

@@ -11,6 +11,24 @@ try:
 except ImportError:
     from xml.etree import ElementTree as etree
 
+from copy import deepcopy
+
+def write_xml(obj, filepath=None, pretty=False):
+    tree = etree.ElementTree(obj._elem)
+    if filepath is None:
+        filepath = obj.filepath
+    if filepath is None:
+        raise JUnitXmlError("Missing filepath argument.")
+
+    if pretty:
+        from xml.dom.minidom import parseString
+        text = etree.tostring(obj._elem)
+        xml = parseString(text)
+        with open(filepath, 'wb') as xmlfile:
+            xmlfile.write(xml.toprettyxml(encoding='utf-8'))
+    else:
+        tree.write(filepath, encoding='utf-8', xml_declaration=True)
+
 
 class JUnitXmlError(Exception):
     "Exception for JUnit XML related errors."
@@ -187,32 +205,22 @@ class JUnitXml(Element):
         self.errors = errors
         self.time = time
 
-
     @classmethod
     def fromfile(cls, filepath):
-        instance = cls()
-        instance.filepath = filepath
         tree = etree.parse(filepath)
-        instance._elem = tree.getroot()
-        if instance._elem.tag != cls._tag:
+        root_elem = tree.getroot()
+        if root_elem.tag == 'testsuites':
+            instance = cls()
+        elif root_elem.tag == 'testsuite':
+            instance = TestSuite()
+        else:
             raise JUnitXmlError("Invalid format.")
+        instance._elem = root_elem
+        instance.filepath = filepath
         return instance
 
     def write(self, filepath=None, pretty=False):
-        tree = etree.ElementTree(self._elem)
-        if not filepath:
-            filepath = self.filepath
-        if not filepath:
-            raise JUnitXmlError("Missing filepath argument.")
-
-        if pretty:
-            from xml.dom.minidom import parseString
-            text = etree.tostring(self._elem)
-            xml = parseString(text)
-            with open(filepath, 'wb') as xmlfile:
-                xmlfile.write(xml.toprettyxml(encoding='utf-8'))
-        else:
-            tree.write(filepath, encoding='utf-8', xml_declaration=True)
+        write_xml(self, filepath=filepath, pretty=pretty)
 
 
 class TestSuite(Element):
@@ -229,6 +237,7 @@ class TestSuite(Element):
     def __init__(self, name=None):
         super().__init__(self._tag)
         self.name = name
+        self.filepath = None
 
     def __iter__(self):
         return super().iterchildren(TestCase)
@@ -252,6 +261,37 @@ class TestSuite(Element):
                 self.hostname == other.hostname and
                 self.timestamp == other.timestamp) and \
                 props_eq(self.properties(), other.properties())
+
+    def __add__(self, other):
+        if self == other:
+            # Merge the two suites
+            result = deepcopy(self)
+            for case in other:
+                result.add_testcase(case)
+            for suite in other.testsuites():
+                result.add_testsuite(suite)
+            result.update_statistics()
+        else:
+            # Create a new test result containing two suites
+            result = JUnitXml()
+            result.add_testsuite(self)
+            result.add_testsuite(other)
+        return result
+
+    def __iadd__(self, other):
+        if self == other:
+            for case in other:
+                self.add_testcase(case)
+            for suite in other.testsuites():
+                self.add_testsuite(suite)
+            self.update_statistics()
+            return self
+        else:
+            result = JUnitXml()
+            result.filepath = self.filepath
+            result.add_testsuite(self)
+            result.add_testsuite(other)
+            return result
 
     def remove_testcase(self, testcase):
         for case in self:
@@ -289,7 +329,7 @@ class TestSuite(Element):
     def add_testcase(self, testcase):
         self.append(testcase)
 
-    def add_suite(self, suite):
+    def add_testsuite(self, suite):
         self.append(suite)
 
     def properties(self):
@@ -310,6 +350,9 @@ class TestSuite(Element):
     def testsuites(self):
         for suite in self.iterchildren(TestSuite):
             yield suite
+
+    def write(self, filepath=None, pretty=False):
+        write_xml(self, filepath=filepath, pretty=pretty)
 
 
 class Properties(Element):
@@ -335,7 +378,7 @@ class Properties(Element):
             if e1 != e2:
                 return False
         return True
-        
+
 
 class Property(Element):
     _tag = 'property'
