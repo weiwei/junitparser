@@ -190,7 +190,7 @@ Please do!
 Changelog
 ---------
 
-0.9.0
+0.9
 
 * Supports xmls with ``testcase`` as root node.
 * First beta release.
