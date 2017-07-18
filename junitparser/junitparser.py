@@ -14,9 +14,9 @@ from builtins import object
 from io import open
 
 try:
-    from itertools import izip #python2
+    import itertools.izip as zip
 except ImportError:
-        izip = zip #python3
+    pass
 
 try:
     from lxml import etree
@@ -271,7 +271,7 @@ class TestSuite(Element):
                 return False
             props1.sort(key=lambda x: x.name)
             props2.sort(key=lambda x: x.name)
-            zipped = izip(props1, props2)
+            zipped = zip(props1, props2)
             return all([x == y for x, y in zipped])
 
         return (self.name == other.name and
@@ -391,7 +391,7 @@ class Properties(Element):
         p2.sort()
         if len(p1) != len(p2):
             return False
-        for e1, e2 in izip(p1, p2):
+        for e1, e2 in zip(p1, p2):
             if e1 != e2:
                 return False
         return True

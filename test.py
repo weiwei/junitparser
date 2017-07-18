@@ -12,9 +12,9 @@ from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
 from xml.etree import ElementTree as etree
 from io import open
 try:
-    from itertools import izip #python2
+    import itertools.izip as zip
 except ImportError:
-    izip = zip #python3
+    pass
 
 
 class Test_JunitXml(unittest.TestCase):
@@ -173,7 +173,7 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(suite2.name, 'JUnitXmlReporter.constructor')
         self.assertEqual(suite2.tests, 3)
         case_results = [Failure, Skipped, type(None)]
-        for case, result in izip(suite2, case_results):
+        for case, result in zip(suite2, case_results):
             self.assertIsInstance(case.result, result)
 
     def test_fromfile_without_testsuites_tag(self):
@@ -202,7 +202,7 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(xml.name, 'JUnitXmlReporter.constructor')
         self.assertEqual(xml.tests, 3)
         case_results = [Failure, Skipped, type(None)]
-        for case, result in izip(xml, case_results):
+        for case, result in zip(xml, case_results):
             self.assertIsInstance(case.result, result)
 
     def test_write_xml_withouth_testsuite_tag(self):
