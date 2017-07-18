@@ -165,8 +165,6 @@ Or use pytest::
 Notes
 -----
 
-Python 2 is *not* supported. Currently there is no plan to support Python 2.
-
 There are some other packages providing similar functionalities. They are
 out there for a longer time, but might not be as fun as junitparser:
 
