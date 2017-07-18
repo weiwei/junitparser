@@ -286,7 +286,7 @@ class Test_RealFile(unittest.TestCase):
 
     def test_multi_results_in_case(self):
         # Has to be a binary string to include xml declarations.
-        text = """<?xml version="1.0" encoding="UTF-8"?>
+        text = b"""<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
    <testsuite name="JUnitXmlReporter.constructor">
       <testcase classname="JUnitXmlReporter.constructor" name="should default path to an empty string" time="0.006">
