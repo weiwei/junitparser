@@ -27,6 +27,7 @@ setup(name='junitparser',
       author='Joel Wang',
       author_email='gastlygem@gmail.com',
       license='Apache 2.0',
+      install_requires=['future'],
       keywords='junit xunit xml parser',
       packages=find_packages(),
       zip_safe=False)
