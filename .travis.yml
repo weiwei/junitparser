@@ -10,7 +10,6 @@ install:
   - pip install -r requirements.txt
   - pip install flake8
   - pip install coveralls
-  - pip install future
 # command to run tests
 script:
   - py.test test.py
