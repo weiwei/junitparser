@@ -519,7 +519,7 @@ class Test_TestCase(unittest.TestCase):
         case = TestCase()
         case.name = u'test1'
         case_str = case.tostring()
-        self.assertIn('test1', case_str)
+        self.assertIn(b'test1', case_str)
 
     def test_to_nonascii_string(self):
         case = TestCase()
