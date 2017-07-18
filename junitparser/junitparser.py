@@ -10,6 +10,7 @@ from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from future.utils import with_metaclass
+from builtins import object
 from io import open
 
 try:

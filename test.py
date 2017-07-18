@@ -280,8 +280,8 @@ class Test_RealFile(unittest.TestCase):
         result.add_testsuite(suite1)
         result.write(self.tmp)
         xml = JUnitXml.fromfile(self.tmp)
-        suite = iter(xml).next()
-        case = iter(suite).next()
+        suite = next(iter(xml))
+        case = next(iter(suite))
         self.assertEqual(case.name, u'用例1')
 
     def test_multi_results_in_case(self):
@@ -296,8 +296,8 @@ class Test_RealFile(unittest.TestCase):
    </testsuite>
 </testsuites>"""
         xml = JUnitXml.fromstring(text)
-        suite = iter(xml).next()
-        case = iter(suite).next()
+        suite = next(iter(xml))
+        case = next(iter(suite))
         with self.assertRaises(JUnitXmlError):
             result = case.result
 
@@ -311,8 +311,8 @@ class Test_RealFile(unittest.TestCase):
         result.add_testsuite(suite1)
         result.write(self.tmp, pretty=True)
         xml = JUnitXml.fromfile(self.tmp)
-        suite = iter(xml).next()
-        case = iter(suite).next()
+        suite = next(iter(xml))
+        case = next(iter(suite))
         self.assertEqual(case.name, u'用例1')
 
 
@@ -373,7 +373,7 @@ class Test_TestSuite(unittest.TestCase):
     def test_add_property(self):
         suite = TestSuite()
         suite.add_property(u'name1', u'value1')
-        res_prop = suite.properties().next()
+        res_prop = next(suite.properties())
         self.assertEqual(res_prop.name, u'name1')
         self.assertEqual(res_prop.value, u'value1')
 
