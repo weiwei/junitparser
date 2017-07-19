@@ -6,12 +6,29 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 :license: Apache2, see LICENSE for more details.
 """
 
+from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from future.utils import with_metaclass
+from builtins import object
+from io import open
+
+try:
+    import itertools.izip as zip
+except ImportError:
+    pass
+
 try:
     from lxml import etree
 except ImportError:
     from xml.etree import ElementTree as etree
 
 from copy import deepcopy
+
+try:
+    UNICODE_EXISTS = bool(type(unicode))
+except NameError:
+    unicode = lambda s: str(s)
 
 def write_xml(obj, filepath=None, pretty=False):
     tree = etree.ElementTree(obj._elem)
@@ -34,7 +51,7 @@ class JUnitXmlError(Exception):
     "Exception for JUnit XML related errors."
 
 
-class Attr:
+class Attr(object):
     "XML element attribute descriptor, for string values."
 
     def __init__(self, name=None):
@@ -48,35 +65,35 @@ class Attr:
     def __set__(self, instance, value):
         "Sets XML element attribute."
         if value is not None:
-            instance._elem.attrib[self.name] = str(value)
+            instance._elem.attrib[self.name] = unicode(value)
 
 
 class IntAttr(Attr):
     "Integer attributes"
     def __get__(self, instance, cls):
-        result = super().__get__(instance, cls)
+        result = super(IntAttr, self).__get__(instance, cls)
         if result is None:
             instance.update_statistics()
-            result = super().__get__(instance, cls)
+            result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
     def __set__(self, instance, value):
         if not isinstance(value, int):
             raise TypeError("Expected integer value.")
-        super().__set__(instance, value)
+        super(IntAttr, self).__set__(instance, value)
 
 
 class FloatAttr(Attr):
     "Float attributes."
     def __get__(self, instance, cls):
-        result = super().__get__(instance, cls)
+        result = super(FloatAttr, self).__get__(instance, cls)
         if result is None:
             instance.update_statistics()
-            result = super().__get__(instance, cls)
+            result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
     def __set__(self, instance, value):
         if not (isinstance(value, float) or isinstance(value, int)):
             raise TypeError("Expected float value.")
-        super().__set__(instance, value)
+        super(FloatAttr, self).__set__(instance, value)
 
 
 def attributed(cls):
@@ -90,12 +107,12 @@ def attributed(cls):
 class junitxml(type):
     "Metaclass to decorate the xml class"
     def __new__(meta, name, bases, methods):
-        cls = super().__new__(meta, name, bases, methods)
+        cls = super(junitxml, meta).__new__(meta, name, bases, methods)
         cls = attributed(cls)
         return cls
 
 
-class Element(metaclass=junitxml):
+class Element(with_metaclass(junitxml, object)):
     "Base class for all Junit elements."
 
     def __init__(self, name=None):
@@ -164,12 +181,12 @@ class JUnitXml(Element):
     errors = IntAttr()
 
     def __init__(self, name=None):
-        super().__init__(self._tag)
+        super(JUnitXml, self).__init__(self._tag)
         self.filepath = None
         self.name = name
 
     def __iter__(self):
-        return super().iterchildren(TestSuite)
+        return super(JUnitXml, self).iterchildren(TestSuite)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -235,12 +252,12 @@ class TestSuite(Element):
     skipped = IntAttr()
 
     def __init__(self, name=None):
-        super().__init__(self._tag)
+        super(TestSuite, self).__init__(self._tag)
         self.name = name
         self.filepath = None
 
     def __iter__(self):
-        return super().iterchildren(TestCase)
+        return super(TestSuite, self).iterchildren(TestCase)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -296,7 +313,7 @@ class TestSuite(Element):
     def remove_testcase(self, testcase):
         for case in self:
             if case == testcase:
-                super().remove(case)
+                super(TestSuite, self).remove(case)
 
     def update_statistics(self):
         "Updates test count and test time."
@@ -359,13 +376,13 @@ class Properties(Element):
     _tag = 'properties'
 
     def __init__(self):
-        super().__init__(self._tag)
+        super(Properties, self).__init__(self._tag)
 
     def add_property(self, property):
         self.append(property)
 
     def __iter__(self):
-        return super().iterchildren(Property)
+        return super(Properties, self).iterchildren(Property)
 
     def __eq__(self, other):
         p1 = list(self)
@@ -386,12 +403,15 @@ class Property(Element):
     value = Attr()
 
     def __init__(self, name=None, value=None):
-        super().__init__(self._tag)
+        super(Property, self).__init__(self._tag)
         self.name = name
         self.value = value
 
     def __eq__(self, other):
         return self.name == other.name and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
 
     def __lt__(self, other):
         "Supports sort() for properties."
@@ -404,7 +424,7 @@ class Result(Element):
     type = Attr()
 
     def __init__(self, message=None, type=None):
-        super().__init__(self._tag)
+        super(Result, self).__init__(self._tag)
         if message:
             self.message = message
         if type:
@@ -420,21 +440,21 @@ class Skipped(Result):
     _tag = 'skipped'
 
     def __eq__(self, other):
-        return super().__eq__(other)
+        return super(Skipped, self).__eq__(other)
 
 
 class Failure(Result):
     _tag = 'failure'
 
     def __eq__(self, other):
-        return super().__eq__(other)
+        return super(Failure, self).__eq__(other)
 
 
 class Error(Result):
     _tag = 'error'
 
     def __eq__(self, other):
-        return super().__eq__(other)
+        return super(Error, self).__eq__(other)
 
 
 class TestCase(Element):
@@ -445,11 +465,11 @@ class TestCase(Element):
     _possible_results = {Failure, Error, Skipped}
 
     def __init__(self, name=None):
-        super().__init__(self._tag)
+        super(TestCase, self).__init__(self._tag)
         self.name = name
 
     def __hash__(self):
-        return super().__hash__()
+        return super(TestCase, self).__hash__()
 
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
@@ -521,7 +541,7 @@ class System(Element):
     _tag = ''
 
     def __init__(self, content=None):
-        super().__init__(self._tag)
+        super(System, self).__init__(self._tag)
         self.text = content
 
     @property

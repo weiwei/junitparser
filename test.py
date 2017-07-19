@@ -1,9 +1,20 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import os
 import unittest
 from copy import deepcopy
 from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
                          JUnitXmlError, JUnitXml, Property, Properties)
 from xml.etree import ElementTree as etree
+from io import open
+try:
+    import itertools.izip as zip
+except ImportError:
+    pass
 
 
 class Test_JunitXml(unittest.TestCase):
@@ -516,9 +527,9 @@ class Test_TestCase(unittest.TestCase):
         case.name = '测试1'
         case.result = Failure('失败', '类型')
         case_str = case.tostring()
-        self.assertIn('测试1', case_str.decode())
-        self.assertIn('失败', case_str.decode())
-        self.assertIn('类型', case_str.decode())
+        self.assertIn('测试1', case_str.decode('utf-8'))
+        self.assertIn('失败', case_str.decode('utf-8'))
+        self.assertIn('类型', case_str.decode('utf-8'))
 
     def test_system_out(self):
         case = TestCase()
