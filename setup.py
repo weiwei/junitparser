@@ -9,7 +9,7 @@ def read(fname):
         return ''
 
 setup(name='junitparser',
-      version='0.9.0',
+      version='1.0.0',
       description='Manipulates JUnit/xUnit Result XML files',
       long_description=read('README.rst'),
       classifiers=[
@@ -20,7 +20,6 @@ setup(name='junitparser',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',

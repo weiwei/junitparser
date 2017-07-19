@@ -188,6 +188,10 @@ Please do!
 Changelog
 ---------
 
+1.0.0
+
+* Python 2 support. Thanks to @SteinHeselmans
+
 0.9.0
 
 * Supports xmls with ``testcase`` as root node.
