@@ -14,6 +14,13 @@ install:
 script:
   - py.test test.py
   # - flake8 .
-  - coverage run test.py
+  - coverage run --source=junitparser test.py
 after_success:
   - coveralls
+deploy:
+  provider: pypi
+  user: gastlygem
+  password:
+    secure: "tCa4OnCFHcf+/4lX2rxiVX8eoDc3PgyzjAZFtvIdXtUTmKRJWcCeOFBbFSada8TVNXzSazEgEsP1uz/8rGZB7In/lxUsxR+ZmtPPzA0O93eluAs5gR2Gz/JT1D0jejp0X7JTCNnv+jhQRZQFNUlaCOhH2jzMiby3dtjgjtUNNrAAo9SgATrz/8PRHolrnLdZ+olvDNmfC9cuMozBsvWLQtvGqfO+gUjfkc1EKrendiAer67BL6BhkwlmiZ9bwPZuyOQzTZ/wHbYuF9y/kR9yYzYBIgWHjH4dD0ZaMexXVPFrKsjRN7SRy0wLN4AF0YHs8vUP1XOKfWASAZ9y3GeyzN8Rvbl4yj4END65ta7sJozs/JRqP0zZp5wGM2dQNa8BsEhVP5Arg+2XZn08UUC8le1o82w4XKFCnxErns68khsRKLGjaF8gGKGnG1IlJ29fy2HWhx3jnrstZPTdsD+kFDPqNZEH4RtWuhaD2ifnvamZ2AYxOt0PZQFbXiz4vp5F4IDxHNm6CLNQRECaK7JN++PpoZkRwiPH0lFuTdSp0j2wJN+LuNghDhR+A14p0GckLdT7GKM/x2zvEUISfQpX6qhIWjCuInS/WxqLghVxWaqfgugNHgUNzi82DLf3uKeF9r+PyIKaDbJbrLfdYBen8zc9njUI5RuJRdgVatIr6oI="
+  on:
+    tags: true

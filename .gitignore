@@ -60,3 +60,7 @@ target/
 .vs/
 *.pyproj
 *.sln
+.vscode/
+
+# Virtual env
+venv/
