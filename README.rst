@@ -49,7 +49,7 @@ format.
 
 .. code-block:: python
 
-    from junitparser import TestCase, TestSuite, JunitXml, Skipped, Error
+    from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error
 
     # Create cases
     case1 = TestCase('case1')
