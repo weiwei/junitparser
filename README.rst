@@ -78,7 +78,7 @@ You have some existing junit.xml files, and you want to modify the content.
 
     from junitparser import JUnitXml
 
-    xml = JUnitXml('/path/to/junit.xml')
+    xml = JUnitXml.fromfile('/path/to/junit.xml')
     for suite in result:
         # handle suites
         for case in suite:
@@ -95,8 +95,8 @@ You have two or more XML files, and you want to merge them into one.
 
     from junitparser import JUnitXml
 
-    xml1 = JUnitXml('/path/to/junit1.xml')
-    xml2 = JUnitXml('/path/to/junit2.xml')
+    xml1 = JUnitXml.fromfile('/path/to/junit1.xml')
+    xml2 = JUnitXml.fromfile('/path/to/junit2.xml')
 
     newxml = xml1 + xml2
     # Alternatively, merge in place
