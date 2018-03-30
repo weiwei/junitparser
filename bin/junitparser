@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import argparse
+
+from junitparser import JUnitXml
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Merge Junit XML format reports with junitparser.'
+    )
+    parser.add_argument(
+        'paths',
+        nargs='+',
+        help='Original XML path(s).',
+    )
+    parser.add_argument(
+        'output',
+        help='Merged XML Path.',
+    )
+    args = parser.parse_args()
+
+    result = JUnitXml()
+    for path in args.paths:
+        result += JUnitXml.fromfile(path)
+
+    result.update_statistics()
+    result.write(args.output)

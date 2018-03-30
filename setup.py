@@ -31,4 +31,5 @@ setup(name='junitparser',
       install_requires=['future'],
       keywords='junit xunit xml parser',
       packages=find_packages(),
+      scripts=['bin/junitparser'],
       zip_safe=False)
