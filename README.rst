@@ -79,7 +79,7 @@ You have some existing junit.xml files, and you want to modify the content.
     from junitparser import JUnitXml
 
     xml = JUnitXml.fromfile('/path/to/junit.xml')
-    for suite in result:
+    for suite in xml:
         # handle suites
         for case in suite:
             # handle cases
