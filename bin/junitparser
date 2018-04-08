@@ -4,24 +4,38 @@ import argparse
 from junitparser import JUnitXml
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Merge Junit XML format reports with junitparser.'
-    )
-    parser.add_argument(
-        'paths',
-        nargs='+',
-        help='Original XML path(s).',
-    )
-    parser.add_argument(
-        'output',
-        help='Merged XML Path.',
-    )
-    args = parser.parse_args()
-
+def merge(paths, output):
+    """Merge xml report."""
     result = JUnitXml()
     for path in args.paths:
         result += JUnitXml.fromfile(path)
 
     result.update_statistics()
     result.write(args.output)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Junitparser CLI helper.')
+
+    command_parser = parser.add_subparsers(
+        dest='command',
+        help='command')
+
+    # merge
+    merge_parser = command_parser.add_parser(
+        'merge',
+        help='Merge Junit XML format reports with junitparser.')
+    merge_parser.add_argument(
+        'paths',
+        nargs='+',
+        help='Original XML path(s).')
+    merge_parser.add_argument(
+        'output',
+        help='Merged XML Path.')
+
+    args = parser.parse_args()
+
+    # entrypoint
+    if args.command == 'merge':
+        merge(args.paths, args.output)
