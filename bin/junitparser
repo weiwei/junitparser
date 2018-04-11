@@ -18,6 +18,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Junitparser CLI helper.')
 
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + argparse.__version__)
+
     command_parser = parser.add_subparsers(
         dest='command',
         help='command')

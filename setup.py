@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 import sys
+from junitparser import __version__
 
 def read(fname):
     try:
@@ -9,11 +10,11 @@ def read(fname):
         return ''
 
 setup(name='junitparser',
-      version='1.0.0',
+      version=__version__,
       description='Manipulates JUnit/xUnit Result XML files',
       long_description=read('README.rst'),
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache Software License',
           'Topic :: Text Processing',
@@ -22,7 +23,8 @@ setup(name='junitparser',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.6',          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
       ],
       url='https://github.com/gastlygem/junitparser',
       author='Joel Wang',
