@@ -515,7 +515,7 @@ class Test_TestCase(unittest.TestCase):
         elem = etree.Element('testcase', name='case1')
         case = TestCase.fromelem(elem)
         self.assertEqual(case.name, 'case1')
-    
+
     def test_from_junit_elem(self):
         case = TestCase()
         case.name = 'test1'
