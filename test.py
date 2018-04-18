@@ -515,6 +515,21 @@ class Test_TestCase(unittest.TestCase):
         elem = etree.Element('testcase', name='case1')
         case = TestCase.fromelem(elem)
         self.assertEqual(case.name, 'case1')
+    
+    def test_from_junit_elem(self):
+        case = TestCase()
+        case.name = 'test1'
+
+        class TestOtherCase(TestCase):
+            _tag = 'TestOtherCase'
+            assertions = Attr()
+        
+        other_case = TestOtherCase.fromelem(case)
+
+        self.assertEqual(case.name, other_case.name)
+        self.assertRaises(AttributeError, lambda:case.assertions)
+        other_case.assertions = 20
+        self.assertEqual(other_case.assertions, '20')
 
     def test_to_string(self):
         case = TestCase()
