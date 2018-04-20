@@ -124,8 +124,8 @@ You want to use an attribute that is not supported by default.
     case.custom = 'foobar'
 
 
-Create XML with custom element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Handling XML with custom element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There may be once in 1000 years you want to it this way, but anyways.
 Suppose you want to add element CustomElement to TestCase.
@@ -150,6 +150,58 @@ Suppose you want to add element CustomElement to TestCase.
     for custom in testcase.iterchildren(CustomElement):
         ... # Do things with custom element
 
+Handling custom XML attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Say you have some data stored in the XML as custom attributes and you want to
+read them out:
+
+.. code-block:: python
+
+    from junitparser import Element, Attr, TestSuite
+
+    # Create the new element by subclassing Element or one of its child class,
+    # and add custom attributes to it.
+    class MyTestCase(TestCase):
+        foo = Attr()
+
+    xml = JUnitXml.fromfile('/path/to/junit.xml')
+    for suite in xml:
+        # handle suites
+        for case in suite:
+            my_case = MyTestCase.fromelem(case)
+            print(my_case.foo)
+
+Command Line
+------------
+
+.. code-block:: shell
+
+    $ junitparser --help
+    usage: junitparser [-h] [-v] {merge} ...
+
+    Junitparser CLI helper.
+
+    positional arguments:
+    {merge}        command
+      merge        Merge Junit XML format reports with junitparser.
+
+    optional arguments:
+    -h, --help     show this help message and exit
+    -v, --version  show program's version number and exit
+
+
+.. code-block:: shell
+
+    $ junitparser merge --help
+    usage: junitparser merge [-h] paths [paths ...] output
+
+    positional arguments:
+    paths       Original XML path(s).
+    output      Merged XML Path.
+
+    optional arguments:
+    -h, --help  show this help message and exit
 
 Test
 ----
@@ -180,6 +232,7 @@ out there for a longer time, but might not be as fun as junitparser:
 .. _xunitmerge: https://pypi.python.org/pypi/xunitmerge
 .. _`junit-xml`: https://pypi.python.org/pypi/junit-xml
 
+
 Contribute
 ----------
 
@@ -187,6 +240,11 @@ Please do!
 
 Changelog
 ---------
+
+1.1.0
+
+* Added a command to merge xml files. Thanks to @imsuwj
+* Added support for reading custom attributes and elements. Thanks to @arewm
 
 1.0.0
 
