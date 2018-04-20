@@ -241,10 +241,13 @@ Please do!
 Changelog
 ---------
 
+1.2.0
+
+* Added support for reading custom attributes and elements. Thanks to @arewm
+
 1.1.0
 
 * Added a command to merge xml files. Thanks to @imsuwj
-* Added support for reading custom attributes and elements. Thanks to @arewm
 
 1.0.0
 
