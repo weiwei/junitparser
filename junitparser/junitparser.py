@@ -147,7 +147,10 @@ class Element(with_metaclass(junitxml, object)):
         if elem is None:
             return
         instance = cls()
-        instance._elem = elem
+        if isinstance(elem, Element):
+            instance._elem = elem._elem
+        else:
+            instance._elem = elem
         return instance
 
     def iterchildren(self, Child):

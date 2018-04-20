@@ -516,6 +516,21 @@ class Test_TestCase(unittest.TestCase):
         case = TestCase.fromelem(elem)
         self.assertEqual(case.name, 'case1')
 
+    def test_from_junit_elem(self):
+        case = TestCase()
+        case.name = 'test1'
+
+        class TestOtherCase(TestCase):
+            _tag = 'TestOtherCase'
+            assertions = Attr()
+
+        other_case = TestOtherCase.fromelem(case)
+
+        self.assertEqual(case.name, other_case.name)
+        self.assertRaises(AttributeError, lambda: case.assertions)
+        other_case.assertions = 20
+        self.assertEqual(other_case.assertions, '20')
+
     def test_to_string(self):
         case = TestCase()
         case.name = 'test1'
@@ -556,7 +571,8 @@ class Test_Properties(unittest.TestCase):
 
     def test_property_repr1(self):
         prop1 = Property('prop1', '1')
-        self.assertEqual(prop1.__repr__(), '<Element \'property\' name="prop1" value="1">')
+        self.assertEqual(prop1.__repr__(),
+                         '<Element \'property\' name="prop1" value="1">')
 
     def test_property_repr2(self):
         prop1 = TestSuite()
@@ -575,7 +591,8 @@ class Test_Properties(unittest.TestCase):
     def test_properties_eq(self):
         prop1 = Property('prop1', '1')
         prop2 = Property('prop1', '2')
-        prop3 = deepcopy(prop1) # Note: an attribute can only be used at one place.
+        # Note: an attribute can only be used at one place.
+        prop3 = deepcopy(prop1)
         prop4 = deepcopy(prop2)
         props1 = Properties()
         props1.add_property(prop1)
