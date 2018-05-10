@@ -8,7 +8,8 @@ import os
 import unittest
 from copy import deepcopy
 from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
-                         JUnitXmlError, JUnitXml, Property, Properties)
+                         JUnitXmlError, JUnitXml, Property, Properties, IntAttr,
+                         FloatAttr)
 from xml.etree import ElementTree as etree
 from io import open
 try:
@@ -625,6 +626,21 @@ class Test_Properties(unittest.TestCase):
         props2 = Properties()
         props2.add_property(prop3)
         self.assertNotEqual(props1, props2)
+
+
+class Test_Attrs(unittest.TestCase):
+
+    def test_attr(self):
+        TestCase.text = Attr("text")
+        TestCase.int = IntAttr("int")
+        TestCase.float = FloatAttr("float")
+        element = TestCase("foo")
+        element.text = "foo"
+        element.int = 10
+        element.float = 8.5
+        self.assertEqual(element.text, "foo")
+        self.assertEqual(element.int, 10)
+        self.assertEqual(element.float, 8.5)
 
 
 if __name__ == '__main__':

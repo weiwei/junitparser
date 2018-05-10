@@ -72,7 +72,9 @@ class IntAttr(Attr):
     "Integer attributes"
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
-        if result is None:
+        if result is None and \
+            (isinstance(instance, JUnitXml) or 
+            isinstance(instance, TestSuite)):
             instance.update_statistics()
             result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
@@ -86,7 +88,9 @@ class FloatAttr(Attr):
     "Float attributes."
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
-        if result is None:
+        if result is None and \
+            (isinstance(instance, JUnitXml) or 
+            isinstance(instance, TestSuite)):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
