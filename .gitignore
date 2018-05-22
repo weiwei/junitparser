@@ -64,3 +64,7 @@ target/
 
 # Virtual env
 venv/
+
+.DS_Store
+
+.pytest_cache/

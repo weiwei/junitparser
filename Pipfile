@@ -4,10 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pytest = "*"
 future = "*"
 
 [dev-packages]
+pytest = "*"
+coveralls = "*"
 
 [requires]
 python_version = "3.6"
