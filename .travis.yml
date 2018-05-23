@@ -8,21 +8,23 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
-  - pip install pytest flake8 coveralls codacy-coverage
+  - pip install pytest
+script:
+  - py.test test.py
 
 stages:
   - test
-  - upload_coverage
+  - quality
   - name: deploy
     if: branch = master AND tag IS present
 
 jobs:
   include:
-    - stage: test
-      script:
-        - py.test test.py
-    - stage: coverage
+    - stage: quality
       python: 3.6
+      install:
+        - pip install -r requirements.txt
+        - pip install pytest flake8 coveralls codacy-coverage
       script:
         - coverage run --source=junitparser test.py
         - coverage xml
