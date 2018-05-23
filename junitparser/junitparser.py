@@ -30,6 +30,7 @@ try:
 except NameError:
     unicode = lambda s: str(s)
 
+
 def write_xml(obj, filepath=None, pretty=False):
     tree = etree.ElementTree(obj._elem)
     if filepath is None:
@@ -39,12 +40,13 @@ def write_xml(obj, filepath=None, pretty=False):
 
     if pretty:
         from xml.dom.minidom import parseString
+
         text = etree.tostring(obj._elem)
         xml = parseString(text)
-        with open(filepath, 'wb') as xmlfile:
-            xmlfile.write(xml.toprettyxml(encoding='utf-8'))
+        with open(filepath, "wb") as xmlfile:
+            xmlfile.write(xml.toprettyxml(encoding="utf-8"))
     else:
-        tree.write(filepath, encoding='utf-8', xml_declaration=True)
+        tree.write(filepath, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -70,14 +72,16 @@ class Attr(object):
 
 class IntAttr(Attr):
     "Integer attributes"
+
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
-        if result is None and \
-            (isinstance(instance, JUnitXml) or 
-            isinstance(instance, TestSuite)):
+        if result is None and (
+            isinstance(instance, JUnitXml) or isinstance(instance, TestSuite)
+        ):
             instance.update_statistics()
             result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
+
     def __set__(self, instance, value):
         if not isinstance(value, int):
             raise TypeError("Expected integer value.")
@@ -86,14 +90,16 @@ class IntAttr(Attr):
 
 class FloatAttr(Attr):
     "Float attributes."
+
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
-        if result is None and \
-            (isinstance(instance, JUnitXml) or 
-            isinstance(instance, TestSuite)):
+        if result is None and (
+            isinstance(instance, JUnitXml) or isinstance(instance, TestSuite)
+        ):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
+
     def __set__(self, instance, value):
         if not (isinstance(value, float) or isinstance(value, int)):
             raise TypeError("Expected float value.")
@@ -110,6 +116,7 @@ def attributed(cls):
 
 class junitxml(type):
     "Metaclass to decorate the xml class"
+
     def __new__(meta, name, bases, methods):
         cls = super(junitxml, meta).__new__(meta, name, bases, methods)
         cls = attributed(cls)
@@ -129,10 +136,12 @@ class Element(with_metaclass(junitxml, object)):
         tag = self._elem.tag
         keys = sorted(self._elem.attrib.keys())
         if keys:
-            attrs_str = ' '.join(['%s="%s"' % (key, self._elem.attrib[key]) for key in keys])
-            return '''<Element '%s' %s>''' % (tag, attrs_str)
+            attrs_str = " ".join(
+                ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
+            )
+            return """<Element '%s' %s>""" % (tag, attrs_str)
         else:
-            return '''<Element '%s'>''' % tag
+            return """<Element '%s'>""" % tag
 
     def append(self, elem):
         "Append an child element to current element."
@@ -176,11 +185,11 @@ class Element(with_metaclass(junitxml, object)):
 
     def tostring(self):
         "Converts element to XML string."
-        return etree.tostring(self._elem, encoding='utf-8')
+        return etree.tostring(self._elem, encoding="utf-8")
 
 
 class JUnitXml(Element):
-    _tag = 'testsuites'
+    _tag = "testsuites"
     name = Attr()
     time = FloatAttr()
     tests = IntAttr()
@@ -233,9 +242,9 @@ class JUnitXml(Element):
     def fromfile(cls, filepath):
         tree = etree.parse(filepath)
         root_elem = tree.getroot()
-        if root_elem.tag == 'testsuites':
+        if root_elem.tag == "testsuites":
             instance = cls()
-        elif root_elem.tag == 'testsuite':
+        elif root_elem.tag == "testsuite":
             instance = TestSuite()
         else:
             raise JUnitXmlError("Invalid format.")
@@ -248,7 +257,7 @@ class JUnitXml(Element):
 
 
 class TestSuite(Element):
-    _tag = 'testsuite'
+    _tag = "testsuite"
     name = Attr()
     hostname = Attr()
     time = FloatAttr()
@@ -281,10 +290,11 @@ class TestSuite(Element):
             zipped = zip(props1, props2)
             return all([x == y for x, y in zipped])
 
-        return (self.name == other.name and
-                self.hostname == other.hostname and
-                self.timestamp == other.timestamp) and \
-                props_eq(self.properties(), other.properties())
+        return (
+            self.name == other.name
+            and self.hostname == other.hostname
+            and self.timestamp == other.timestamp
+        ) and props_eq(self.properties(), other.properties())
 
     def __add__(self, other):
         if self == other:
@@ -380,7 +390,7 @@ class TestSuite(Element):
 
 
 class Properties(Element):
-    _tag = 'properties'
+    _tag = "properties"
 
     def __init__(self):
         super(Properties, self).__init__(self._tag)
@@ -405,7 +415,7 @@ class Properties(Element):
 
 
 class Property(Element):
-    _tag = 'property'
+    _tag = "property"
     name = Attr()
     value = Attr()
 
@@ -438,34 +448,36 @@ class Result(Element):
             self.type = type
 
     def __eq__(self, other):
-        return (self._tag == other._tag and
-                self.type == other.type and
-                self.message == other.message)
+        return (
+            self._tag == other._tag
+            and self.type == other.type
+            and self.message == other.message
+        )
 
 
 class Skipped(Result):
-    _tag = 'skipped'
+    _tag = "skipped"
 
     def __eq__(self, other):
         return super(Skipped, self).__eq__(other)
 
 
 class Failure(Result):
-    _tag = 'failure'
+    _tag = "failure"
 
     def __eq__(self, other):
         return super(Failure, self).__eq__(other)
 
 
 class Error(Result):
-    _tag = 'error'
+    _tag = "error"
 
     def __eq__(self, other):
         return super(Error, self).__eq__(other)
 
 
 class TestCase(Element):
-    _tag = 'testcase'
+    _tag = "testcase"
     name = Attr()
     classname = Attr()
     time = FloatAttr()
@@ -545,7 +557,7 @@ class TestCase(Element):
 
 class System(Element):
     "Parent class for SystemOut and SystemErr"
-    _tag = ''
+    _tag = ""
 
     def __init__(self, content=None):
         super(System, self).__init__(self._tag)
@@ -561,8 +573,8 @@ class System(Element):
 
 
 class SystemOut(System):
-    _tag = 'system-out'
+    _tag = "system-out"
 
 
 class SystemErr(System):
-    _tag = 'system-err'
+    _tag = "system-err"
