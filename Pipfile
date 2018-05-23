@@ -8,7 +8,7 @@ future = "*"
 
 [dev-packages]
 pytest = "*"
-coveralls = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"
