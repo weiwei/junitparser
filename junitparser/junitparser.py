@@ -480,6 +480,7 @@ class TestCase(Element):
     _tag = "testcase"
     name = Attr()
     classname = Attr()
+    file = Attr()
     time = FloatAttr()
     _possible_results = {Failure, Error, Skipped}
 
