@@ -372,6 +372,22 @@ class Test_TestSuite(unittest.TestCase):
         self.assertEqual(suite.tests, 1)
         self.assertEqual(suite.failures, 0)
 
+    def test_group_test_suites(self):
+        suite = TestSuite()
+        case1 = TestCase()
+        case1.classname = "class1"
+        case1.time = 1.0
+        case2 = TestCase()
+        case2.classname = "class2"
+        case2.time = 2.0
+        suite.add_testcase(case1)
+        suite.add_testcase(case2)
+        suites = suite.group_by('classname')
+        self.assertEqual(suites['class1'].time, 1.0)
+        self.assertEqual(next(iter(suites['class1'])), case1)
+        self.assertEqual(suites['class2'].time, 2.0)
+        self.assertEqual(next(iter(suites['class2'])), case2)
+
     def test_add_property(self):
         suite = TestSuite()
         suite.add_property('name1', 'value1')
@@ -454,6 +470,7 @@ class Test_TestCase(unittest.TestCase):
         self.assertIsInstance(case.result, Failure)
         self.assertEqual(case.system_out, "System out")
         self.assertEqual(case.system_err, "System err")
+        self.assertFalse(case.is_success)
 
     def test_illegal_xml_multi_results(self):
         text = """<testcase name="testname">
@@ -470,9 +487,13 @@ class Test_TestCase(unittest.TestCase):
         case.classname = 'testclassname'
         case.time = 15.123
         case.result = Skipped()
+        case.file = 'myfile.py'
+        case.line = 123
         self.assertEqual(case.name, 'testname')
         self.assertEqual(case.classname, 'testclassname')
         self.assertEqual(case.time, 15.123)
+        self.assertEqual(case.file, 'myfile.py')
+        self.assertEqual(case.line, 123)
         self.assertIsInstance(case.result, Skipped)
 
     def test_case_output(self):

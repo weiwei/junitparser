@@ -12,6 +12,9 @@ from __future__ import unicode_literals
 from future.utils import with_metaclass
 from builtins import object
 from io import open
+from collections import defaultdict
+import six
+import operator
 
 try:
     import itertools.izip as zip
@@ -388,6 +391,36 @@ class TestSuite(Element):
     def write(self, filepath=None, pretty=False):
         write_xml(self, filepath=filepath, pretty=pretty)
 
+    def group_by(self, key=None):
+        """
+        Split a TestSuite into multiple TestSuite using a TestCase attribute. For exemple, if I have a TestSuite like
+        this:
+          TestSuite(TestCase(classname=class1), TestCase(classname=class2))
+
+        and I split it using this method like this:
+          test_suite.group_by('classname')
+
+        I'll get this dict in return:
+        {'class1': TestSuite(TestCase(classname='class1')), 'class2': TestSuite(TestCase(classname='class2'))}
+
+        :param key: A TestCase attribute or a callable that returns an hashable python object
+        :return: A dict of key: TestSuites
+        """
+        if isinstance(key, six.string_types):
+            key = operator.attrgetter(key)
+        groups = defaultdict(list)
+        for test_case in self:
+            groups[key(test_case)].append(test_case)
+        test_suites = {}
+        for key, test_cases in groups.items():
+            test_suite = TestSuite(key)
+            for test_case in test_cases:
+                test_suite.append(test_case)
+            test_suite.update_statistics()
+            test_suites[key] = test_suite
+        return test_suites
+
+
 
 class Properties(Element):
     _tag = "properties"
@@ -447,6 +480,14 @@ class Result(Element):
         if type:
             self.type = type
 
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
+
     def __eq__(self, other):
         return (
             self._tag == other._tag
@@ -481,6 +522,7 @@ class TestCase(Element):
     name = Attr()
     classname = Attr()
     file = Attr()
+    line = IntAttr()
     time = FloatAttr()
     _possible_results = {Failure, Error, Skipped}
 
@@ -551,6 +593,10 @@ class TestCase(Element):
         else:
             err = SystemErr(value)
             self.append(err)
+
+    @property
+    def is_success(self):
+        return self.result is None or isinstance(self.result, Skipped)
 
     def update_statistics(self):
         pass
