@@ -26,9 +26,6 @@ jobs:
     - coverage run --source=junitparser test.py
     - coverage xml
     - coveralls
-  - stage: codacity
-    python: 3.6
-    script:
     - python-codacy-coverage -r coverage.xml
   - stage: deploy
     python: 3.6
