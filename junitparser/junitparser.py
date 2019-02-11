@@ -216,8 +216,15 @@ class JUnitXml(Element):
         return result
 
     def __iadd__(self, other):
-        for suite in other:
+        if other._elem.tag == "testsuites":
+            for suite in other:
+                self.add_testsuite(suite)
+        elif other._elem.tag == "testsuite":
+            suite = TestSuite()
+            for case in other:
+                suite.add_testcase(case)
             self.add_testsuite(suite)
+
         return self
 
     def add_testsuite(self, suite):
@@ -226,16 +233,18 @@ class JUnitXml(Element):
     def update_statistics(self):
         "Update test count, time, etc."
         time = 0
-        tests = failures = errors = 0
+        tests = failures = errors = skipped = 0
         for suite in self:
             suite.update_statistics()
             tests += suite.tests
             failures += suite.failures
             errors += suite.errors
+            skipped += suite.skipped
             time += suite.time
         self.tests = tests
         self.failures = failures
         self.errors = errors
+        self.skipped = skipped
         self.time = time
 
     @classmethod
