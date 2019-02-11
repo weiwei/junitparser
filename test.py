@@ -18,6 +18,29 @@ except ImportError:
     pass
 
 
+class Test_MergeSuiteCounts(unittest.TestCase):
+
+    def test_merge_test_count(self):
+        text1 = """<testsuite name="suitename1" tests="2" failures="1">
+        <testcase name="testname1"><failure message="failed"/></testcase>
+        <testcase name="testname2"></testcase>
+        </testsuite>"""
+        test_suite1 = TestSuite.fromstring(text1)
+
+        text2 = """<testsuite name="suitename2" tests="2" skipped="1">
+        <testcase name="testname3"><skipped message="no reason given"/></testcase>
+        <testcase name="testname4"></testcase>
+        </testsuite>"""
+        test_suite2 = TestSuite.fromstring(text2)
+
+        combined_suites = JUnitXml()
+        combined_suites += test_suite1
+        combined_suites += test_suite2
+        self.assertEqual(combined_suites.tests, 4)
+        self.assertEqual(combined_suites.failures, 1)
+        self.assertEqual(combined_suites.skipped, 1)
+
+
 class Test_JunitXml(unittest.TestCase):
 
     def test_fromstring(self):
