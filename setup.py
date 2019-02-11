@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 import os
 import sys
-from junitparser import __version__
 
 def read(fname):
     try:
@@ -10,7 +9,7 @@ def read(fname):
         return ''
 
 setup(name='junitparser',
-      version=__version__,
+      version="1.3.1",
       description='Manipulates JUnit/xUnit Result XML files',
       long_description=read('README.rst'),
       classifiers=[
