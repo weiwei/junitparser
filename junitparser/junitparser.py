@@ -26,9 +26,9 @@ except ImportError:
 from copy import deepcopy
 
 try:
-    UNICODE_EXISTS = bool(type(unicode))
+    type(unicode)
 except NameError:
-    unicode = lambda s: str(s)
+    unicode = str
 
 
 def write_xml(obj, filepath=None, pretty=False):
@@ -54,7 +54,13 @@ class JUnitXmlError(Exception):
 
 
 class Attr(object):
-    "XML element attribute descriptor, for string values."
+    """An attribute for an XML element.
+
+    By default they are all string values. To support different value types,
+    inherit this class and define your own methods.
+
+    Also see: :class:`InitAttr`, :class:`FloatAttr`.
+    """
 
     def __init__(self, name=None):
         self.name = name
@@ -71,7 +77,11 @@ class Attr(object):
 
 
 class IntAttr(Attr):
-    "Integer attributes"
+    """An integer attribute for an XML element.
+
+    This class is used internally for counting test cases, but you could use
+    it for any specific purpose.
+    """
 
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
@@ -89,7 +99,11 @@ class IntAttr(Attr):
 
 
 class FloatAttr(Attr):
-    "Float attributes."
+    """A float attribute for an XML element.
+
+    This class is used internally for counting test durations, but you could
+    use it for any specific purpose.
+    """
 
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
@@ -124,7 +138,7 @@ class junitxml(type):
 
 
 class Element(with_metaclass(junitxml, object)):
-    "Base class for all Junit elements."
+    "Base class for all Junit XML elements."
 
     def __init__(self, name=None):
         self._elem = etree.Element(name)
@@ -143,20 +157,22 @@ class Element(with_metaclass(junitxml, object)):
         else:
             return """<Element '%s'>""" % tag
 
-    def append(self, elem):
-        "Append an child element to current element."
-        self._elem.append(elem._elem)
+    def append(self, sub_elem):
+        """Adds the element subelement to the end of this elements internal
+        list of subelements.
+        """
+        self._elem.append(sub_elem._elem)
 
     @classmethod
     def fromstring(cls, text):
-        "Construct Junit objects with XML string."
+        "Construct Junit objects from a XML string."
         instance = cls()
         instance._elem = etree.fromstring(text)
         return instance
 
     @classmethod
     def fromelem(cls, elem):
-        "Constructs Junit objects with an element."
+        "Constructs Junit objects from an elementTree element."
         if elem is None:
             return
         instance = cls()
@@ -173,14 +189,15 @@ class Element(with_metaclass(junitxml, object)):
             yield Child.fromelem(elem)
 
     def child(self, Child):
-        "Find a single child of specified type."
+        "Find a single child of specified Child type."
         elem = self._elem.find(Child._tag)
         return Child.fromelem(elem)
 
-    def remove(self, instance):
-        for elem in self._elem.iterfind(instance._tag):
-            child = instance.__class__.fromelem(elem)
-            if child == instance:
+    def remove(self, sub_elem):
+        "Remove a sub element."
+        for elem in self._elem.iterfind(sub_elem._tag):
+            child = sub_elem.__class__.fromelem(elem)
+            if child == sub_elem:
                 self._elem.remove(child._elem)
 
     def tostring(self):
@@ -189,6 +206,18 @@ class Element(with_metaclass(junitxml, object)):
 
 
 class JUnitXml(Element):
+    """The JUnitXml root object.
+
+    It may contains a :class:`TestSuites` or a :class:`TestSuite`.
+
+    Attributes:
+        name: test suite name if it only contains one test suite
+        time: time consumed by the test suites
+        tests: total number of tests
+        failures: number of failed cases
+        errors: number of cases with errors
+    """
+
     _tag = "testsuites"
     name = Attr()
     time = FloatAttr()
@@ -228,6 +257,7 @@ class JUnitXml(Element):
         return self
 
     def add_testsuite(self, suite):
+        "Add a test suite"
         self.append(suite)
 
     def update_statistics(self):
@@ -249,6 +279,7 @@ class JUnitXml(Element):
 
     @classmethod
     def fromfile(cls, filepath):
+        "Initiate the object from a report file."
         tree = etree.parse(filepath)
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
@@ -262,10 +293,28 @@ class JUnitXml(Element):
         return instance
 
     def write(self, filepath=None, pretty=False):
+        """Write the object into a junit xml file.
+
+        If `file_path` is not specified, it will write to the original file.
+        If `pretty` is True, the result file will be more human friendly.
+        """
         write_xml(self, filepath=filepath, pretty=pretty)
 
 
 class TestSuite(Element):
+    """The <testsuite> object.
+
+    Attributes:
+        name: test suite name
+        hostname: name of the test machine
+        time: time concumed by the test suite
+        timestamp: when the test was run
+        tests: total number of tests
+        failures: number of failed tests
+        errors: number of cases with errors
+        skipped: number of skipped cases
+    """
+
     _tag = "testsuite"
     name = Attr()
     hostname = Attr()
@@ -337,9 +386,11 @@ class TestSuite(Element):
             return result
 
     def remove_testcase(self, testcase):
+        "Removes a test case from the suite."
         for case in self:
             if case == testcase:
                 super(TestSuite, self).remove(case)
+                self.update_statistics()
 
     def update_statistics(self):
         "Updates test count and test time."
@@ -362,6 +413,11 @@ class TestSuite(Element):
         self.time = time
 
     def add_property(self, name, value):
+        """Adds a property to the testsuite.
+
+        See :class:`Property` and :class:`Properties`
+        """
+
         props = self.child(Properties)
         if props is None:
             props = Properties()
@@ -370,12 +426,16 @@ class TestSuite(Element):
         props.add_property(prop)
 
     def add_testcase(self, testcase):
+        "Adds a testcase to the suite."
         self.append(testcase)
+        self.update_statistics()
 
     def add_testsuite(self, suite):
+        "Adds a testsuite inside current testsuite."
         self.append(suite)
 
     def properties(self):
+        "Iterates through all properties."
         props = self.child(Properties)
         if props is None:
             return
@@ -383,6 +443,7 @@ class TestSuite(Element):
             yield prop
 
     def remove_property(self, property):
+        "Removes a property."
         props = self.child(Properties)
         if props is None:
             return
@@ -391,6 +452,7 @@ class TestSuite(Element):
                 props.remove(property)
 
     def testsuites(self):
+        "Iterates through all testsuites."
         for suite in self.iterchildren(TestSuite):
             yield suite
 
@@ -399,6 +461,11 @@ class TestSuite(Element):
 
 
 class Properties(Element):
+    """A list of properties inside a test suite.
+
+    See :class:`Property`
+    """
+
     _tag = "properties"
 
     def __init__(self):
@@ -424,6 +491,14 @@ class Properties(Element):
 
 
 class Property(Element):
+    """A key/value pare that's stored in the test suite.
+
+    Use it to store anything you find interesting or useful.
+
+    Attributes:
+        name: the property name
+        value: the property value
+    """
     _tag = "property"
     name = Attr()
     value = Attr()
@@ -445,6 +520,13 @@ class Property(Element):
 
 
 class Result(Element):
+    """Base class for test result.
+
+    Attributes:
+        message: result as message string
+        type: message type
+    """
+
     _tag = None
     message = Attr()
     type = Attr()
@@ -465,6 +547,7 @@ class Result(Element):
 
 
 class Skipped(Result):
+    "Test result when the case is skipped."
     _tag = "skipped"
 
     def __eq__(self, other):
@@ -472,6 +555,7 @@ class Skipped(Result):
 
 
 class Failure(Result):
+    "Test result when the case failed."
     _tag = "failure"
 
     def __eq__(self, other):
@@ -479,18 +563,34 @@ class Failure(Result):
 
 
 class Error(Result):
+    "Test result when the case has errors during execution."
     _tag = "error"
 
     def __eq__(self, other):
         return super(Error, self).__eq__(other)
 
 
+POSSIBLE_RESULTS = {Failure, Error, Skipped}
+
+
 class TestCase(Element):
+    """Object to store a testcase and its result.
+
+    Attributes:
+        name: case name
+        classname: the parent class of the case
+        time: how much time is consumed by the test
+
+    Properties:
+        result: Failure, Skipped, or Error
+        system_out: stdout
+        system_err: stderr
+    """
+
     _tag = "testcase"
     name = Attr()
     classname = Attr()
     time = FloatAttr()
-    _possible_results = {Failure, Error, Skipped}
 
     def __init__(self, name=None):
         super(TestCase, self).__init__(self._tag)
@@ -505,9 +605,9 @@ class TestCase(Element):
 
     @property
     def result(self):
-        "One of the Failure, Skipped, and Error objects."
+        "One of the Failure, Skipped, or Error objects."
         results = []
-        for res in self._possible_results:
+        for res in POSSIBLE_RESULTS:
             result = self.child(res)
             if result is not None:
                 results.append(result)
@@ -521,7 +621,7 @@ class TestCase(Element):
     @result.setter
     def result(self, value):
         # First remove all existing results
-        for res in self._possible_results:
+        for res in POSSIBLE_RESULTS:
             result = self.child(res)
             if result is not None:
                 self.remove(result)
@@ -530,6 +630,7 @@ class TestCase(Element):
 
     @property
     def system_out(self):
+        "stdout."
         elem = self.child(SystemOut)
         if elem is not None:
             return elem.text
@@ -546,6 +647,7 @@ class TestCase(Element):
 
     @property
     def system_err(self):
+        "stderr."
         elem = self.child(SystemErr)
         if elem is not None:
             return elem.text
@@ -561,11 +663,16 @@ class TestCase(Element):
             self.append(err)
 
     def update_statistics(self):
+        # TODO: update statistics when case result is chagned.
         pass
 
 
 class System(Element):
-    "Parent class for SystemOut and SystemErr"
+    """Parent class for SystemOut and SystemErr.
+
+    Attributes:
+        text: the output message
+    """
     _tag = ""
 
     def __init__(self, content=None):

@@ -27,12 +27,12 @@ Why junitparser?
 ----------------
 
 * Functionality. There are various JUnit/xUnit XML libraries, some does
-  parsing, some does XML generation, some does manipulation. This module tries
-  to do most functions in a single package.
+  parsing, some does XML generation, some does manipulation. This module does 
+  all in a single package.
 * Extensibility. JUnit/xUnit is hardly a standardized format. The base format
   is somewhat universally agreed with, but beyond that, there could be "custom"
   elements and attributes. junitparser aims to support them all, by
-  monkeypatching and subclassing some base classes.
+  allowing the user to monkeypatch and subclass some base classes.
 * Pythonic. You can manipulate test cases and suites in a pythonic way.
 
 Installation
@@ -44,6 +44,9 @@ Installation
 
 Usage
 -----
+
+You should be relatively familiar with the Junit XML format. If not, run
+``pydoc`` on the exposed classes and functions to see how it's structured.
 
 Create Junit XML format reports from scratch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,7 +225,8 @@ Notes
 -----
 
 There are some other packages providing similar functionalities. They are
-out there for a longer time, but might not be as fun as junitparser:
+out there for a longer time, but might not be as feature-rich or fun as 
+junitparser:
 
 * xunitparser_: Read JUnit/XUnit XML files and map them to Python objects
 * xunitgen_: Generate xUnit.xml files

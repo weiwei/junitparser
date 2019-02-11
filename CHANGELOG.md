@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- More docstrings
+
+## [1.3.1] - 2019-02-11
+### Fixed
+- Install with --no-binary
 
 ## [1.3.0] - 2019-02-11
 ### Fixed
