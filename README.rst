@@ -69,7 +69,7 @@ format.
 	  suite.delete_testcase(case2)
 
     # Add suite to JunitXml
-    xml = JunitXml()
+    xml = JUnitXml()
     xml.add_testsuite(suite)
     xml.write('junit.xml')
 
