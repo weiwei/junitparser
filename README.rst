@@ -241,23 +241,3 @@ Contribute
 ----------
 
 Please do!
-
-Changelog
----------
-
-1.2.0
-
-* Added support for reading custom attributes and elements. Thanks to @arewm
-
-1.1.0
-
-* Added a command to merge xml files. Thanks to @imsuwj
-
-1.0.0
-
-* Python 2 support. Thanks to @SteinHeselmans
-
-0.9.0
-
-* Supports xmls with ``testcase`` as root node.
-* First beta release.
