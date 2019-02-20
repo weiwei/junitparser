@@ -2,7 +2,7 @@
 junitparser is a JUnit/xUnit Result XML Parser. Use it to parse and manipulate
 existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
-:copyright: (c) 2018 by Joel Wang.
+:copyright: (c) 2019 by Joel Wang.
 :license: Apache2, see LICENSE for more details.
 """
 
@@ -442,14 +442,14 @@ class TestSuite(Element):
         for prop in props:
             yield prop
 
-    def remove_property(self, property):
+    def remove_property(self, property_):
         "Removes a property."
         props = self.child(Properties)
         if props is None:
             return
         for prop in props:
-            if prop == property:
-                props.remove(property)
+            if prop == property_:
+                props.remove(property_)
 
     def testsuites(self):
         "Iterates through all testsuites."
@@ -471,8 +471,8 @@ class Properties(Element):
     def __init__(self):
         super(Properties, self).__init__(self._tag)
 
-    def add_property(self, property):
-        self.append(property)
+    def add_property(self, property_):
+        self.append(property_)
 
     def __iter__(self):
         return super(Properties, self).iterchildren(Property)
@@ -531,12 +531,12 @@ class Result(Element):
     message = Attr()
     type = Attr()
 
-    def __init__(self, message=None, type=None):
+    def __init__(self, message=None, type_=None):
         super(Result, self).__init__(self._tag)
         if message:
             self.message = message
         if type:
-            self.type = type
+            self.type = type_
 
     def __eq__(self, other):
         return (
