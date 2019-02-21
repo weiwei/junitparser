@@ -51,6 +51,7 @@ class Test_JunitXml(unittest.TestCase):
         <testcase name="testname2">
         </testcase></testsuite></testsuites>"""
         result = JUnitXml.fromstring(text)
+        self.assertEqual(result.time, 0)
         self.assertEqual(len(result), 2)
 
     def test_add_suite(self):
@@ -344,11 +345,12 @@ class Test_RealFile(unittest.TestCase):
 class Test_TestSuite(unittest.TestCase):
 
     def test_fromstring(self):
-        text = """<testsuite name="suitename">
+        text = """<testsuite name="suitename" time="1.32">
         <testcase name="testname">
         <failure message="failure message" type="FailureType"/>
         </testcase></testsuite>"""
         suite = TestSuite.fromstring(text)
+        self.assertEqual(suite.time, 1.32)
         suite.update_statistics()
         self.assertEqual(suite.name, 'suitename')
         self.assertEqual(suite.tests, 1)
@@ -462,7 +464,6 @@ class Test_TestSuite(unittest.TestCase):
         suite2 = deepcopy(suite)
         suite2.add_property('name2', 'value2')
         self.assertNotEqual(suite, suite2)
-
 
 class Test_TestCase(unittest.TestCase):
 

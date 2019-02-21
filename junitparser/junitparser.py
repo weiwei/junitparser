@@ -662,10 +662,6 @@ class TestCase(Element):
             err = SystemErr(value)
             self.append(err)
 
-    def update_statistics(self):
-        # TODO: update statistics when case result is chagned.
-        pass
-
 
 class System(Element):
     """Parent class for SystemOut and SystemErr.
