@@ -67,7 +67,7 @@ format.
     suite.add_property('build', '55')
     suite.add_testcase(case1)
     suite.add_testcase(case2)
-	  suite.delete_testcase(case2)
+    suite.remove_testcase(case2)
 
     # Add suite to JunitXml
     xml = JUnitXml()
