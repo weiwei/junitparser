@@ -12,6 +12,10 @@ from __future__ import unicode_literals
 from future.utils import with_metaclass
 from builtins import object
 from io import open
+try:
+    from html import escape  # python 3.x
+except ImportError:
+    from cgi import escape  # python 2.x
 
 try:
     import itertools.izip as zip
@@ -68,6 +72,8 @@ class Attr(object):
     def __get__(self, instance, cls):
         "Gets value from attribute, return None if attribute doesn't exist."
         value = instance._elem.attrib.get(self.name)
+        if value is not None:
+            return escape(value)
         return value
 
     def __set__(self, instance, value):

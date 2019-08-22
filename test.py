@@ -364,6 +364,14 @@ class Test_TestSuite(unittest.TestCase):
             self.assertEqual(prop.name, 'name1')
             self.assertEqual(prop.value, 'value1')
 
+
+    def test_quoted_attr(self):
+        text = """<testsuite name="suitename with &quot;quotes&quot;">
+        </testsuite>"""
+        suite = TestSuite.fromstring(text)
+        self.assertEqual(suite.name, 'suitename with &quot;quotes&quot;')
+
+
     def test_len(self):
         text = """<testsuite name="suitename"><testcase name="testname"/>
         <testcase name="testname2"/>
