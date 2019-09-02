@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased]
-### Added
-- More docstrings
+## [1.3.3] - 2019-09-02
+### Fixed 
+- Ensure htmlentities are used in attributes. Thanks to @alde
 
 ## [1.3.1] - 2019-02-11
 ### Fixed
