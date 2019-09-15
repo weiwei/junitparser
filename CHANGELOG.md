@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.4] - 2019-09-15
+### Fixed
+- Performance improvement for file merging. Thanks to @arichardson
+
 ## [1.3.3] - 2019-09-02
 ### Fixed 
 - Ensure htmlentities are used in attributes. Thanks to @alde
