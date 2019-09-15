@@ -257,8 +257,9 @@ class JUnitXml(Element):
         elif other._elem.tag == "testsuite":
             suite = TestSuite()
             for case in other:
-                suite.add_testcase(case)
+                suite._add_testcase_no_update_stats(case)
             self.add_testsuite(suite)
+            self.update_statistics()
 
         return self
 
@@ -365,7 +366,7 @@ class TestSuite(Element):
             # Merge the two suites
             result = deepcopy(self)
             for case in other:
-                result.add_testcase(case)
+                result._add_testcase_no_update_stats(case)
             for suite in other.testsuites():
                 result.add_testsuite(suite)
             result.update_statistics()
@@ -379,7 +380,7 @@ class TestSuite(Element):
     def __iadd__(self, other):
         if self == other:
             for case in other:
-                self.add_testcase(case)
+                self._add_testcase_no_update_stats(case)
             for suite in other.testsuites():
                 self.add_testsuite(suite)
             self.update_statistics()
@@ -435,6 +436,13 @@ class TestSuite(Element):
         "Adds a testcase to the suite."
         self.append(testcase)
         self.update_statistics()
+
+    def _add_testcase_no_update_stats(self, testcase):
+        """
+        Adds a testcase to the suite (without updating stats).
+        For internal use only to avoid quadratic behaviour in merge.
+        """
+        self.append(testcase)
 
     def add_testsuite(self, suite):
         "Adds a testsuite inside current testsuite."
