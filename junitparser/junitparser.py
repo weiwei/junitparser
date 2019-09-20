@@ -640,7 +640,7 @@ class TestCase(Element):
             if result is not None:
                 self.remove(result)
         # Then add current result
-        if isinstance(value, System):
+        if isinstance(value, Skipped) or isinstance(value, Failure) or isinstance(value, Error):
             self.append(value)
 
     @property
