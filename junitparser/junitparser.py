@@ -640,7 +640,8 @@ class TestCase(Element):
             if result is not None:
                 self.remove(result)
         # Then add current result
-        self.append(value)
+        if isinstance(value, System):
+            self.append(value)
 
     @property
     def system_out(self):
