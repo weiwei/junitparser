@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.5] - 2019-09-23
+### Fixed
+- Prevented an exception when test result is None. Thanks to @patbro
+
 ## [1.3.4] - 2019-09-15
 ### Fixed
 - Performance improvement for file merging. Thanks to @arichardson
