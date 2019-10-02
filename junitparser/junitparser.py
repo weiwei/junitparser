@@ -255,7 +255,7 @@ class JUnitXml(Element):
             for suite in other:
                 self.add_testsuite(suite)
         elif other._elem.tag == "testsuite":
-            suite = TestSuite()
+            suite = TestSuite(name=other.name)
             for case in other:
                 suite._add_testcase_no_update_stats(case)
             self.add_testsuite(suite)
