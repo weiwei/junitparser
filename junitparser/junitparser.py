@@ -222,6 +222,7 @@ class JUnitXml(Element):
         tests: total number of tests
         failures: number of failed cases
         errors: number of cases with errors
+        skipped: number of skipped cases
     """
 
     _tag = "testsuites"
@@ -230,6 +231,7 @@ class JUnitXml(Element):
     tests = IntAttr()
     failures = IntAttr()
     errors = IntAttr()
+    skipped = IntAttr()
 
     def __init__(self, name=None):
         super(JUnitXml, self).__init__(self._tag)
