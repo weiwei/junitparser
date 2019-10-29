@@ -54,7 +54,7 @@ def write_xml(obj, filepath=None, pretty=False):
 
 
 class JUnitXmlError(Exception):
-    "Exception for JUnit XML related errors."
+    """Exception for JUnit XML related errors."""
 
 
 class Attr(object):
@@ -70,14 +70,14 @@ class Attr(object):
         self.name = name
 
     def __get__(self, instance, cls):
-        "Gets value from attribute, return None if attribute doesn't exist."
+        """Gets value from attribute, return None if attribute doesn't exist."""
         value = instance._elem.attrib.get(self.name)
         if value is not None:
             return escape(value)
         return value
 
     def __set__(self, instance, value):
-        "Sets XML element attribute."
+        """Sets XML element attribute."""
         if value is not None:
             instance._elem.attrib[self.name] = unicode(value)
 
@@ -127,7 +127,7 @@ class FloatAttr(Attr):
 
 
 def attributed(cls):
-    "Decorator to read XML element attribute name from class attribute."
+    """Decorator to read XML element attribute name from class attribute."""
     for key, value in vars(cls).items():
         if isinstance(value, Attr):
             value.name = key
@@ -135,7 +135,7 @@ def attributed(cls):
 
 
 class junitxml(type):
-    "Metaclass to decorate the xml class"
+    """Metaclass to decorate the xml class"""
 
     def __new__(meta, name, bases, methods):
         cls = super(junitxml, meta).__new__(meta, name, bases, methods)
@@ -144,7 +144,7 @@ class junitxml(type):
 
 
 class Element(with_metaclass(junitxml, object)):
-    "Base class for all Junit XML elements."
+    """Base class for all Junit XML elements."""
 
     def __init__(self, name=None):
         self._elem = etree.Element(name)
@@ -171,14 +171,14 @@ class Element(with_metaclass(junitxml, object)):
 
     @classmethod
     def fromstring(cls, text):
-        "Construct Junit objects from a XML string."
+        """Construct Junit objects from a XML string."""
         instance = cls()
         instance._elem = etree.fromstring(text)
         return instance
 
     @classmethod
     def fromelem(cls, elem):
-        "Constructs Junit objects from an elementTree element."
+        """Constructs Junit objects from an elementTree element."""
         if elem is None:
             return
         instance = cls()
@@ -189,25 +189,25 @@ class Element(with_metaclass(junitxml, object)):
         return instance
 
     def iterchildren(self, Child):
-        "Iterate through specified Child type elements."
+        """Iterate through specified Child type elements."""
         elems = self._elem.iterfind(Child._tag)
         for elem in elems:
             yield Child.fromelem(elem)
 
     def child(self, Child):
-        "Find a single child of specified Child type."
+        """Find a single child of specified Child type."""
         elem = self._elem.find(Child._tag)
         return Child.fromelem(elem)
 
     def remove(self, sub_elem):
-        "Remove a sub element."
+        """Remove a sub element."""
         for elem in self._elem.iterfind(sub_elem._tag):
             child = sub_elem.__class__.fromelem(elem)
             if child == sub_elem:
                 self._elem.remove(child._elem)
 
     def tostring(self):
-        "Converts element to XML string."
+        """Converts element to XML string."""
         return etree.tostring(self._elem, encoding="utf-8")
 
 
@@ -222,6 +222,7 @@ class JUnitXml(Element):
         tests: total number of tests
         failures: number of failed cases
         errors: number of cases with errors
+        skipped: number of skipped cases
     """
 
     _tag = "testsuites"
@@ -230,6 +231,7 @@ class JUnitXml(Element):
     tests = IntAttr()
     failures = IntAttr()
     errors = IntAttr()
+    skipped = IntAttr()
 
     def __init__(self, name=None):
         super(JUnitXml, self).__init__(self._tag)
@@ -255,7 +257,7 @@ class JUnitXml(Element):
             for suite in other:
                 self.add_testsuite(suite)
         elif other._elem.tag == "testsuite":
-            suite = TestSuite()
+            suite = TestSuite(name=other.name)
             for case in other:
                 suite._add_testcase_no_update_stats(case)
             self.add_testsuite(suite)
@@ -264,11 +266,11 @@ class JUnitXml(Element):
         return self
 
     def add_testsuite(self, suite):
-        "Add a test suite"
+        """Add a test suite"""
         self.append(suite)
 
     def update_statistics(self):
-        "Update test count, time, etc."
+        """Update test count, time, etc."""
         time = 0
         tests = failures = errors = skipped = 0
         for suite in self:
@@ -286,7 +288,7 @@ class JUnitXml(Element):
 
     @classmethod
     def fromfile(cls, filepath):
-        "Initiate the object from a report file."
+        """Initiate the object from a report file."""
         tree = etree.parse(filepath)
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
@@ -393,14 +395,14 @@ class TestSuite(Element):
             return result
 
     def remove_testcase(self, testcase):
-        "Removes a test case from the suite."
+        """Removes a test case from the suite."""
         for case in self:
             if case == testcase:
                 super(TestSuite, self).remove(case)
                 self.update_statistics()
 
     def update_statistics(self):
-        "Updates test count and test time."
+        """Updates test count and test time."""
         tests = errors = failures = skipped = 0
         time = 0
         for case in self:
@@ -433,7 +435,7 @@ class TestSuite(Element):
         props.add_property(prop)
 
     def add_testcase(self, testcase):
-        "Adds a testcase to the suite."
+        """Adds a testcase to the suite."""
         self.append(testcase)
         self.update_statistics()
 
@@ -445,11 +447,11 @@ class TestSuite(Element):
         self.append(testcase)
 
     def add_testsuite(self, suite):
-        "Adds a testsuite inside current testsuite."
+        """Adds a testsuite inside current testsuite."""
         self.append(suite)
 
     def properties(self):
-        "Iterates through all properties."
+        """Iterates through all properties."""
         props = self.child(Properties)
         if props is None:
             return
@@ -457,7 +459,7 @@ class TestSuite(Element):
             yield prop
 
     def remove_property(self, property_):
-        "Removes a property."
+        """Removes a property."""
         props = self.child(Properties)
         if props is None:
             return
@@ -466,7 +468,7 @@ class TestSuite(Element):
                 props.remove(property_)
 
     def testsuites(self):
-        "Iterates through all testsuites."
+        """Iterates through all testsuites."""
         for suite in self.iterchildren(TestSuite):
             yield suite
 
@@ -529,7 +531,7 @@ class Property(Element):
         return not self == other
 
     def __lt__(self, other):
-        "Supports sort() for properties."
+        """Supports sort() for properties."""
         return self.name > other.name
 
 
@@ -561,7 +563,7 @@ class Result(Element):
 
 
 class Skipped(Result):
-    "Test result when the case is skipped."
+    """Test result when the case is skipped."""
     _tag = "skipped"
 
     def __eq__(self, other):
@@ -569,7 +571,7 @@ class Skipped(Result):
 
 
 class Failure(Result):
-    "Test result when the case failed."
+    """Test result when the case failed."""
     _tag = "failure"
 
     def __eq__(self, other):
@@ -577,7 +579,7 @@ class Failure(Result):
 
 
 class Error(Result):
-    "Test result when the case has errors during execution."
+    """Test result when the case has errors during execution."""
     _tag = "error"
 
     def __eq__(self, other):
@@ -619,7 +621,7 @@ class TestCase(Element):
 
     @property
     def result(self):
-        "One of the Failure, Skipped, or Error objects."
+        """One of the Failure, Skipped, or Error objects."""
         results = []
         for res in POSSIBLE_RESULTS:
             result = self.child(res)
@@ -645,7 +647,7 @@ class TestCase(Element):
 
     @property
     def system_out(self):
-        "stdout."
+        """stdout."""
         elem = self.child(SystemOut)
         if elem is not None:
             return elem.text
@@ -662,7 +664,7 @@ class TestCase(Element):
 
     @property
     def system_err(self):
-        "stderr."
+        """stderr."""
         elem = self.child(SystemErr)
         if elem is not None:
             return elem.text
