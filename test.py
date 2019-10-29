@@ -401,6 +401,7 @@ class Test_TestSuite(unittest.TestCase):
 
     def test_add_case(self):
         suite = TestSuite()
+        self.assertEqual(suite.tests, 0)
         case1 = TestCase()
         case2 = TestCase()
         case2.result = Failure()
