@@ -11,7 +11,6 @@ script:
 stages:
 - test
 - quality
-- codacy
 - deploy
 jobs:
   include:
@@ -24,11 +23,7 @@ jobs:
     - coverage run --source=junitparser test.py
     - coverage xml
     - coveralls
-  - stage: codacy    
-    python: 3.6
-    if: branch = master
-    script:
-    - python-codacy-coverage -r coverage.xml
+    - if [ $TRAVIS_BRANCH == "master" ]; then python-codacy-coverage -r coverage.xml; fi
   - stage: deploy
     python: 3.6
     deploy:
