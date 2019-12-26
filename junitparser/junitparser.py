@@ -551,7 +551,7 @@ class Result(Element):
         super(Result, self).__init__(self._tag)
         if message:
             self.message = message
-        if type:
+        if type_:
             self.type = type_
 
     def __eq__(self, other):

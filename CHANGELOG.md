@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.1] - 2019-12-26
+### Fixed
+- A conditional statement error. Thanks to @dries007
+
 ## [1.4.0] - 2019-10-28
 ### Fixed
 - Retain suite name when merging test suites. Thanks to @alde
