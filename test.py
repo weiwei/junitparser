@@ -372,6 +372,26 @@ class Test_TestSuite(unittest.TestCase):
         self.assertEqual(suite.name, 'suitename with &quot;quotes&quot;')
 
 
+    def test_combining_testsuite_should_keep_name(self):
+        text1 = """<testsuite name="suitename1" tests="2" failures="1">
+        <testcase name="testname1"><failure message="failed"/></testcase>
+        <testcase name="testname2"></testcase>
+        </testsuite>"""
+        test_suite1 = TestSuite.fromstring(text1)
+
+        text2 = """<testsuite name="suitename2" tests="2" skipped="1">
+        <testcase name="testname3"><skipped message="no reason given"/></testcase>
+        <testcase name="testname4"></testcase>
+        </testsuite>"""
+        test_suite2 = TestSuite.fromstring(text2)
+
+        combined_suites = JUnitXml()
+        combined_suites += test_suite1
+        combined_suites += test_suite2
+
+        self.assertEqual([s.name for s in combined_suites], ["suitename1", "suitename2"])
+
+
     def test_len(self):
         text = """<testsuite name="suitename"><testcase name="testname"/>
         <testcase name="testname2"/>
@@ -381,6 +401,7 @@ class Test_TestSuite(unittest.TestCase):
 
     def test_add_case(self):
         suite = TestSuite()
+        self.assertEqual(suite.tests, 0)
         case1 = TestCase()
         case2 = TestCase()
         case2.result = Failure()

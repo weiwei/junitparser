@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.1] - 2019-12-26
+### Fixed
+- A conditional statement error. Thanks to @dries007
+
+## [1.4.0] - 2019-10-28
+### Fixed
+- Retain suite name when merging test suites. Thanks to @alde
+- Add skipped member to JUnitXml. Thanks to @arichardson
+
+## [1.3.5] - 2019-09-23
+### Fixed
+- Prevented an exception when test result is None. Thanks to @patbro
+
 ## [1.3.4] - 2019-09-15
 ### Fixed
 - Performance improvement for file merging. Thanks to @arichardson

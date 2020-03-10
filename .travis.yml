@@ -1,10 +1,8 @@
 language: python
 python:
 - '2.7'
-- '3.4'
-- '3.5'
 - '3.6'
-- 3.7-dev
+- '3.8-dev'
 install:
 - pip install -r requirements.txt
 - pip install pytest
@@ -13,7 +11,6 @@ script:
 stages:
 - test
 - quality
-- codacity
 - deploy
 jobs:
   include:
@@ -26,7 +23,7 @@ jobs:
     - coverage run --source=junitparser test.py
     - coverage xml
     - coveralls
-    - python-codacy-coverage -r coverage.xml
+    - if [ $TRAVIS_BRANCH == "master" ]; then python-codacy-coverage -r coverage.xml; fi
   - stage: deploy
     python: 3.6
     deploy:
