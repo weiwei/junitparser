@@ -567,9 +567,9 @@ class Skipped(Result):
     _tag = "skipped"
 
     def __eq__(self, other):
-        if (isinstance(other, Skipped):
+        if (isinstance(other, Skipped)):
             return super(Skipped, self).__eq__(other)
-        else
+        else:
             return false
 
 
@@ -578,7 +578,7 @@ class Failure(Result):
     _tag = "failure"
 
     def __eq__(self, other):
-        if (isinstance(other, Failure):
+        if (isinstance(other, Failure)):
             return super(Failure, self).__eq__(other)
         else:
             return false
@@ -589,7 +589,7 @@ class Error(Result):
     _tag = "error"
 
     def __eq__(self, other):
-        if (isinstance(other, Error):
+        if (isinstance(other, Error)):
             return super(Error, self).__eq__(other)
         else:
             return false
