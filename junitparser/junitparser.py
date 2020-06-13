@@ -310,45 +310,7 @@ class JUnitXml(Element):
         write_xml(self, filepath=filepath, pretty=pretty)
 
 
-class PropertiesFunc(object):
-    """Class that implements properties functionality"""
-    def __new__(cls, *args, **kwargs):
-        if cls is PropertiesFunc:
-            raise TypeError("PropertiesFunc can't be instantiated")
-
-        return object.__new__(cls, *args, **kwargs)
-
-    def add_property(self, name, value):
-        """Adds a property to the testsuite/testcase.
-
-        See :class:`Property` and :class:`Properties`
-        """
-        props = self.child(Properties)
-        if props is None:
-            props = Properties()
-            self.append(props)
-        prop = Property(name, value)
-        props.add_property(prop)
-
-    def remove_property(self, property_):
-        """Removes a property."""
-        props = self.child(Properties)
-        if props is None:
-            return
-        for prop in props:
-            if prop == property_:
-                props.remove(property_)
-
-    def properties(self):
-        """Iterates through all properties."""
-        props = self.child(Properties)
-        if props is None:
-            return
-        for prop in props:
-            yield prop
-
-
-class TestSuite(Element, PropertiesFunc):
+class TestSuite(Element):
     """The <testsuite> object.
 
     Attributes:
@@ -459,6 +421,19 @@ class TestSuite(Element, PropertiesFunc):
         self.skipped = skipped
         self.time = time
 
+    def add_property(self, name, value):
+        """Adds a property to the testsuite.
+
+        See :class:`Property` and :class:`Properties`
+        """
+
+        props = self.child(Properties)
+        if props is None:
+            props = Properties()
+            self.append(props)
+        prop = Property(name, value)
+        props.add_property(prop)
+
     def add_testcase(self, testcase):
         """Adds a testcase to the suite."""
         self.append(testcase)
@@ -475,6 +450,23 @@ class TestSuite(Element, PropertiesFunc):
         """Adds a testsuite inside current testsuite."""
         self.append(suite)
 
+    def properties(self):
+        """Iterates through all properties."""
+        props = self.child(Properties)
+        if props is None:
+            return
+        for prop in props:
+            yield prop
+
+    def remove_property(self, property_):
+        """Removes a property."""
+        props = self.child(Properties)
+        if props is None:
+            return
+        for prop in props:
+            if prop == property_:
+                props.remove(property_)
+
     def testsuites(self):
         """Iterates through all testsuites."""
         for suite in self.iterchildren(TestSuite):
@@ -485,7 +477,7 @@ class TestSuite(Element, PropertiesFunc):
 
 
 class Properties(Element):
-    """A list of properties inside a test suite or a test case.
+    """A list of properties inside a test suite.
 
     See :class:`Property`
     """
@@ -515,7 +507,7 @@ class Properties(Element):
 
 
 class Property(Element):
-    """A key/value pare that's stored in the test suite or the test case.
+    """A key/value pare that's stored in the test suite.
 
     Use it to store anything you find interesting or useful.
 
@@ -597,7 +589,7 @@ class Error(Result):
 POSSIBLE_RESULTS = {Failure, Error, Skipped}
 
 
-class TestCase(Element, PropertiesFunc):
+class TestCase(Element):
     """Object to store a testcase and its result.
 
     Attributes:
