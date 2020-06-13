@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.0] - 2020-6-13
+### Added
+- TestCase can also have properties now. Thanks to @aopincar
+
 ## [1.4.1] - 2019-12-26
 ### Fixed
 - A conditional statement error. Thanks to @dries007
