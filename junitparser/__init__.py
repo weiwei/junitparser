@@ -10,7 +10,6 @@ from .junitparser import (
     Error,
     TestCase,
     Properties,
-    PropertiesFunc,
     IntAttr,
     FloatAttr,
 )
