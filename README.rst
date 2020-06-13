@@ -58,6 +58,8 @@ format.
 
     # Create cases
     case1 = TestCase('case1')
+    case1.add_property('poperty1_name', 'poperty1_val')
+    case1.add_property('poperty2_name', 'poperty2_val')
     case1.result = Skipped()
     case2 = TestCase('case2')
     case2.result = Error('Example error message', 'the_error_type')

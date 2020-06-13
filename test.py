@@ -620,6 +620,22 @@ class Test_TestCase(unittest.TestCase):
         self.assertNotEqual(Skipped('B'), Skipped('A'))
         self.assertNotEqual(Error('C'), Error('B'))
 
+    def test_add_property(self):
+        case = TestCase()
+        case.add_property('name1', 'value1')
+        res_prop = next(case.properties())
+        self.assertEqual(res_prop.name, 'name1')
+        self.assertEqual(res_prop.value, 'value1')
+
+    def test_remove_property(self):
+        case = TestCase()
+        case.add_property('name1', 'value1')
+        case.add_property('name2', 'value2')
+        case.add_property('name3', 'value3')
+        for prop in case.properties():
+            if prop.name == 'name2':
+                case.remove_property(prop)
+        self.assertEqual(len(list(case.properties())), 2)
 
 class Test_Properties(unittest.TestCase):
 
