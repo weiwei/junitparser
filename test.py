@@ -619,6 +619,9 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(Failure('A'), Failure('A'))
         self.assertNotEqual(Skipped('B'), Skipped('A'))
         self.assertNotEqual(Error('C'), Error('B'))
+    def test_result_attrs(self):
+        res1 = Failure('A')
+        self.assertEqual(res1.tostring(), b'<failure message="A" />')
 
 
 class Test_Properties(unittest.TestCase):
