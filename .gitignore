@@ -65,6 +65,7 @@ target/
 
 # Virtual env
 venv/
+.venv/
 
 .DS_Store
 
