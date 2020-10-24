@@ -199,14 +199,15 @@ Command Line
 .. code-block:: shell
 
     $ junitparser merge --help
-    usage: junitparser merge [-h] paths [paths ...] output
+    usage: junitparser merge [-h] [--glob] paths [paths ...] output
 
     positional arguments:
-    paths       Original XML path(s).
-    output      Merged XML Path.
+      paths       Original XML path(s).
+      output      Merged XML Path.
 
     optional arguments:
-    -h, --help  show this help message and exit
+      -h, --help  show this help message and exit
+      --glob      Treat original XML path(s) as glob(s).
 
 Test
 ----
