@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0] - 2020-10-26
+### Added
+- Runs with `python -m junitparser ...` Thanks to @jkowalleck
+- `junitparser merge --glob` also by @jkowalleck
+
+## [1.4.2] - 2020-10-21
+### Fixed
+- command line versioning
+
 ## [1.4.1] - 2019-12-26
 ### Fixed
 - A conditional statement error. Thanks to @dries007
