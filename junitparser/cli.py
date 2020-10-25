@@ -1,0 +1,50 @@
+from argparse import ArgumentParser
+
+from . import JUnitXml, version
+
+
+def merge(paths, output):
+    """Merge xml report.
+    """
+    result = sum((JUnitXml.fromfile(path) for path in paths), JUnitXml())
+    result.update_statistics()
+    result.write(output)
+    return 0
+
+
+def _parser(prog_name=None):  # pragma: no cover
+    """Create the CLI arg parser.
+    """
+    parser = ArgumentParser(
+        description='Junitparser CLI helper.',
+        prog=prog_name)
+
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + version)
+
+    command_parser = parser.add_subparsers(
+        dest='command',
+        help='command')
+    command_parser.required = True
+
+    # command: merge
+    merge_parser = command_parser.add_parser(
+        'merge',
+        help='Merge Junit XML format reports with junitparser.')
+    merge_parser.add_argument(
+        'paths',
+        nargs='+',
+        help='Original XML path(s).')
+    merge_parser.add_argument(
+        'output',
+        help='Merged XML Path.')
+
+    return parser
+
+
+def main(args=None, prog_name=None):
+    """CLI's main runner.
+    """
+    args = args or _parser(prog_name=prog_name).parse_args()
+    if args.command == 'merge':
+        return merge(args.paths, args.output)
+    return 255
