@@ -24,6 +24,7 @@ except ImportError:
 
 try:
     from lxml import etree
+    from lxml.etree import XMLParser, parse
 except ImportError:
     from xml.etree import ElementTree as etree
 
@@ -287,9 +288,13 @@ class JUnitXml(Element):
         self.time = time
 
     @classmethod
-    def fromfile(cls, filepath):
+    def fromfile(cls, filepath, huge_tree=False):
         """Initiate the object from a report file."""
-        tree = etree.parse(filepath)
+        try:
+            xml_parser = XMLParser(huge_tree=huge_tree)
+            tree = parse(filepath, parser=xml_parser)
+        except NameError:
+            tree = etree.parse(filepath)
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
             instance = cls()
