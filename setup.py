@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 import os
-import sys
 
 from junitparser import version
 
@@ -20,14 +19,7 @@ setup(name='junitparser',
           'License :: OSI Approved :: Apache Software License',
           'Topic :: Text Processing',
           'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Programming Language :: Python :: 3.8',
-          'Programming Language :: Python :: 3.9',
       ],
       url='https://github.com/weiwei/junitparser',
       author='Weiwei Wang',
