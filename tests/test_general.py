@@ -5,10 +5,22 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 from copy import deepcopy
-from junitparser import (TestCase, TestSuite, Skipped, Failure, Error, Attr,
-                         JUnitXmlError, JUnitXml, Property, Properties, IntAttr,
-                         FloatAttr)
+from junitparser import (
+    TestCase,
+    TestSuite,
+    Skipped,
+    Failure,
+    Error,
+    Attr,
+    JUnitXmlError,
+    JUnitXml,
+    Property,
+    Properties,
+    IntAttr,
+    FloatAttr,
+)
 from xml.etree import ElementTree as etree
+
 try:
     import itertools.izip as zip
 except ImportError:
@@ -16,7 +28,6 @@ except ImportError:
 
 
 class Test_MergeSuiteCounts(unittest.TestCase):
-
     def test_merge_test_count(self):
         text1 = """<testsuite name="suitename1" tests="2" failures="1">
         <testcase name="testname1"><failure message="failed"/></testcase>
@@ -59,8 +70,8 @@ class Test_MergeSuiteCounts(unittest.TestCase):
         self.assertEqual(combined_suites.failures, 1)
         self.assertEqual(combined_suites.skipped, 1)
 
-class Test_JunitXml(unittest.TestCase):
 
+class Test_JunitXml(unittest.TestCase):
     def test_fromstring(self):
         text = """<testsuites><testsuite name="suitename1">
         <testcase name="testname1">
@@ -82,19 +93,19 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_construct_xml(self):
         suite1 = TestSuite()
-        suite1.name = 'suite1'
+        suite1.name = "suite1"
         case1 = TestCase()
-        case1.name = 'case1'
+        case1.name = "case1"
         suite1.add_testcase(case1)
         result = JUnitXml()
         result.add_testsuite(suite1)
-        self.assertEqual(result._elem.tag, 'testsuites')
-        suite = result._elem.findall('testsuite')
+        self.assertEqual(result._elem.tag, "testsuites")
+        suite = result._elem.findall("testsuite")
         self.assertEqual(len(suite), 1)
-        self.assertEqual(suite[0].attrib['name'], 'suite1')
-        case = suite[0].findall('testcase')
+        self.assertEqual(suite[0].attrib["name"], "suite1")
+        case = suite[0].findall("testcase")
         self.assertEqual(len(case), 1)
-        self.assertEqual(case[0].attrib['name'], 'case1')
+        self.assertEqual(case[0].attrib["name"], "case1")
 
     def test_add(self):
         result1 = JUnitXml()
@@ -138,10 +149,10 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_add_two_same_suites(self):
         suite1 = TestSuite()
-        case1 = TestCase(name='case1')
+        case1 = TestCase(name="case1")
         suite1.add_testcase(case1)
         suite2 = TestSuite()
-        case2 = TestCase(name='case2')
+        case2 = TestCase(name="case2")
         suite2.add_testcase(case2)
         suite3 = TestSuite()
         suite2.add_testsuite(suite3)
@@ -152,10 +163,10 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_iadd_two_same_suites(self):
         suite1 = TestSuite()
-        case1 = TestCase(name='case1')
+        case1 = TestCase(name="case1")
         suite1.add_testcase(case1)
         suite2 = TestSuite()
-        case2 = TestCase(name='case2')
+        case2 = TestCase(name="case2")
         suite2.add_testcase(case2)
         suite3 = TestSuite()
         suite2.add_testsuite(suite3)
@@ -165,22 +176,22 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(len(list(iter(suite1.testsuites()))), 1)
 
     def test_add_two_different_suites(self):
-        suite1 = TestSuite(name='suite1')
-        case1 = TestCase(name='case1')
+        suite1 = TestSuite(name="suite1")
+        case1 = TestCase(name="case1")
         suite1.add_testcase(case1)
-        suite2 = TestSuite(name='suite2')
-        case2 = TestCase(name='case2')
+        suite2 = TestSuite(name="suite2")
+        case2 = TestCase(name="case2")
         suite2.add_testcase(case2)
         result = suite1 + suite2
         self.assertIsInstance(result, JUnitXml)
         self.assertEqual(len(list(iter(result))), 2)
 
     def test_iadd_two_different_suites(self):
-        suite1 = TestSuite(name='suite1')
-        case1 = TestCase(name='case1')
+        suite1 = TestSuite(name="suite1")
+        case1 = TestCase(name="case1")
         suite1.add_testcase(case1)
-        suite2 = TestSuite(name='suite2')
-        case2 = TestCase(name='case2')
+        suite2 = TestSuite(name="suite2")
+        case2 = TestCase(name="case2")
         suite2.add_testcase(case2)
         suite1 += suite2
         self.assertIsInstance(suite1, JUnitXml)
@@ -197,8 +208,8 @@ class Test_JunitXml(unittest.TestCase):
         result3.update_statistics()
         self.assertEqual(result3.tests, 0)
 
-class Test_TestSuite(unittest.TestCase):
 
+class Test_TestSuite(unittest.TestCase):
     def test_fromstring(self):
         text = """<testsuite name="suitename" time="1.32">
         <testcase name="testname">
@@ -207,7 +218,7 @@ class Test_TestSuite(unittest.TestCase):
         suite = TestSuite.fromstring(text)
         self.assertEqual(suite.time, 1.32)
         suite.update_statistics()
-        self.assertEqual(suite.name, 'suitename')
+        self.assertEqual(suite.name, "suitename")
         self.assertEqual(suite.tests, 1)
 
     def test_props_fromstring(self):
@@ -216,16 +227,14 @@ class Test_TestSuite(unittest.TestCase):
         </testsuite>"""
         suite = TestSuite.fromstring(text)
         for prop in suite.properties():
-            self.assertEqual(prop.name, 'name1')
-            self.assertEqual(prop.value, 'value1')
-
+            self.assertEqual(prop.name, "name1")
+            self.assertEqual(prop.value, "value1")
 
     def test_quoted_attr(self):
         text = """<testsuite name="suitename with &quot;quotes&quot;">
         </testsuite>"""
         suite = TestSuite.fromstring(text)
-        self.assertEqual(suite.name, 'suitename with &quot;quotes&quot;')
-
+        self.assertEqual(suite.name, "suitename with &quot;quotes&quot;")
 
     def test_combining_testsuite_should_keep_name(self):
         text1 = """<testsuite name="suitename1" tests="2" failures="1">
@@ -244,8 +253,9 @@ class Test_TestSuite(unittest.TestCase):
         combined_suites += test_suite1
         combined_suites += test_suite2
 
-        self.assertEqual([s.name for s in combined_suites], ["suitename1", "suitename2"])
-
+        self.assertEqual(
+            [s.name for s in combined_suites], ["suitename1", "suitename2"]
+        )
 
     def test_len(self):
         text = """<testsuite name="suitename"><testcase name="testname"/>
@@ -283,17 +293,17 @@ class Test_TestSuite(unittest.TestCase):
 
     def test_add_property(self):
         suite = TestSuite()
-        suite.add_property('name1', 'value1')
+        suite.add_property("name1", "value1")
         res_prop = next(suite.properties())
-        self.assertEqual(res_prop.name, 'name1')
-        self.assertEqual(res_prop.value, 'value1')
+        self.assertEqual(res_prop.name, "name1")
+        self.assertEqual(res_prop.value, "value1")
 
     def test_remove_case(self):
         suite = TestSuite()
         case1 = TestCase()
-        case1.name = 'test1'
+        case1.name = "test1"
         case2 = TestCase()
-        case2.name = 'test2'
+        case2.name = "test2"
         suite.add_testcase(case1)
         suite.add_testcase(case2)
         suite.remove_testcase(case1)
@@ -301,29 +311,29 @@ class Test_TestSuite(unittest.TestCase):
 
     def test_remove_property(self):
         suite = TestSuite()
-        suite.add_property('name1', 'value1')
-        suite.add_property('name2', 'value2')
-        suite.add_property('name3', 'value3')
+        suite.add_property("name1", "value1")
+        suite.add_property("name2", "value2")
+        suite.add_property("name3", "value3")
         for prop in suite.properties():
-            if prop.name == 'name2':
+            if prop.name == "name2":
                 suite.remove_property(prop)
         self.assertEqual(len(list(suite.properties())), 2)
 
     def test_remove_property_from_none(self):
         suite = TestSuite()
-        suite.remove_property(Property('key', 'value'))
+        suite.remove_property(Property("key", "value"))
         # Nothing should happen
 
     def test_suite_in_suite(self):
-        suite = TestSuite('parent')
-        childsuite = TestSuite('child')
+        suite = TestSuite("parent")
+        childsuite = TestSuite("child")
         suite.add_testsuite(childsuite)
         self.assertEqual(len(list(suite.testsuites())), 1)
 
     def test_case_time(self):
         suite = TestSuite()
         case1 = TestCase()
-        case1.name = 'test1'
+        case1.name = "test1"
         case1.time = 15
         suite.add_testcase(case1)
         suite.update_statistics()
@@ -332,25 +342,25 @@ class Test_TestSuite(unittest.TestCase):
     def test_wrong_attr_type(self):
         suite = TestSuite()
         with self.assertRaises(TypeError):
-            suite.time = 'abc'
+            suite.time = "abc"
         with self.assertRaises(TypeError):
             suite.tests = 10.5
 
     def test_suite_eq(self):
         suite = TestSuite()
-        suite.add_property('name1', 'value1')
+        suite.add_property("name1", "value1")
         suite2 = deepcopy(suite)
         self.assertEqual(suite, suite2)
 
     def test_suite_ne(self):
         suite = TestSuite()
-        suite.add_property('name1', 'value1')
+        suite.add_property("name1", "value1")
         suite2 = deepcopy(suite)
-        suite2.add_property('name2', 'value2')
+        suite2.add_property("name2", "value2")
         self.assertNotEqual(suite, suite2)
 
-class Test_TestCase(unittest.TestCase):
 
+class Test_TestCase(unittest.TestCase):
     def test_fromstring(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
@@ -374,25 +384,25 @@ class Test_TestCase(unittest.TestCase):
 
     def test_case_attributes(self):
         case = TestCase()
-        case.name = 'testname'
-        case.classname = 'testclassname'
+        case.name = "testname"
+        case.classname = "testclassname"
         case.time = 15.123
         case.result = Skipped()
-        self.assertEqual(case.name, 'testname')
-        self.assertEqual(case.classname, 'testclassname')
+        self.assertEqual(case.name, "testname")
+        self.assertEqual(case.classname, "testclassname")
         self.assertEqual(case.time, 15.123)
         self.assertIsInstance(case.result, Skipped)
 
     def test_case_output(self):
         case = TestCase()
-        case.system_err = 'error message'
-        case.system_out = 'out message'
-        self.assertEqual(case.system_err, 'error message')
-        self.assertEqual(case.system_out, 'out message')
-        case.system_err = 'error2'
-        case.system_out = 'out2'
-        self.assertEqual(case.system_err, 'error2')
-        self.assertEqual(case.system_out, 'out2')
+        case.system_err = "error message"
+        case.system_out = "out message"
+        self.assertEqual(case.system_err, "error message")
+        self.assertEqual(case.system_out, "out message")
+        case.system_err = "error2"
+        case.system_out = "out2"
+        self.assertEqual(case.system_err, "error2")
+        self.assertEqual(case.system_out, "out2")
 
     def test_set_multiple_results(self):
         case = TestCase()
@@ -401,36 +411,36 @@ class Test_TestCase(unittest.TestCase):
         self.assertIsInstance(case.result, Failure)
 
     def test_monkypatch(self):
-        TestCase.id = Attr('id')
+        TestCase.id = Attr("id")
         case = TestCase()
         case.id = "100"
         self.assertEqual(case.id, "100")
 
     def test_equal(self):
         case = TestCase()
-        case.name = 'test1'
+        case.name = "test1"
         case2 = TestCase()
-        case2.name = 'test1'
+        case2.name = "test1"
         self.assertEqual(case, case2)
 
     def test_not_equal(self):
         case = TestCase()
-        case.name = 'test1'
+        case.name = "test1"
         case2 = TestCase()
-        case2.name = 'test2'
+        case2.name = "test2"
         self.assertNotEqual(case, case2)
 
     def test_from_elem(self):
-        elem = etree.Element('testcase', name='case1')
+        elem = etree.Element("testcase", name="case1")
         case = TestCase.fromelem(elem)
-        self.assertEqual(case.name, 'case1')
+        self.assertEqual(case.name, "case1")
 
     def test_from_junit_elem(self):
         case = TestCase()
-        case.name = 'test1'
+        case.name = "test1"
 
         class TestOtherCase(TestCase):
-            _tag = 'TestOtherCase'
+            _tag = "TestOtherCase"
             assertions = Attr()
 
         other_case = TestOtherCase.fromelem(case)
@@ -438,76 +448,75 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.name, other_case.name)
         self.assertRaises(AttributeError, lambda: case.assertions)
         other_case.assertions = 20
-        self.assertEqual(other_case.assertions, '20')
+        self.assertEqual(other_case.assertions, "20")
 
     def test_to_string(self):
         case = TestCase()
-        case.name = 'test1'
+        case.name = "test1"
         case_str = case.tostring()
-        self.assertIn(b'test1', case_str)
+        self.assertIn(b"test1", case_str)
 
     def test_to_nonascii_string(self):
         case = TestCase()
-        case.name = '测试1'
-        case.result = Failure('失败', '类型')
+        case.name = "测试1"
+        case.result = Failure("失败", "类型")
         case_str = case.tostring()
-        self.assertIn('测试1', case_str.decode('utf-8'))
-        self.assertIn('失败', case_str.decode('utf-8'))
-        self.assertIn('类型', case_str.decode('utf-8'))
+        self.assertIn("测试1", case_str.decode("utf-8"))
+        self.assertIn("失败", case_str.decode("utf-8"))
+        self.assertIn("类型", case_str.decode("utf-8"))
 
     def test_system_out(self):
         case = TestCase()
-        case.name = 'case1'
+        case.name = "case1"
         self.assertIsNone(case.system_out)
         case.system_out = "output"
         self.assertEqual(case.system_out, "output")
 
     def test_system_err(self):
         case = TestCase()
-        case.name = 'case1'
+        case.name = "case1"
         self.assertIsNone(case.system_err)
         case.system_err = "error"
         self.assertEqual(case.system_err, "error")
 
     def test_result_eq(self):
         # TODO: Weird, need to think of a better API
-        self.assertEqual(Failure('A'), Failure('A'))
-        self.assertNotEqual(Skipped('B'), Skipped('A'))
-        self.assertNotEqual(Error('C'), Error('B'))
+        self.assertEqual(Failure("A"), Failure("A"))
+        self.assertNotEqual(Skipped("B"), Skipped("A"))
+        self.assertNotEqual(Error("C"), Error("B"))
 
     def test_result_attrs(self):
-        res1 = Failure('A')
+        res1 = Failure("A")
         # NOTE: lxml gives spaceless result
         self.assertIn(
-            res1.tostring(),
-            [b'<failure message="A" />', b'<failure message="A"/>']
+            res1.tostring(), [b'<failure message="A" />', b'<failure message="A"/>']
         )
 
 
 class Test_Properties(unittest.TestCase):
-
     def test_property_repr1(self):
-        prop1 = Property('prop1', '1')
-        self.assertEqual(prop1.__repr__(),
-                         '<Element \'property\' name="prop1" value="1">')
+        prop1 = Property("prop1", "1")
+        self.assertEqual(
+            prop1.__repr__(), '<Element \'property\' name="prop1" value="1">'
+        )
 
     def test_property_repr2(self):
         prop1 = TestSuite()
-        self.assertEqual(prop1.__repr__(), '<Element \'testsuite\'>')
+        self.assertEqual(prop1.__repr__(), "<Element 'testsuite'>")
 
     def test_property_eq(self):
-        prop1 = Property('prop1', '1')
-        prop2 = Property('prop1', '1')
+        prop1 = Property("prop1", "1")
+        prop2 = Property("prop1", "1")
         self.assertEqual(prop1, prop2)
 
     def test_property_ne(self):
-        prop1 = Property('prop1', '1')
-        prop2 = Property('prop1', '2')
+        prop1 = Property("prop1", "1")
+        prop2 = Property("prop1", "2")
         self.assertNotEqual(prop1, prop2)
 
     def test_properties_eq(self):
-        prop1 = Property('prop1', '1')
-        prop2 = Property('prop1', '2')
+        prop1 = Property("prop1", "1")
+        prop2 = Property("prop1", "2")
         # Note: an attribute can only be used at one place.
         prop3 = deepcopy(prop1)
         prop4 = deepcopy(prop2)
@@ -520,8 +529,8 @@ class Test_Properties(unittest.TestCase):
         self.assertEqual(props1, props2)
 
     def test_properties_ne(self):
-        prop1 = Property('prop1', '1')
-        prop2 = Property('prop1', '2')
+        prop1 = Property("prop1", "1")
+        prop2 = Property("prop1", "2")
         prop3 = deepcopy(prop1)
         prop4 = deepcopy(prop1)
         props1 = Properties()
@@ -533,8 +542,8 @@ class Test_Properties(unittest.TestCase):
         self.assertNotEqual(props1, props2)
 
     def test_properties_ne2(self):
-        prop1 = Property('prop1', '1')
-        prop2 = Property('prop1', '2')
+        prop1 = Property("prop1", "1")
+        prop2 = Property("prop1", "2")
         prop3 = deepcopy(prop1)
         props1 = Properties()
         props1.add_property(prop1)
@@ -545,7 +554,6 @@ class Test_Properties(unittest.TestCase):
 
 
 class Test_Attrs(unittest.TestCase):
-
     def test_attr(self):
         TestCase.text = Attr("text")
         TestCase.int = IntAttr("int")
@@ -559,5 +567,5 @@ class Test_Attrs(unittest.TestCase):
         self.assertEqual(element.float, 8.5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

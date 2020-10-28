@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from future.utils import with_metaclass
 from builtins import object
 from io import open
+
 try:
     from html import escape  # python 3.x
 except ImportError:
@@ -354,7 +355,6 @@ class TestSuite(Element):
         return len(list(self.__iter__()))
 
     def __eq__(self, other):
-
         def props_eq(props1, props2):
             props1 = list(props1)
             props2 = list(props2)
@@ -523,6 +523,7 @@ class Property(Element):
         name: the property name
         value: the property value
     """
+
     _tag = "property"
     name = Attr()
     value = Attr()
@@ -572,6 +573,7 @@ class Result(Element):
 
 class Skipped(Result):
     """Test result when the case is skipped."""
+
     _tag = "skipped"
 
     def __eq__(self, other):
@@ -580,6 +582,7 @@ class Skipped(Result):
 
 class Failure(Result):
     """Test result when the case failed."""
+
     _tag = "failure"
 
     def __eq__(self, other):
@@ -588,6 +591,7 @@ class Failure(Result):
 
 class Error(Result):
     """Test result when the case has errors during execution."""
+
     _tag = "error"
 
     def __eq__(self, other):
@@ -650,7 +654,11 @@ class TestCase(Element):
             if result is not None:
                 self.remove(result)
         # Then add current result
-        if isinstance(value, Skipped) or isinstance(value, Failure) or isinstance(value, Error):
+        if (
+            isinstance(value, Skipped)
+            or isinstance(value, Failure)
+            or isinstance(value, Error)
+        ):
             self.append(value)
 
     @property
@@ -694,6 +702,7 @@ class System(Element):
     Attributes:
         text: the output message
     """
+
     _tag = ""
 
     def __init__(self, content=None):
