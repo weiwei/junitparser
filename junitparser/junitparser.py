@@ -292,9 +292,12 @@ class JUnitXml(Element):
         self.time = time
 
     @classmethod
-    def fromfile(cls, filepath):
+    def fromfile(cls, filepath, parse_func=None):
         """Initiate the object from a report file."""
-        tree = etree.parse(filepath)
+        if parse_func:
+            tree = parse_func(filepath)
+        else:
+            tree = etree.parse(filepath)
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
             instance = cls()

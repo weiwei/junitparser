@@ -2,12 +2,11 @@ language: python
 python:
 - '2.7'
 - '3.6'
-- '3.9-dev'
 install:
 - pip install -r requirements.txt
 - pip install pytest
 script:
-- py.test test.py
+- py.test tests
 stages:
 - test
 - quality
@@ -20,7 +19,7 @@ jobs:
     - pip install -r requirements.txt
     - pip install pytest flake8 coveralls codacy-coverage
     script:
-    - coverage run --source=junitparser test.py
+    - coverage run --source=junitparser -m pytest tests
     - coverage xml
     - coveralls
     - if [ $TRAVIS_BRANCH == "master" ]; then python-codacy-coverage -r coverage.xml; fi
