@@ -8,7 +8,10 @@ from . import JUnitXml, version
 def merge(paths, output):
     """Merge xml report.
     """
-    result = sum((JUnitXml.fromfile(path) for path in paths), JUnitXml())
+    result = JUnitXml()
+    for path in paths:
+        result += JUnitXml.fromfile(path)
+
     result.update_statistics()
     result.write(output)
     return 0

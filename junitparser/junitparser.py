@@ -266,7 +266,12 @@ class JUnitXml(Element):
         return self
 
     def add_testsuite(self, suite):
-        """Add a test suite"""
+        """Add a test suite."""
+        for existing_suite in self:
+            if existing_suite == suite:
+                for case in suite:
+                    existing_suite._add_testcase_no_update_stats(case)
+                return
         self.append(suite)
 
     def update_statistics(self):

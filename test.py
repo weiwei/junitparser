@@ -40,6 +40,27 @@ class Test_MergeSuiteCounts(unittest.TestCase):
         self.assertEqual(combined_suites.failures, 1)
         self.assertEqual(combined_suites.skipped, 1)
 
+    def test_merge_same_suite(self):
+        text1 = """<testsuite name="suitename1" tests="2" failures="1">
+        <testcase name="testname1"><failure message="failed"/></testcase>
+        <testcase name="testname2"></testcase>
+        </testsuite>"""
+        test_suite1 = TestSuite.fromstring(text1)
+
+        text2 = """<testsuite name="suitename1" tests="2" skipped="1">
+        <testcase name="testname3"><skipped message="no reason given"/></testcase>
+        <testcase name="testname4"></testcase>
+        </testsuite>"""
+        test_suite2 = TestSuite.fromstring(text2)
+
+        combined_suites = JUnitXml()
+        combined_suites += test_suite1
+        combined_suites += test_suite2
+        suites = list(suite for suite in combined_suites)
+        self.assertEqual(len(suites), 1)
+        self.assertEqual(combined_suites.tests, 4)
+        self.assertEqual(combined_suites.failures, 1)
+        self.assertEqual(combined_suites.skipped, 1)
 
 class Test_JunitXml(unittest.TestCase):
 
@@ -55,8 +76,8 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(len(result), 2)
 
     def test_add_suite(self):
-        suite1 = TestSuite()
-        suite2 = TestSuite()
+        suite1 = TestSuite("suite1")
+        suite2 = TestSuite("suite2")
         result = JUnitXml()
         result.add_testsuite(suite1)
         result.add_testsuite(suite2)
@@ -80,15 +101,35 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_add(self):
         result1 = JUnitXml()
+        suite1 = TestSuite("suite1")
+        result1.add_testsuite(suite1)
+        result2 = JUnitXml()
+        suite2 = TestSuite("suite2")
+        result2.add_testsuite(suite2)
+        result3 = result1 + result2
+        self.assertEqual(len(result3), 2)
+
+    def test_add_same_suite(self):
+        result1 = JUnitXml()
         suite1 = TestSuite()
         result1.add_testsuite(suite1)
         result2 = JUnitXml()
         suite2 = TestSuite()
         result2.add_testsuite(suite2)
         result3 = result1 + result2
-        self.assertEqual(len(result3), 2)
+        self.assertEqual(len(result3), 1)
 
     def test_iadd(self):
+        result1 = JUnitXml()
+        suite1 = TestSuite("suite1")
+        result1.add_testsuite(suite1)
+        result2 = JUnitXml()
+        suite2 = TestSuite("suite2")
+        result2.add_testsuite(suite2)
+        result1 += result2
+        self.assertEqual(len(result1), 2)
+
+    def test_iadd_same_suite(self):
         result1 = JUnitXml()
         suite1 = TestSuite()
         result1.add_testsuite(suite1)
@@ -96,7 +137,7 @@ class Test_JunitXml(unittest.TestCase):
         suite2 = TestSuite()
         result2.add_testsuite(suite2)
         result1 += result2
-        self.assertEqual(len(result1), 2)
+        self.assertEqual(len(result1), 1)
 
     def test_add_two_same_suites(self):
         suite1 = TestSuite()
