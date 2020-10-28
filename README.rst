@@ -90,6 +90,22 @@ You have some existing junit.xml files, and you want to modify the content.
             # handle cases
     xml.write() # Writes back to file
 
+It is also possible to use a custom parser. For example lxml provides a plethora
+of parsing options_. We can use them this way:
+
+.. code-block:: python
+
+    from lxml.etree import XMLParser, parse
+    from junitparser import JUnitXml
+
+    def parse_func(file_path):
+        xml_parser = XMLParser(huge_tree=True)
+        return parse(file_path, xml_parser)
+
+    xml = JUnitXml.fromfile('/path/to/junit.xml', parse_func)
+    # process xml...
+
+.. _options: https://lxml.de/api/lxml.etree.XMLParser-class.html
 
 Merge XML files
 ~~~~~~~~~~~~~~~

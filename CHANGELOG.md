@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0] - 2020-10-28
+### Added
+- Custom parser option for `fromfile`
+
+## [1.5.1] - 2020-10-28
+### Fixed
+- #47 result error when running merge in cli
+
 ## [1.5.0] - 2020-10-26
 ### Added
 - Runs with `python -m junitparser ...` Thanks to @jkowalleck
