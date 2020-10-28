@@ -36,7 +36,7 @@ jobs:
       run: |
         pytest
     - name: Publish to pypi
-      if: startsWith(github.ref, 'refs/tags') && contains('3.5', matrix.python-version)
+      if: startsWith(github.ref, 'refs/tags') && matrix.python-version == '3.5'
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
