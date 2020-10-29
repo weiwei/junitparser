@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.1] - 2020-10-29
+### Changed
+- Update licence and readme
+
 ## [1.6.0] - 2020-10-28
 ### Added
 - Custom parser option for `fromfile`
