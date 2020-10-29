@@ -1,10 +1,14 @@
 junitparser -- Pythonic JUnit/xUnit Result XML Parser
 ======================================================
 
-.. image:: https://github.com/weiwei/junitparser/workflows/ci-cd/badge.svg?branch=master
+.. image:: https://github.com/weiwei/junitparser/workflows/build/badge.svg?branch=master
    :target: https://github.com/weiwei/junitparser/actions
 .. image:: https://codecov.io/gh/weiwei/junitparser/branch/master/graph/badge.svg?token=UotlfRXNnK
    :target: https://codecov.io/gh/weiwei/junitparser
+.. image:: https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.6.0&x2=0
+   :target: https://pypi.org/project/junitparser/
+.. image:: https://img.shields.io/pypi/pyversions/junitparser.svg
+.. image:: https://img.shields.io/pypi/dm/junitparser.svg
 
 
 What does it do?
