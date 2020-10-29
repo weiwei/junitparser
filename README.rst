@@ -7,9 +7,6 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
    :target: https://codecov.io/gh/weiwei/junitparser
 .. image:: https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.6.0&x2=0
    :target: https://pypi.org/project/junitparser/
-.. image:: https://img.shields.io/pypi/pyversions/junitparser.svg
-.. image:: https://img.shields.io/pypi/dm/junitparser.svg
-
 
 What does it do?
 ----------------
