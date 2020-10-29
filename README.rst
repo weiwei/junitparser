@@ -2,9 +2,9 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
 ======================================================
 
 .. image:: https://github.com/weiwei/junitparser/workflows/ci-cd/badge.svg?branch=master
-:target: https://github.com/weiwei/junitparser/actions
+   :target: https://github.com/weiwei/junitparser/actions
 .. image:: https://codecov.io/gh/weiwei/junitparser/branch/master/graph/badge.svg?token=UotlfRXNnK
-:target: https://codecov.io/gh/weiwei/junitparser
+   :target: https://codecov.io/gh/weiwei/junitparser
 
 
 What does it do?
