@@ -11,12 +11,10 @@ on:
 
 jobs:
   build-test:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [2.7, 3.5]
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,7 +24,24 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Test
+      run: |
+        pytest
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install lxml flake8 pytest coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
@@ -40,8 +55,6 @@ jobs:
         bash <(curl -s https://codecov.io/bash)
     - name: Build packages
       if: startsWith(github.ref, 'refs/tags')
-      with:
-        python-version: 3.5 
       run: |
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
@@ -49,6 +62,5 @@ jobs:
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
-        python-version: 3.5 
         user: __token__
         password: ${{ secrets.pypi_password }}
