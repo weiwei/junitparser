@@ -1,12 +1,10 @@
 junitparser -- Pythonic JUnit/xUnit Result XML Parser
 ======================================================
 
-.. image:: https://api.codacy.com/project/badge/Grade/00cfb3ab06ca4e419b787af69ff2a8c3
-   :alt: Codacy Badge
-   :target: https://app.codacy.com/app/gastlygem/junitparser?utm_source=github.com&utm_medium=referral&utm_content=gastlygem/junitparser&utm_campaign=badger
-.. image:: https://travis-ci.org/gastlygem/junitparser.svg?branch=master
-.. image:: https://coveralls.io/repos/github/gastlygem/junitparser/badge.svg?branch=master
-   :target: https://coveralls.io/github/gastlygem/junitparser?branch=master
+.. image:: https://github.com/weiwei/junitparser/workflows/ci-cd/badge.svg?branch=master
+:target: https://github.com/weiwei/junitparser/actions
+.. image:: https://codecov.io/gh/weiwei/junitparser/branch/master/graph/badge.svg?token=UotlfRXNnK
+:target: https://codecov.io/gh/weiwei/junitparser
 
 
 What does it do?
