@@ -34,11 +34,19 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: Install lxml for Python 3
+      with:
+        python-version: 3.5 
       run: |
-        pytest
-    - name: build packages
+        pip install lxml
+    - name: Test and coverage
+      run: |
+        coverage run -m pytest
+        bash <(curl -s https://codecov.io/bash)
+    - name: Build packages
       if: startsWith(github.ref, 'refs/tags')
+      with:
+        python-version: 3.5 
       run: |
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
@@ -46,5 +54,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
+        python-version: 3.5 
         user: __token__
         password: ${{ secrets.pypi_password }}

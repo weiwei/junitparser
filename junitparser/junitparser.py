@@ -47,7 +47,7 @@ def write_xml(obj, filepath=None, pretty=False):
         from xml.dom.minidom import parseString
 
         text = etree.tostring(obj._elem)
-        xml = parseString(text)
+        xml = parseString(text) # nosec
         with open(filepath, "wb") as xmlfile:
             xmlfile.write(xml.toprettyxml(encoding="utf-8"))
     else:
@@ -174,7 +174,7 @@ class Element(with_metaclass(junitxml, object)):
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
         instance = cls()
-        instance._elem = etree.fromstring(text)
+        instance._elem = etree.fromstring(text) # nosec
         return instance
 
     @classmethod
@@ -298,7 +298,7 @@ class JUnitXml(Element):
         if parse_func:
             tree = parse_func(filepath)
         else:
-            tree = etree.parse(filepath)
+            tree = etree.parse(filepath) # nosec
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
             instance = cls()
