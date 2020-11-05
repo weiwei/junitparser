@@ -27,7 +27,7 @@ setup(name='junitparser',
       license='Apache 2.0',
       install_requires=['future'],
       keywords='junit xunit xml parser',
-      packages=find_packages(),
+      packages=find_packages(exclude=['tests']),
       entry_points={
           'console_scripts': [
               'junitparser=junitparser.cli:main'
