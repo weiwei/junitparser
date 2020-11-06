@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.2] - 2020-10-29
+### Changed
+- Exclude test file from package. Thanks to @Ishinomori
+
 ## [1.6.1] - 2020-10-29
 ### Changed
 - Update licence and readme
