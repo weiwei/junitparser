@@ -83,6 +83,20 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(result.time, 0)
         self.assertEqual(len(result), 2)
 
+    def test_fromstring_no_testsuites(self):
+        text = """<testsuite name="suitename1">
+        <testcase name="testname1">
+        </testcase></testsuite>"""
+        result = JUnitXml.fromstring(text)
+        self.assertEqual(result.time, 0)
+        self.assertEqual(len(result), 1)
+
+    def test_fromstring_invalid(self):
+        text = """<random name="suitename1"></random>"""
+        with self.assertRaises(Exception) as context:
+            JUnitXml.fromstring(text)
+        self.assertTrue(isinstance(context.exception, JUnitXmlError))
+
     def test_add_suite(self):
         suite1 = TestSuite("suite1")
         suite2 = TestSuite("suite2")
