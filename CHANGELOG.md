@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.3] - 2020-11-24
+### Fixed
+- `JunitXML.fromstring()` now handles various inputs.
+
 ## [1.6.2] - 2020-10-29
 ### Changed
 - Exclude test file from package. Thanks to @Ishinomori
