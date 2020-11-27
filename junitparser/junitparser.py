@@ -428,14 +428,15 @@ class TestSuite(Element):
         time = 0
         for case in self:
             tests += 1
-            if isinstance(case.result, Failure):
-                failures += 1
-            elif isinstance(case.result, Error):
-                errors += 1
-            elif isinstance(case.result, Skipped):
-                skipped += 1
             if case.time is not None:
                 time += case.time
+            for entry in case.result:
+                if isinstance(entry, Failure):
+                    failures += 1
+                elif isinstance(entry, Error):
+                    errors += 1
+                elif isinstance(entry, Skipped):
+                    skipped += 1
         self.tests = tests
         self.errors = errors
         self.failures = failures
@@ -583,6 +584,13 @@ class Result(Element):
             and self.message == other.message
         )
 
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
 
 class Skipped(Result):
     """Test result when the case is skipped."""
@@ -633,12 +641,24 @@ class TestCase(Element):
     classname = Attr()
     time = FloatAttr()
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, classname=None, time=None):
         super(TestCase, self).__init__(self._tag)
-        self.name = name
+        if name is not None:
+            self.name = name
+        if classname is not None:
+            self.classname = classname
+        if time is not None:
+            self.time = float(time)
 
     def __hash__(self):
         return super(TestCase, self).__hash__()
+
+    def __iter__(self):
+        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
+        for elem in self._elem.iter():
+            for entry_type in all_types:
+                if elem.tag == entry_type._tag:
+                    yield entry_type.fromelem(elem)
 
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
@@ -646,33 +666,24 @@ class TestCase(Element):
 
     @property
     def result(self):
-        """One of the Failure, Skipped, or Error objects."""
+        """A list of Failure, Skipped, or Error objects."""
         results = []
-        for res in POSSIBLE_RESULTS:
-            result = self.child(res)
-            if result is not None:
-                results.append(result)
-        if len(results) > 1:
-            raise JUnitXmlError("Only one result allowed per test case.")
-        elif len(results) == 0:
-            return None
-        else:
-            return results[0]
+        for entry in self:
+            for Res in POSSIBLE_RESULTS:
+                if isinstance(entry, Res):
+                    results.append(entry)
+
+        return results
 
     @result.setter
     def result(self, value):
         # First remove all existing results
-        for res in POSSIBLE_RESULTS:
-            result = self.child(res)
-            if result is not None:
-                self.remove(result)
-        # Then add current result
-        if (
-            isinstance(value, Skipped)
-            or isinstance(value, Failure)
-            or isinstance(value, Error)
-        ):
-            self.append(value)
+        for entry in self:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+                self.remove(entry)
+        for entry in value:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+                self.append(entry)
 
     @property
     def system_out(self):

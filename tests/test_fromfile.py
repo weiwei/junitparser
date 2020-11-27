@@ -55,9 +55,10 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(suite2), 3)
         self.assertEqual(suite2.name, "JUnitXmlReporter.constructor")
         self.assertEqual(suite2.tests, 3)
-        case_results = [Failure, Skipped, type(None)]
-        for case, result in zip(suite2, case_results):
-            self.assertIsInstance(case.result, result)
+        cases = list(suite2.iterchildren(TestCase))
+        self.assertIsInstance(cases[0].result[0], Failure)
+        self.assertIsInstance(cases[1].result[0], Skipped)
+        self.assertEqual(len(cases[2].result), 0)
 
     @unittest.skipUnless(has_lxml, "lxml required to run the case")
     def test_fromfile_with_parser(self):
@@ -89,9 +90,9 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(cases), 3)
         self.assertEqual(xml.name, "JUnitXmlReporter.constructor")
         self.assertEqual(xml.tests, 3)
-        case_results = [Failure, Skipped, type(None)]
-        for case, result in zip(xml, case_results):
-            self.assertIsInstance(case.result, result)
+        self.assertIsInstance(cases[0].result[0], Failure)
+        self.assertIsInstance(cases[1].result[0], Skipped)
+        self.assertEqual(len(cases[2].result), 0)
 
     def test_write_xml_withouth_testsuite_tag(self):
         suite = TestSuite()
@@ -187,8 +188,7 @@ class Test_RealFile(unittest.TestCase):
         xml = JUnitXml.fromstring(text)
         suite = next(iter(xml))
         case = next(iter(suite))
-        with self.assertRaises(JUnitXmlError):
-            result = case.result
+        self.assertEqual(len(case.result), 2)
 
     def test_write_pretty(self):
         suite1 = TestSuite()

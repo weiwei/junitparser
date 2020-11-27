@@ -91,6 +91,28 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(result.time, 0)
         self.assertEqual(len(result), 1)
 
+    def test_fromstring_multiple_fails(self):
+        text = """<testsuites>
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>
+        </testsuites>"""
+        result = JUnitXml.fromstring(text)
+        self.assertEqual(result.errors, 1)
+        self.assertEqual(result.skipped, 1)
+        suite = list(iter(result))[0]
+        cases = list(iter(suite))
+        self.assertEqual(len(cases[0].result), 0)
+        self.assertEqual(len(cases[1].result), 2)
+        text = cases[1].result[1].text
+        self.assertTrue("@pytest.fixture" in text)
+
     def test_fromstring_invalid(self):
         text = """<random name="suitename1"></random>"""
         with self.assertRaises(Exception) as context:
@@ -283,11 +305,11 @@ class Test_TestSuite(unittest.TestCase):
         self.assertEqual(suite.tests, 0)
         case1 = TestCase()
         case2 = TestCase()
-        case2.result = Failure()
+        case2.result = [Failure()]
         case3 = TestCase()
-        case3.result = Error()
+        case3.result = [Error()]
         case4 = TestCase()
-        case4.result = Skipped()
+        case4.result = [Skipped()]
         suite.add_testcase(case1)
         suite.add_testcase(case2)
         suite.add_testcase(case3)
@@ -375,7 +397,7 @@ class Test_TestSuite(unittest.TestCase):
 
 
 class Test_TestCase(unittest.TestCase):
-    def test_fromstring(self):
+    def test_case_fromstring(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
         <system-out>System out</system-out>
@@ -383,7 +405,7 @@ class Test_TestCase(unittest.TestCase):
         </testcase>"""
         case = TestCase.fromstring(text)
         self.assertEqual(case.name, "testname")
-        self.assertIsInstance(case.result, Failure)
+        self.assertIsInstance(case.result[0], Failure)
         self.assertEqual(case.system_out, "System out")
         self.assertEqual(case.system_err, "System err")
 
@@ -401,11 +423,19 @@ class Test_TestCase(unittest.TestCase):
         case.name = "testname"
         case.classname = "testclassname"
         case.time = 15.123
-        case.result = Skipped()
+        case.result = [Skipped()]
         self.assertEqual(case.name, "testname")
         self.assertEqual(case.classname, "testclassname")
         self.assertEqual(case.time, 15.123)
-        self.assertIsInstance(case.result, Skipped)
+        self.assertIsInstance(case.result[0], Skipped)
+
+    def test_case_init_with_attributes(self):
+        case = TestCase("testname", "testclassname", 15.123)
+        case.result = [Skipped()]
+        self.assertEqual(case.name, "testname")
+        self.assertEqual(case.classname, "testclassname")
+        self.assertEqual(case.time, 15.123)
+        self.assertIsInstance(case.result[0], Skipped)
 
     def test_case_output(self):
         case = TestCase()
@@ -418,11 +448,11 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.system_err, "error2")
         self.assertEqual(case.system_out, "out2")
 
-    def test_set_multiple_results(self):
+    def test_update_results(self):
         case = TestCase()
-        case.result = Skipped()
-        case.result = Failure()
-        self.assertIsInstance(case.result, Failure)
+        case.result = [Skipped()]
+        case.result = [Failure(), Skipped()]
+        self.assertEqual(len(case.result), 2)
 
     def test_monkypatch(self):
         TestCase.id = Attr("id")
@@ -473,7 +503,7 @@ class Test_TestCase(unittest.TestCase):
     def test_to_nonascii_string(self):
         case = TestCase()
         case.name = "测试1"
-        case.result = Failure("失败", "类型")
+        case.result = [Failure("失败", "类型")]
         case_str = case.tostring()
         self.assertIn("测试1", case_str.decode("utf-8"))
         self.assertIn("失败", case_str.decode("utf-8"))

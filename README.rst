@@ -6,29 +6,29 @@ junitparser -- Pythonic JUnit/xUnit Result XML Parser
 .. image:: https://codecov.io/gh/weiwei/junitparser/branch/master/graph/badge.svg?token=UotlfRXNnK
    :target: https://codecov.io/gh/weiwei/junitparser
 
-What does it do?
-----------------
-
-junitparser is a JUnit/xUnit Result XML Parser. Use it to parse and manipulate
+junitparser handles JUnit/xUnit Result XML files. Use it to parse and manipulate
 existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
-There are already a lot of modules that converts JUnit/xUnit XML from a
-specific format, but you may run into some proprietory or less-known formats
-and you want to convert them and feed the result to another tool, or, you may
-want to manipulate the results in your own way. This is where junitparser come
-into handy.
+Features
+--------
 
-Why junitparser?
-----------------
+* Parse or modify existing JUnit/xUnit xml files.
+* Parse or modify non-standard or customized JUnit/xUnit xml files, by monkey
+  patching existing element definitions.
+* Create JUnit/xUnit test results from scratch.
+* Merge test result xml files.
+* Specify xml parser. For example you can use lxml to speed things up.
+* Invoke from command line, or `python -m junitparser`
+* Python 2 and 3 support (As of Nov 2020, 1/4 of the users are still on Python 
+  2, so there is no plan to drop Python 2 support)
 
-* Functionality. There are various JUnit/xUnit XML libraries, some does
-  parsing, some does XML generation, some does manipulation. This module does 
-  all in a single package.
-* Extensibility. JUnit/xUnit is hardly a standardized format. The base format
-  is somewhat universally agreed with, but beyond that, there could be "custom"
-  elements and attributes. junitparser aims to support them all, by
-  allowing the user to monkeypatch and subclass some base classes.
-* Pythonic. You can manipulate test cases and suites in a pythonic way.
+Note on version 2
+-----------------
+
+Version 2 improved support for pytest result xml files by fixing a few issues, 
+notably that there could be multiple <Failure> or <Error> entries. There is a 
+breaking change that ``TestCase.result`` is now a list instead of a single item.
+If you are using this attribute, please update your code accordingly.
 
 Installation
 -------------
@@ -54,10 +54,11 @@ format.
     from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error
 
     # Create cases
-    case1 = TestCase('case1')
-    case1.result = Skipped()
+    case1 = TestCase('case1', 'class.name', 0.5) # params are optional
+    case1.classname = "modified.class.name" # specify or change case attrs
+    case1.result = [Skipped()] # You can have a list of results
     case2 = TestCase('case2')
-    case2.result = Error('Example error message', 'the_error_type')
+    case2.result = [Error('Example error message', 'the_error_type')]
 
     # Create suite and add cases
     suite = TestSuite('suite1')
@@ -225,35 +226,11 @@ Command Line
 Test
 ----
 
-You can run the cases directly::
-
-    python test.py
-
-Or use pytest::
+The tests are written with python `unittest`, to run them, use pytest::
 
     pytest test.py
-
-Notes
------
-
-There are some other packages providing similar functionalities. They are
-out there for a longer time, but might not be as feature-rich or fun as 
-junitparser:
-
-* xunitparser_: Read JUnit/XUnit XML files and map them to Python objects
-* xunitgen_: Generate xUnit.xml files
-* xunitmerge_: Utility for merging multiple XUnit xml reports into a single
-  xml report.
-* `junit-xml`_: Creates JUnit XML test result documents that can be read by
-  tools such as Jenkins
-
-.. _xunitparser: https://pypi.python.org/pypi/xunitparser
-.. _xunitgen: https://pypi.python.org/pypi/xunitgen
-.. _xunitmerge: https://pypi.python.org/pypi/xunitmerge
-.. _`junit-xml`: https://pypi.python.org/pypi/junit-xml
-
 
 Contribute
 ----------
 
-Please do!
+PRs are welcome!
