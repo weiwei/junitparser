@@ -92,9 +92,7 @@ class IntAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
-        if result is None and (
-            isinstance(instance, JUnitXml) or isinstance(instance, TestSuite)
-        ):
+        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
@@ -114,9 +112,7 @@ class FloatAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
-        if result is None and (
-            isinstance(instance, JUnitXml) or isinstance(instance, TestSuite)
-        ):
+        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
@@ -161,8 +157,8 @@ class Element(with_metaclass(junitxml, object)):
                 ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
             )
             return """<Element '%s' %s>""" % (tag, attrs_str)
-        else:
-            return """<Element '%s'>""" % tag
+
+        return """<Element '%s'>""" % tag
 
     def append(self, sub_elem):
         """Adds the element subelement to the end of this elements internal
@@ -408,12 +404,12 @@ class TestSuite(Element):
                 self.add_testsuite(suite)
             self.update_statistics()
             return self
-        else:
-            result = JUnitXml()
-            result.filepath = self.filepath
-            result.add_testsuite(self)
-            result.add_testsuite(other)
-            return result
+
+        result = JUnitXml()
+        result.filepath = self.filepath
+        result.add_testsuite(self)
+        result.add_testsuite(other)
+        return result
 
     def remove_testcase(self, testcase):
         """Removes a test case from the suite."""
@@ -669,9 +665,8 @@ class TestCase(Element):
         """A list of Failure, Skipped, or Error objects."""
         results = []
         for entry in self:
-            for Res in POSSIBLE_RESULTS:
-                if isinstance(entry, Res):
-                    results.append(entry)
+            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+                results.append(entry)
 
         return results
 
