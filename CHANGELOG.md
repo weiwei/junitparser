@@ -1,5 +1,14 @@
 # Changelog
 
+
+## [2.0.0] - 2020-11-28
+### Breaking
+- `TestCase.result` is now a list instead of a single item.
+
+### Added
+- `TestCase` constructor supports `time` and `classname` as params.
+- `Result` object supports `text` attribute.
+
 ## [1.6.3] - 2020-11-24
 ### Fixed
 - `JunitXML.fromstring()` now handles various inputs.
