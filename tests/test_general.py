@@ -424,10 +424,12 @@ class Test_TestCase(unittest.TestCase):
         case.classname = "testclassname"
         case.time = 15.123
         case.result = [Skipped()]
+        case.result[0].text = "woah skipped"
         self.assertEqual(case.name, "testname")
         self.assertEqual(case.classname, "testclassname")
         self.assertEqual(case.time, 15.123)
         self.assertIsInstance(case.result[0], Skipped)
+        self.assertEqual(case.result[0].text, "woah skipped")
 
     def test_case_init_with_attributes(self):
         case = TestCase("testname", "testclassname", 15.123)
