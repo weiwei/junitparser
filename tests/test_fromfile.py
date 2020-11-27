@@ -76,9 +76,10 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(suite2), 3)
         self.assertEqual(suite2.name, "JUnitXmlReporter.constructor")
         self.assertEqual(suite2.tests, 3)
-        case_results = [Failure, Skipped, type(None)]
-        for case, result in zip(suite2, case_results):
-            self.assertIsInstance(case.result, result)
+        cases = list(suite2.iterchildren(TestCase))
+        self.assertIsInstance(cases[0].result[0], Failure)
+        self.assertIsInstance(cases[1].result[0], Skipped)
+        self.assertEqual(len(cases[2].result), 0)
 
     def test_fromfile_without_testsuites_tag(self):
         xml = JUnitXml.fromfile(
