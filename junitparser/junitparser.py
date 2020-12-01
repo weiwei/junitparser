@@ -9,14 +9,11 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future.utils import with_metaclass
 from builtins import object
 from io import open
+from junitparser.elements import POSSIBLE_RESULTS, Properties, SystemErr, SystemOut
+from junitparser.base import Attr, Element, FloatAttr, IntAttr, JUnitXmlError
 
-try:
-    from html import escape  # python 3.x
-except ImportError:
-    from cgi import escape  # python 2.x
 
 try:
     import itertools.izip as zip
@@ -54,159 +51,6 @@ def write_xml(obj, filepath=None, pretty=False):
         tree.write(filepath, encoding="utf-8", xml_declaration=True)
 
 
-class JUnitXmlError(Exception):
-    """Exception for JUnit XML related errors."""
-
-
-class Attr(object):
-    """An attribute for an XML element.
-
-    By default they are all string values. To support different value types,
-    inherit this class and define your own methods.
-
-    Also see: :class:`InitAttr`, :class:`FloatAttr`.
-    """
-
-    def __init__(self, name=None):
-        self.name = name
-
-    def __get__(self, instance, cls):
-        """Gets value from attribute, return None if attribute doesn't exist."""
-        value = instance._elem.attrib.get(self.name)
-        if value is not None:
-            return escape(value)
-        return value
-
-    def __set__(self, instance, value):
-        """Sets XML element attribute."""
-        if value is not None:
-            instance._elem.attrib[self.name] = unicode(value)
-
-
-class IntAttr(Attr):
-    """An integer attribute for an XML element.
-
-    This class is used internally for counting test cases, but you could use
-    it for any specific purpose.
-    """
-
-    def __get__(self, instance, cls):
-        result = super(IntAttr, self).__get__(instance, cls)
-        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-            instance.update_statistics()
-            result = super(IntAttr, self).__get__(instance, cls)
-        return int(result) if result else None
-
-    def __set__(self, instance, value):
-        if not isinstance(value, int):
-            raise TypeError("Expected integer value.")
-        super(IntAttr, self).__set__(instance, value)
-
-
-class FloatAttr(Attr):
-    """A float attribute for an XML element.
-
-    This class is used internally for counting test durations, but you could
-    use it for any specific purpose.
-    """
-
-    def __get__(self, instance, cls):
-        result = super(FloatAttr, self).__get__(instance, cls)
-        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-            instance.update_statistics()
-            result = super(FloatAttr, self).__get__(instance, cls)
-        return float(result) if result else None
-
-    def __set__(self, instance, value):
-        if not (isinstance(value, float) or isinstance(value, int)):
-            raise TypeError("Expected float value.")
-        super(FloatAttr, self).__set__(instance, value)
-
-
-def attributed(cls):
-    """Decorator to read XML element attribute name from class attribute."""
-    for key, value in vars(cls).items():
-        if isinstance(value, Attr):
-            value.name = key
-    return cls
-
-
-class junitxml(type):
-    """Metaclass to decorate the xml class"""
-
-    def __new__(meta, name, bases, methods):
-        cls = super(junitxml, meta).__new__(meta, name, bases, methods)
-        cls = attributed(cls)
-        return cls
-
-
-class Element(with_metaclass(junitxml, object)):
-    """Base class for all Junit XML elements."""
-
-    def __init__(self, name=None):
-        self._elem = etree.Element(name)
-
-    def __hash__(self):
-        return hash(etree.tostring(self._elem))
-
-    def __repr__(self):
-        tag = self._elem.tag
-        keys = sorted(self._elem.attrib.keys())
-        if keys:
-            attrs_str = " ".join(
-                ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
-            )
-            return """<Element '%s' %s>""" % (tag, attrs_str)
-
-        return """<Element '%s'>""" % tag
-
-    def append(self, sub_elem):
-        """Adds the element subelement to the end of this elements internal
-        list of subelements.
-        """
-        self._elem.append(sub_elem._elem)
-
-    @classmethod
-    def fromstring(cls, text):
-        """Construct Junit objects from a XML string."""
-        instance = cls()
-        instance._elem = etree.fromstring(text) # nosec
-        return instance
-
-    @classmethod
-    def fromelem(cls, elem):
-        """Constructs Junit objects from an elementTree element."""
-        if elem is None:
-            return
-        instance = cls()
-        if isinstance(elem, Element):
-            instance._elem = elem._elem
-        else:
-            instance._elem = elem
-        return instance
-
-    def iterchildren(self, Child):
-        """Iterate through specified Child type elements."""
-        elems = self._elem.iterfind(Child._tag)
-        for elem in elems:
-            yield Child.fromelem(elem)
-
-    def child(self, Child):
-        """Find a single child of specified Child type."""
-        elem = self._elem.find(Child._tag)
-        return Child.fromelem(elem)
-
-    def remove(self, sub_elem):
-        """Remove a sub element."""
-        for elem in self._elem.iterfind(sub_elem._tag):
-            child = sub_elem.__class__.fromelem(elem)
-            if child == sub_elem:
-                self._elem.remove(child._elem)
-
-    def tostring(self):
-        """Converts element to XML string."""
-        return etree.tostring(self._elem, encoding="utf-8")
-
 
 class JUnitXml(Element):
     """The JUnitXml root object.
@@ -229,6 +73,7 @@ class JUnitXml(Element):
     failures = IntAttr()
     errors = IntAttr()
     skipped = IntAttr()
+    disabled = Attr()
 
     def __init__(self, name=None):
         super(JUnitXml, self).__init__(self._tag)
@@ -328,6 +173,15 @@ class JUnitXml(Element):
         write_xml(self, filepath=filepath, pretty=pretty)
 
 
+class TestSuites(Element):
+    _tag = "testsuites"
+    name = Attr()
+    time = FloatAttr()
+    tests = IntAttr()
+    failures = IntAttr()
+    disabled = IntAttr()
+    errors = IntAttr()
+
 class TestSuite(Element):
     """The <testsuite> object.
 
@@ -343,14 +197,21 @@ class TestSuite(Element):
     """
 
     _tag = "testsuite"
-    name = Attr()
+    name = Attr() # Req
     hostname = Attr()
     time = FloatAttr()
     timestamp = Attr()
-    tests = IntAttr()
-    failures = IntAttr()
-    errors = IntAttr()
+    tests = IntAttr() # Req
+    failures = IntAttr() # Req
+    errors = IntAttr() # Req
     skipped = IntAttr()
+    group = Attr()
+    id = Attr()
+    package = Attr()
+    file = Attr()
+    log = Attr()
+    url = Attr()
+    version = Attr()
 
     def __init__(self, name=None):
         super(TestSuite, self).__init__(self._tag)
@@ -490,196 +351,6 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, filepath=None, pretty=False):
-        write_xml(self, filepath=filepath, pretty=pretty)
-
-
-class Properties(Element):
-    """A list of properties inside a test suite.
-
-    See :class:`Property`
-    """
-
-    _tag = "properties"
-
-    def __init__(self):
-        super(Properties, self).__init__(self._tag)
-
-    def add_property(self, property_):
-        self.append(property_)
-
-    def __iter__(self):
-        return super(Properties, self).iterchildren(Property)
-
-    def __eq__(self, other):
-        p1 = list(self)
-        p2 = list(other)
-        p1.sort()
-        p2.sort()
-        if len(p1) != len(p2):
-            return False
-        for e1, e2 in zip(p1, p2):
-            if e1 != e2:
-                return False
-        return True
-
-
-class Property(Element):
-    """A key/value pare that's stored in the test suite.
-
-    Use it to store anything you find interesting or useful.
-
-    Attributes:
-        name: the property name
-        value: the property value
-    """
-
-    _tag = "property"
-    name = Attr()
-    value = Attr()
-
-    def __init__(self, name=None, value=None):
-        super(Property, self).__init__(self._tag)
-        self.name = name
-        self.value = value
-
-    def __eq__(self, other):
-        return self.name == other.name and self.value == other.value
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __lt__(self, other):
-        """Supports sort() for properties."""
-        return self.name > other.name
-
-
-class Result(Element):
-    """Base class for test result.
-
-    Attributes:
-        message: result as message string
-        type: message type
-    """
-
-    _tag = None
-    message = Attr()
-    type = Attr()
-
-    def __init__(self, message=None, type_=None):
-        super(Result, self).__init__(self._tag)
-        if message:
-            self.message = message
-        if type_:
-            self.type = type_
-
-    def __eq__(self, other):
-        return (
-            self._tag == other._tag
-            and self.type == other.type
-            and self.message == other.message
-        )
-
-    @property
-    def text(self):
-        return self._elem.text
-
-    @text.setter
-    def text(self, value):
-        self._elem.text = value
-
-class Skipped(Result):
-    """Test result when the case is skipped."""
-
-    _tag = "skipped"
-
-    def __eq__(self, other):
-        return super(Skipped, self).__eq__(other)
-
-
-class Failure(Result):
-    """Test result when the case failed."""
-
-    _tag = "failure"
-
-    def __eq__(self, other):
-        return super(Failure, self).__eq__(other)
-
-
-class Error(Result):
-    """Test result when the case has errors during execution."""
-
-    _tag = "error"
-
-    def __eq__(self, other):
-        return super(Error, self).__eq__(other)
-
-
-POSSIBLE_RESULTS = {Failure, Error, Skipped}
-
-
-class TestCase(Element):
-    """Object to store a testcase and its result.
-
-    Attributes:
-        name: case name
-        classname: the parent class of the case
-        time: how much time is consumed by the test
-
-    Properties:
-        result: Failure, Skipped, or Error
-        system_out: stdout
-        system_err: stderr
-    """
-
-    _tag = "testcase"
-    name = Attr()
-    classname = Attr()
-    time = FloatAttr()
-
-    def __init__(self, name=None, classname=None, time=None):
-        super(TestCase, self).__init__(self._tag)
-        if name is not None:
-            self.name = name
-        if classname is not None:
-            self.classname = classname
-        if time is not None:
-            self.time = float(time)
-
-    def __hash__(self):
-        return super(TestCase, self).__hash__()
-
-    def __iter__(self):
-        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
-        for elem in self._elem.iter():
-            for entry_type in all_types:
-                if elem.tag == entry_type._tag:
-                    yield entry_type.fromelem(elem)
-
-    def __eq__(self, other):
-        # TODO: May not work correctly if unreliable hash method is used.
-        return hash(self) == hash(other)
-
-    @property
-    def result(self):
-        """A list of Failure, Skipped, or Error objects."""
-        results = []
-        for entry in self:
-            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
-                results.append(entry)
-
-        return results
-
-    @result.setter
-    def result(self, value):
-        # First remove all existing results
-        for entry in self:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
-                self.remove(entry)
-        for entry in value:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
-                self.append(entry)
-
     @property
     def system_out(self):
         """stdout."""
@@ -715,31 +386,65 @@ class TestCase(Element):
             self.append(err)
 
 
-class System(Element):
-    """Parent class for SystemOut and SystemErr.
+    def write(self, filepath=None, pretty=False):
+        write_xml(self, filepath=filepath, pretty=pretty)
+
+
+class TestCase(Element):
+    """Object to store a testcase and its result.
 
     Attributes:
-        text: the output message
+        name: case name
+        classname: the parent class of the case
+        time: how much time is consumed by the test
+
+    Properties:
+        result: Failure, Skipped, or Error
+        system_out: stdout
+        system_err: stderr
     """
 
-    _tag = ""
+    _tag = "testcase"
+    name = Attr()
+    classname = Attr()
+    time = FloatAttr()
+    assertions = Attr()
+    status = Attr()
 
-    def __init__(self, content=None):
-        super(System, self).__init__(self._tag)
-        self.text = content
+    def __init__(self, name):
+        super(TestCase, self).__init__(self._tag)
+        self.name = name
+
+    def __hash__(self):
+        return super(TestCase, self).__hash__()
+
+    def __iter__(self):
+        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
+        for elem in self._elem.iter():
+            for entry_type in all_types:
+                if elem.tag == entry_type._tag:
+                    yield entry_type.fromelem(elem)
+
+    def __eq__(self, other):
+        # TODO: May not work correctly if unreliable hash method is used.
+        return hash(self) == hash(other)
 
     @property
-    def text(self):
-        return self._elem.text
+    def result(self):
+        """A list of Failure, Skipped, or Error objects."""
+        results = []
+        for entry in self:
+            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+                results.append(entry)
 
-    @text.setter
-    def text(self, value):
-        self._elem.text = value
+        return results
 
-
-class SystemOut(System):
-    _tag = "system-out"
-
-
-class SystemErr(System):
-    _tag = "system-err"
+    @result.setter
+    def result(self, value):
+        # First remove all existing results
+        for entry in self:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+                self.remove(entry)
+        for entry in value:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+                self.append(entry)
