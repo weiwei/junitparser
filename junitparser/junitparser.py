@@ -11,7 +11,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from builtins import object
 from io import open
-from junitparser.elements import POSSIBLE_RESULTS, Properties, SystemErr, SystemOut
+from junitparser.elements import Error, Failure, POSSIBLE_RESULTS, Properties, Property, Skipped, SystemErr, SystemOut
 from junitparser.base import Attr, Element, FloatAttr, IntAttr, JUnitXmlError
 
 
@@ -66,22 +66,48 @@ class JUnitXml(Element):
         skipped: number of skipped cases
     """
 
+    def __init__(self, multi_suite=True):
+        if multi_suite:
+            super(JUnitXml, self).__init__("testsuites")
+        else:
+            super(JUnitXml, self).__init__("testsuite")
+
+    @classmethod
+    def from_suites(cls, name=None):
+        return TestSuites(name)
+
+    @classmethod
+    def from_suite(cls, name=None):
+        return TestSuite(name)
+
+    @classmethod
+    def from_custom(cls, root_elem, *args, **kwargs):
+        return root_elem(*args, **kwargs)
+
+    def write(self, filepath=None, pretty=False):
+        """Write the object into a junit xml file.
+
+        If `file_path` is not specified, it will write to the original file.
+        If `pretty` is True, the result file will be more human friendly.
+        """
+        write_xml(self, filepath=filepath, pretty=pretty)
+
+
+class TestSuites(Element):
     _tag = "testsuites"
     name = Attr()
     time = FloatAttr()
     tests = IntAttr()
     failures = IntAttr()
+    disabled = IntAttr() # Junit5
     errors = IntAttr()
-    skipped = IntAttr()
-    disabled = Attr()
 
     def __init__(self, name=None):
-        super(JUnitXml, self).__init__(self._tag)
-        self.filepath = None
         self.name = name
 
     def __iter__(self):
-        return super(JUnitXml, self).iterchildren(TestSuite)
+        return super(TestSuites, self).iterchildren(TestSuite)
+
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -101,7 +127,7 @@ class JUnitXml(Element):
         elif other._elem.tag == "testsuite":
             suite = TestSuite(name=other.name)
             for case in other:
-                suite._add_testcase_no_update_stats(case)
+                suite.add_testcase(case, update_statistics=False)
             self.add_testsuite(suite)
             self.update_statistics()
 
@@ -112,7 +138,7 @@ class JUnitXml(Element):
         for existing_suite in self:
             if existing_suite == suite:
                 for case in suite:
-                    existing_suite._add_testcase_no_update_stats(case)
+                    existing_suite.add_testcase(case, update_statistics=False)
                 return
         self.append(suite)
 
@@ -164,23 +190,7 @@ class JUnitXml(Element):
         instance.filepath = filepath
         return instance
 
-    def write(self, filepath=None, pretty=False):
-        """Write the object into a junit xml file.
 
-        If `file_path` is not specified, it will write to the original file.
-        If `pretty` is True, the result file will be more human friendly.
-        """
-        write_xml(self, filepath=filepath, pretty=pretty)
-
-
-class TestSuites(Element):
-    _tag = "testsuites"
-    name = Attr()
-    time = FloatAttr()
-    tests = IntAttr()
-    failures = IntAttr()
-    disabled = IntAttr()
-    errors = IntAttr()
 
 class TestSuite(Element):
     """The <testsuite> object.
@@ -197,21 +207,21 @@ class TestSuite(Element):
     """
 
     _tag = "testsuite"
-    name = Attr() # Req
+    name = Attr() # req
     hostname = Attr()
     time = FloatAttr()
     timestamp = Attr()
-    tests = IntAttr() # Req
-    failures = IntAttr() # Req
-    errors = IntAttr() # Req
+    tests = IntAttr() # req
+    failures = IntAttr() # pytest req
+    errors = IntAttr() # pytest req
     skipped = IntAttr()
-    group = Attr()
+    group = Attr() # pytest
     id = Attr()
     package = Attr()
-    file = Attr()
-    log = Attr()
-    url = Attr()
-    version = Attr()
+    file = Attr() # pytest
+    log = Attr() # pytest
+    url = Attr() # pytest
+    version = Attr() # pytest
 
     def __init__(self, name=None):
         super(TestSuite, self).__init__(self._tag)
@@ -246,7 +256,7 @@ class TestSuite(Element):
             # Merge the two suites
             result = deepcopy(self)
             for case in other:
-                result._add_testcase_no_update_stats(case)
+                result.add_testcase(case, update_statistics=False)
             for suite in other.testsuites():
                 result.add_testsuite(suite)
             result.update_statistics()
@@ -260,7 +270,7 @@ class TestSuite(Element):
     def __iadd__(self, other):
         if self == other:
             for case in other:
-                self._add_testcase_no_update_stats(case)
+                self.add_testcase(case, update_statistics=False)
             for suite in other.testsuites():
                 self.add_testsuite(suite)
             self.update_statistics()
@@ -313,17 +323,11 @@ class TestSuite(Element):
         prop = Property(name, value)
         props.add_property(prop)
 
-    def add_testcase(self, testcase):
+    def add_testcase(self, testcase, update_statistics=True):
         """Adds a testcase to the suite."""
         self.append(testcase)
-        self.update_statistics()
-
-    def _add_testcase_no_update_stats(self, testcase):
-        """
-        Adds a testcase to the suite (without updating stats).
-        For internal use only to avoid quadratic behaviour in merge.
-        """
-        self.append(testcase)
+        if update_statistics:
+            self.update_statistics()
 
     def add_testsuite(self, suite):
         """Adds a testsuite inside current testsuite."""

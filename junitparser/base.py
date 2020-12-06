@@ -1,3 +1,4 @@
+from junitparser.junitparser import JUnitXml, TestSuite, TestSuites
 from future.utils import with_metaclass
 
 try:
@@ -54,9 +55,9 @@ class IntAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
-        # if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-        #     instance.update_statistics()
-        #     result = super(IntAttr, self).__get__(instance, cls)
+        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+            instance.update_statistics()
+            result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
 
     def __set__(self, instance, value):
@@ -74,9 +75,9 @@ class FloatAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
-        # if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-        #     instance.update_statistics()
-        #     result = super(FloatAttr, self).__get__(instance, cls)
+        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+            instance.update_statistics()
+            result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
 
     def __set__(self, instance, value):
@@ -147,16 +148,16 @@ class Element(with_metaclass(junitxml, object)):
             instance._elem = elem
         return instance
 
-    def iterchildren(self, Child):
+    def iter(self, *child_types):
         """Iterate through specified Child type elements."""
-        elems = self._elem.iterfind(Child._tag)
-        for elem in elems:
-            yield Child.fromelem(elem)
+        tags = (t._tag for t in child_types)
+        for elem in self._elem.iter(*tags):
+            yield child_types[tags.index(elem.tag)].fromelem(elem)
 
-    def child(self, Child):
+    def child(self, child_type):
         """Find a single child of specified Child type."""
-        elem = self._elem.find(Child._tag)
-        return Child.fromelem(elem)
+        elem = self._elem.find(child_type._tag)
+        return child_type.fromelem(elem)
 
     def remove(self, sub_elem):
         """Remove a sub element."""
@@ -168,3 +169,11 @@ class Element(with_metaclass(junitxml, object)):
     def tostring(self):
         """Converts element to XML string."""
         return etree.tostring(self._elem, encoding="utf-8")
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter()
+    def text(self, value):
+        self._elem.text = value

@@ -95,7 +95,13 @@ class Result(Element):
         self._elem.text = value
 
 class Skipped(Result):
-    """Test result when the case is skipped."""
+    """Test result when the case is skipped.
+
+    JUnit5 doesn't define any attrs, pytest junit defines it to have ``type``
+    and ``message`` attrs, the same with ``failure`` and ``error``.
+
+    Here we follow the pytest format.
+    """
 
     _tag = "skipped"
 
@@ -121,7 +127,7 @@ class Error(Result):
         return super(Error, self).__eq__(other)
 
 
-class SystemOut(Result):
+class SystemOut(Element):
     """Test result when the case has errors during execution."""
 
     _tag = "system-out"
@@ -130,7 +136,7 @@ class SystemOut(Result):
         return super(SystemOut, self).__eq__(other)
 
 
-class SystemErr(Result):
+class SystemErr(Element):
     """Test result when the case has errors during execution."""
 
     _tag = "system-err"
