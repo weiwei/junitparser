@@ -3,6 +3,7 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from junitparser.junitparser import SystemErr, SystemOut
 import unittest
 from copy import deepcopy
 from junitparser import (
@@ -406,8 +407,8 @@ class Test_TestCase(unittest.TestCase):
         case = TestCase.fromstring(text)
         self.assertEqual(case.name, "testname")
         self.assertIsInstance(case.result[0], Failure)
-        self.assertEqual(case.system_out, "System out")
-        self.assertEqual(case.system_err, "System err")
+        self.assertIsInstance(case.result[1], SystemOut)
+        self.assertIsInstance(case.result[2], SystemErr)
 
     def test_illegal_xml_multi_results(self):
         text = """<testcase name="testname">

@@ -9,16 +9,14 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from future.utils import with_metaclass
 from builtins import object
 from io import open
-from junitparser.elements import Error, Failure, POSSIBLE_RESULTS, Properties, Property, Skipped, SystemErr, SystemOut
-from junitparser.base import Attr, Element, FloatAttr, IntAttr, JUnitXmlError
-
 
 try:
-    import itertools.izip as zip
+    from html import escape  # python 3.x
 except ImportError:
-    pass
+    from cgi import escape  # python 2.x
 
 try:
     from lxml import etree
@@ -26,6 +24,11 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from copy import deepcopy
+
+try:
+    import itertools.izip as zip
+except ImportError:
+    pass
 
 try:
     type(unicode)
@@ -51,6 +54,167 @@ def write_xml(obj, filepath=None, pretty=False):
         tree.write(filepath, encoding="utf-8", xml_declaration=True)
 
 
+class JUnitXmlError(Exception):
+    """Exception for JUnit XML related errors."""
+
+
+class Attr(object):
+    """An attribute for an XML element.
+
+    By default they are all string values. To support different value types,
+    inherit this class and define your own methods.
+
+    Also see: :class:`InitAttr`, :class:`FloatAttr`.
+    """
+
+    def __init__(self, name=None):
+        self.name = name
+
+    def __get__(self, instance, cls):
+        """Gets value from attribute, return None if attribute doesn't exist."""
+        value = instance._elem.attrib.get(self.name)
+        if value is not None:
+            return escape(value)
+        return value
+
+    def __set__(self, instance, value):
+        """Sets XML element attribute."""
+        if value is not None:
+            instance._elem.attrib[self.name] = unicode(value)
+
+
+class IntAttr(Attr):
+    """An integer attribute for an XML element.
+
+    This class is used internally for counting test cases, but you could use
+    it for any specific purpose.
+    """
+
+    def __get__(self, instance, cls):
+        result = super(IntAttr, self).__get__(instance, cls)
+        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+            instance.update_statistics()
+            result = super(IntAttr, self).__get__(instance, cls)
+        return int(result) if result else None
+
+    def __set__(self, instance, value):
+        if not isinstance(value, int):
+            raise TypeError("Expected integer value.")
+        super(IntAttr, self).__set__(instance, value)
+
+
+class FloatAttr(Attr):
+    """A float attribute for an XML element.
+
+    This class is used internally for counting test durations, but you could
+    use it for any specific purpose.
+    """
+
+    def __get__(self, instance, cls):
+        result = super(FloatAttr, self).__get__(instance, cls)
+        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+            instance.update_statistics()
+            result = super(FloatAttr, self).__get__(instance, cls)
+        return float(result) if result else None
+
+    def __set__(self, instance, value):
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise TypeError("Expected float value.")
+        super(FloatAttr, self).__set__(instance, value)
+
+
+def attributed(cls):
+    """Decorator to read XML element attribute name from class attribute."""
+    for key, value in vars(cls).items():
+        if isinstance(value, Attr):
+            value.name = key
+    return cls
+
+
+class junitxml(type):
+    """Metaclass to decorate the xml class"""
+
+    def __new__(meta, name, bases, methods):
+        cls = super(junitxml, meta).__new__(meta, name, bases, methods)
+        cls = attributed(cls)
+        return cls
+
+
+class Element(with_metaclass(junitxml, object)):
+    """Base class for all Junit XML elements."""
+
+    def __init__(self, name=None):
+        self._elem = etree.Element(name)
+
+    def __hash__(self):
+        return hash(etree.tostring(self._elem))
+
+    def __repr__(self):
+        tag = self._elem.tag
+        keys = sorted(self._elem.attrib.keys())
+        if keys:
+            attrs_str = " ".join(
+                ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
+            )
+            return """<Element '%s' %s>""" % (tag, attrs_str)
+
+        return """<Element '%s'>""" % tag
+
+    def append(self, sub_elem):
+        """Adds the element subelement to the end of this elements internal
+        list of subelements.
+        """
+        self._elem.append(sub_elem._elem)
+
+    @classmethod
+    def fromstring(cls, text):
+        """Construct Junit objects from a XML string."""
+        instance = cls()
+        instance._elem = etree.fromstring(text) # nosec
+        return instance
+
+    @classmethod
+    def fromelem(cls, elem):
+        """Constructs Junit objects from an elementTree element."""
+        if elem is None:
+            return
+        instance = cls()
+        if isinstance(elem, Element):
+            instance._elem = elem._elem
+        else:
+            instance._elem = elem
+        return instance
+
+    def iter(self, *child_types):
+        """Iterate through specified Child type elements."""
+        tags = tuple(t._tag for t in child_types)
+        for elem in self._elem.iter(*tags):
+            yield child_types[tags.index(elem.tag)].fromelem(elem)
+
+    def child(self, child_type):
+        """Find a single child of specified Child type."""
+        elem = self._elem.find(child_type._tag)
+        return child_type.fromelem(elem)
+
+    def remove(self, sub_elem):
+        """Remove a sub element."""
+        for elem in self._elem.iterfind(sub_elem._tag):
+            child = sub_elem.__class__.fromelem(elem)
+            if child == sub_elem:
+                self._elem.remove(child._elem)
+
+    def tostring(self):
+        """Converts element to XML string."""
+        return etree.tostring(self._elem, encoding="utf-8")
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
+
 
 class JUnitXml(Element):
     """The JUnitXml root object.
@@ -66,27 +230,112 @@ class JUnitXml(Element):
         skipped: number of skipped cases
     """
 
-    def __init__(self, multi_suite=True):
-        if multi_suite:
-            super(JUnitXml, self).__init__("testsuites")
+    _tag = "testsuites"
+    name = Attr()
+    time = FloatAttr()
+    tests = IntAttr()
+    failures = IntAttr()
+    errors = IntAttr()
+    skipped = IntAttr()
+    disabled = IntAttr()
+
+    def __init__(self, name=None):
+        super(JUnitXml, self).__init__(self._tag)
+        self.filepath = None
+        self.name = name
+
+    def __iter__(self):
+        return super(JUnitXml, self).iter(TestSuite)
+
+    def __len__(self):
+        return len(list(self.__iter__()))
+
+    def __add__(self, other):
+        result = JUnitXml()
+        for suite in self:
+            result.add_testsuite(suite)
+        for suite in other:
+            result.add_testsuite(suite)
+        return result
+
+    def __iadd__(self, other):
+        if other._elem.tag == "testsuites":
+            for suite in other:
+                self.add_testsuite(suite)
+        elif other._elem.tag == "testsuite":
+            suite = TestSuite(name=other.name)
+            for case in other:
+                suite.add_testcase(case, update_statistics=False)
+            self.add_testsuite(suite)
+            self.update_statistics()
+
+        return self
+
+    def add_testsuite(self, suite):
+        """Add a test suite."""
+        for existing_suite in self:
+            if existing_suite == suite:
+                for case in suite:
+                    existing_suite.add_testcase(case, update_statistics=False)
+                return
+        self.append(suite)
+
+    def update_statistics(self):
+        """Update test count, time, etc."""
+        time = 0
+        tests = failures = errors = skipped = 0
+        for suite in self:
+            suite.update_statistics()
+            tests += suite.tests
+            failures += suite.failures
+            errors += suite.errors
+            skipped += suite.skipped
+            time += suite.time
+        self.tests = tests
+        self.failures = failures
+        self.errors = errors
+        self.skipped = skipped
+        self.time = time
+
+    @classmethod
+    def fromelem(cls, elem):
+        """Create instance from customized TestSuite or TestSuites element.
+        """
+        if elem.tag == "testsuites":
+            instance = cls()
+        elif elem.tag == "testsuite":
+            instance = TestSuite()
         else:
-            super(JUnitXml, self).__init__("testsuite")
+            raise JUnitXmlError("Invalid format.")
+        instance._elem = elem
+        return instance
 
     @classmethod
-    def from_suites(cls, name=None):
-        return TestSuites(name)
+    def fromstring(cls, text):
+        """Construct Junit objects from a XML string."""
+        root_elem = etree.fromstring(text) # nosec
+        return cls.fromelem(root_elem)
 
     @classmethod
-    def from_suite(cls, name=None):
-        return TestSuite(name)
-
-    @classmethod
-    def from_custom(cls, root_elem, *args, **kwargs):
-        return root_elem(*args, **kwargs)
+    def fromfile(cls, filepath, parse_func=None):
+        """Initiate the object from a report file."""
+        if parse_func:
+            tree = parse_func(filepath)
+        else:
+            tree = etree.parse(filepath) # nosec
+        root_elem = tree.getroot()
+        if root_elem.tag == "testsuites":
+            instance = cls()
+        elif root_elem.tag == "testsuite":
+            instance = TestSuite()
+        else:
+            raise JUnitXmlError("Invalid format.")
+        instance._elem = root_elem
+        instance.filepath = filepath
+        return instance
 
     def write(self, filepath=None, pretty=False):
         """Write the object into a junit xml file.
-
         If `file_path` is not specified, it will write to the original file.
         If `pretty` is True, the result file will be more human friendly.
         """
@@ -106,7 +355,7 @@ class TestSuites(Element):
         self.name = name
 
     def __iter__(self):
-        return super(TestSuites, self).iterchildren(TestSuite)
+        return super(TestSuites, self).iter(TestSuite)
 
 
     def __len__(self):
@@ -215,6 +464,7 @@ class TestSuite(Element):
     failures = IntAttr() # pytest req
     errors = IntAttr() # pytest req
     skipped = IntAttr()
+    disabled = IntAttr() # junit5
     group = Attr() # pytest
     id = Attr()
     package = Attr()
@@ -229,7 +479,7 @@ class TestSuite(Element):
         self.filepath = None
 
     def __iter__(self):
-        return super(TestSuite, self).iterchildren(TestCase)
+        return super(TestSuite, self).iter(TestCase)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -352,7 +602,7 @@ class TestSuite(Element):
 
     def testsuites(self):
         """Iterates through all testsuites."""
-        for suite in self.iterchildren(TestSuite):
+        for suite in self.iter(TestSuite):
             yield suite
 
     @property
@@ -415,7 +665,7 @@ class TestCase(Element):
     assertions = Attr()
     status = Attr()
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         super(TestCase, self).__init__(self._tag)
         self.name = name
 
@@ -423,9 +673,8 @@ class TestCase(Element):
         return super(TestCase, self).__hash__()
 
     def __iter__(self):
-        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
         for elem in self._elem.iter():
-            for entry_type in all_types:
+            for entry_type in POSSIBLE_RESULTS:
                 if elem.tag == entry_type._tag:
                     yield entry_type.fromelem(elem)
 
@@ -452,3 +701,188 @@ class TestCase(Element):
         for entry in value:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
                 self.append(entry)
+
+
+class Properties(Element):
+    """A list of properties inside a test suite.
+
+    See :class:`Property`
+    """
+
+    _tag = "properties"
+
+    def __init__(self):
+        super(Properties, self).__init__(self._tag)
+
+    def add_property(self, property_):
+        self.append(property_)
+
+    def __iter__(self):
+        return super(Properties, self).iter(Property)
+
+    def __eq__(self, other):
+        p1 = list(self)
+        p2 = list(other)
+        p1.sort()
+        p2.sort()
+        if len(p1) != len(p2):
+            return False
+        for e1, e2 in zip(p1, p2):
+            if e1 != e2:
+                return False
+        return True
+
+
+class Property(Element):
+    """A key/value pare that's stored in the test suite.
+
+    Use it to store anything you find interesting or useful.
+
+    Attributes:
+        name: the property name
+        value: the property value
+    """
+
+    _tag = "property"
+    name = Attr()
+    value = Attr()
+
+    def __init__(self, name=None, value=None):
+        super(Property, self).__init__(self._tag)
+        self.name = name
+        self.value = value
+
+    def __eq__(self, other):
+        return self.name == other.name and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        """Supports sort() for properties."""
+        return self.name > other.name
+
+
+class Result(Element):
+    """Base class for test result.
+
+    Attributes:
+        message: result as message string
+        type: message type
+    """
+
+    _tag = None
+    message = Attr()
+    type = Attr()
+
+    def __init__(self, message=None, type_=None):
+        super(Result, self).__init__(self._tag)
+        if message:
+            self.message = message
+        if type_:
+            self.type = type_
+
+    def __eq__(self, other):
+        return (
+            self._tag == other._tag
+            and self.type == other.type
+            and self.message == other.message
+        )
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
+
+class Skipped(Result):
+    """Test result when the case is skipped.
+
+    JUnit5 doesn't define any attrs, pytest junit defines it to have ``type``
+    and ``message`` attrs, the same with ``failure`` and ``error``.
+
+    Here we follow the pytest format.
+    """
+
+    _tag = "skipped"
+
+    def __eq__(self, other):
+        return super(Skipped, self).__eq__(other)
+
+
+class Failure(Result):
+    """Test result when the case failed."""
+
+    _tag = "failure"
+
+    def __eq__(self, other):
+        return super(Failure, self).__eq__(other)
+
+
+class RerunFailure(Result):
+    """Pytest specific"""
+
+    _tag = "rerunFailure"
+
+    def __eq__(self, other):
+        return super(RerunFailure, self).__eq__(other)
+
+
+class RerunError(Result):
+    """Pytest specific"""
+
+    _tag = "rerunError"
+
+    def __eq__(self, other):
+        return super(RerunError, self).__eq__(other)
+
+
+class FlakyFailure(Result):
+    """Pytest specific"""
+
+    _tag = "flakyFailure"
+
+    def __eq__(self, other):
+        return super(FlakyFailure, self).__eq__(other)
+
+
+class FlakyError(Result):
+    """Pytest specific"""
+
+    _tag = "flakyError"
+
+    def __eq__(self, other):
+        return super(FlakyError, self).__eq__(other)
+
+
+class Error(Result):
+    """Test result when the case has errors during execution."""
+
+    _tag = "error"
+
+    def __eq__(self, other):
+        return super(Error, self).__eq__(other)
+
+
+class SystemOut(Element):
+    """Test result when the case has errors during execution."""
+
+    _tag = "system-out"
+
+    def __eq__(self, other):
+        return super(SystemOut, self).__eq__(other)
+
+
+class SystemErr(Element):
+    """Test result when the case has errors during execution."""
+
+    _tag = "system-err"
+
+    def __eq__(self, other):
+        return super(SystemErr, self).__eq__(other)
+
+
+POSSIBLE_RESULTS = {Failure, Error, RerunFailure, RerunError, FlakyFailure, FlakyError, Skipped, SystemOut, SystemErr}
+

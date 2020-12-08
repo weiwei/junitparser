@@ -34,7 +34,6 @@ try:
 except ImportError:
     pass
 
-
 class Test_RealFile(unittest.TestCase):
     def setUp(self):
         import tempfile
@@ -55,7 +54,7 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(suite2), 3)
         self.assertEqual(suite2.name, "JUnitXmlReporter.constructor")
         self.assertEqual(suite2.tests, 3)
-        cases = list(suite2.iterchildren(TestCase))
+        cases = list(suite2.iter(TestCase))
         self.assertIsInstance(cases[0].result[0], Failure)
         self.assertIsInstance(cases[1].result[0], Skipped)
         self.assertEqual(len(cases[2].result), 0)
@@ -76,7 +75,7 @@ class Test_RealFile(unittest.TestCase):
         self.assertEqual(len(suite2), 3)
         self.assertEqual(suite2.name, "JUnitXmlReporter.constructor")
         self.assertEqual(suite2.tests, 3)
-        cases = list(suite2.iterchildren(TestCase))
+        cases = list(suite2.iter(TestCase))
         self.assertIsInstance(cases[0].result[0], Failure)
         self.assertIsInstance(cases[1].result[0], Skipped)
         self.assertEqual(len(cases[2].result), 0)
