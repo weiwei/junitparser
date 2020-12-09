@@ -9,6 +9,7 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from build.lib.junitparser.junitparser import POSSIBLE_RESULTS
 from future.utils import with_metaclass
 from builtins import object
 from io import open
@@ -185,11 +186,11 @@ class Element(with_metaclass(junitxml, object)):
             instance._elem = elem
         return instance
 
-    def iter(self, *child_types):
+    def iterchildren(self, *child_types):
         """Iterate through specified Child type elements."""
-        tags = tuple(t._tag for t in child_types)
-        for elem in self._elem.iter(*tags):
-            yield child_types[tags.index(elem.tag)].fromelem(elem)
+        for child_type in child_types:
+            for elem in self._elem.iterfind(child_type._tag):
+                yield child_type.fromelem(elem)
 
     def child(self, child_type):
         """Find a single child of specified Child type."""
@@ -245,7 +246,7 @@ class JUnitXml(Element):
         self.name = name
 
     def __iter__(self):
-        return super(JUnitXml, self).iter(TestSuite)
+        return super(JUnitXml, self).iterchildren(TestSuite)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -314,7 +315,9 @@ class JUnitXml(Element):
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
         root_elem = etree.fromstring(text) # nosec
-        return cls.fromelem(root_elem)
+        obj = cls.fromelem(root_elem)
+        obj.update_statistics()
+        return obj
 
     @classmethod
     def fromfile(cls, filepath, parse_func=None):
@@ -355,7 +358,7 @@ class TestSuites(Element):
         self.name = name
 
     def __iter__(self):
-        return super(TestSuites, self).iter(TestSuite)
+        return super(TestSuites, self).iterchildren(TestSuite)
 
 
     def __len__(self):
@@ -453,6 +456,7 @@ class TestSuite(Element):
         failures: number of failed tests
         errors: number of cases with errors
         skipped: number of skipped cases
+        disabled: junit5 renamed skipped to disabled
     """
 
     _tag = "testsuite"
@@ -479,7 +483,7 @@ class TestSuite(Element):
         self.filepath = None
 
     def __iter__(self):
-        return super(TestSuite, self).iter(TestCase)
+        return super(TestSuite, self).iterchildren(TestCase)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -602,7 +606,7 @@ class TestSuite(Element):
 
     def testsuites(self):
         """Iterates through all testsuites."""
-        for suite in self.iter(TestSuite):
+        for suite in self.iterchildren(TestSuite):
             yield suite
 
     @property
@@ -673,10 +677,11 @@ class TestCase(Element):
         return super(TestCase, self).__hash__()
 
     def __iter__(self):
-        for elem in self._elem.iter():
-            for entry_type in POSSIBLE_RESULTS:
-                if elem.tag == entry_type._tag:
-                    yield entry_type.fromelem(elem)
+        elems = self._elem.iter()
+        for e in elems:
+            for result_type in POSSIBLE_RESULTS:
+                    if result_type._tag == e.tag:
+                        yield result_type.fromelem(e)
 
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
@@ -718,7 +723,7 @@ class Properties(Element):
         self.append(property_)
 
     def __iter__(self):
-        return super(Properties, self).iter(Property)
+        return super(Properties, self).iterchildren(Property)
 
     def __eq__(self, other):
         p1 = list(self)
@@ -871,6 +876,9 @@ class SystemOut(Element):
 
     _tag = "system-out"
 
+    def __init__(self, text=None):
+        super(SystemOut, self).__init__(self._tag)
+
     def __eq__(self, other):
         return super(SystemOut, self).__eq__(other)
 
@@ -879,6 +887,9 @@ class SystemErr(Element):
     """Test result when the case has errors during execution."""
 
     _tag = "system-err"
+
+    def __init__(self, text=None):
+        super(SystemErr, self).__init__(self._tag)
 
     def __eq__(self, other):
         return super(SystemErr, self).__eq__(other)

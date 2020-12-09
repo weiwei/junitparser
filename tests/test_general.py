@@ -433,7 +433,9 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.result[0].text, "woah skipped")
 
     def test_case_init_with_attributes(self):
-        case = TestCase("testname", "testclassname", 15.123)
+        case = TestCase("testname")
+        case.classname = "testclassname"
+        case.time = 15.123
         case.result = [Skipped()]
         self.assertEqual(case.name, "testname")
         self.assertEqual(case.classname, "testclassname")
@@ -493,7 +495,7 @@ class Test_TestCase(unittest.TestCase):
         other_case = TestOtherCase.fromelem(case)
 
         self.assertEqual(case.name, other_case.name)
-        self.assertRaises(AttributeError, lambda: case.assertions)
+        self.assertRaises(AttributeError, lambda: case.custom_attr)
         other_case.assertions = 20
         self.assertEqual(other_case.assertions, "20")
 
@@ -515,16 +517,18 @@ class Test_TestCase(unittest.TestCase):
     def test_system_out(self):
         case = TestCase()
         case.name = "case1"
-        self.assertIsNone(case.system_out)
-        case.system_out = "output"
-        self.assertEqual(case.system_out, "output")
+        sys_out = SystemOut()
+        sys_out.text = "output"
+        case.result = [sys_out]
+        self.assertEqual(case.result[0].text, "output")
 
     def test_system_err(self):
         case = TestCase()
         case.name = "case1"
-        self.assertIsNone(case.system_err)
-        case.system_err = "error"
-        self.assertEqual(case.system_err, "error")
+        sys_err = SystemErr()
+        sys_err.text = "output"
+        case.result = [sys_err]
+        self.assertEqual(case.result[0].text, "output")
 
     def test_result_eq(self):
         # TODO: Weird, need to think of a better API
