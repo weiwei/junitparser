@@ -9,7 +9,6 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from build.lib.junitparser.junitparser import POSSIBLE_RESULTS
 from future.utils import with_metaclass
 from builtins import object
 from io import open
