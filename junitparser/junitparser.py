@@ -19,16 +19,16 @@ except ImportError:
     from cgi import escape  # python 2.x
 
 try:
+    import itertools.izip as zip
+except ImportError:
+    pass
+
+try:
     from lxml import etree
 except ImportError:
     from xml.etree import ElementTree as etree
 
 from copy import deepcopy
-
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
 
 try:
     type(unicode)
@@ -92,7 +92,7 @@ class IntAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(IntAttr, self).__get__(instance, cls)
-        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(IntAttr, self).__get__(instance, cls)
         return int(result) if result else None
@@ -112,7 +112,7 @@ class FloatAttr(Attr):
 
     def __get__(self, instance, cls):
         result = super(FloatAttr, self).__get__(instance, cls)
-        if result is None and isinstance(instance, (TestSuites, TestSuite)):
+        if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
         return float(result) if result else None
@@ -187,9 +187,10 @@ class Element(with_metaclass(junitxml, object)):
 
     def iterchildren(self, *child_types):
         """Iterate through specified Child type elements."""
-        for child_type in child_types:
-            for elem in self._elem.iterfind(child_type._tag):
-                yield child_type.fromelem(elem)
+        for elem in self._elem.iterfind("*"):
+            for child_type in child_types:
+                if elem.tag == child_type._tag:
+                    yield child_type.fromelem(elem)
 
     def child(self, child_type):
         """Find a single child of specified Child type."""
@@ -206,14 +207,6 @@ class Element(with_metaclass(junitxml, object)):
     def tostring(self):
         """Converts element to XML string."""
         return etree.tostring(self._elem, encoding="utf-8")
-
-    @property
-    def text(self):
-        return self._elem.text
-
-    @text.setter
-    def text(self, value):
-        self._elem.text = value
 
 
 class JUnitXml(Element):
@@ -342,105 +335,6 @@ class JUnitXml(Element):
         If `pretty` is True, the result file will be more human friendly.
         """
         write_xml(self, filepath=filepath, pretty=pretty)
-
-
-class TestSuites(Element):
-    _tag = "testsuites"
-    name = Attr()
-    time = FloatAttr()
-    tests = IntAttr()
-    failures = IntAttr()
-    disabled = IntAttr() # Junit5
-    errors = IntAttr()
-
-    def __init__(self, name=None):
-        self.name = name
-
-    def __iter__(self):
-        return super(TestSuites, self).iterchildren(TestSuite)
-
-
-    def __len__(self):
-        return len(list(self.__iter__()))
-
-    def __add__(self, other):
-        result = JUnitXml()
-        for suite in self:
-            result.add_testsuite(suite)
-        for suite in other:
-            result.add_testsuite(suite)
-        return result
-
-    def __iadd__(self, other):
-        if other._elem.tag == "testsuites":
-            for suite in other:
-                self.add_testsuite(suite)
-        elif other._elem.tag == "testsuite":
-            suite = TestSuite(name=other.name)
-            for case in other:
-                suite.add_testcase(case, update_statistics=False)
-            self.add_testsuite(suite)
-            self.update_statistics()
-
-        return self
-
-    def add_testsuite(self, suite):
-        """Add a test suite."""
-        for existing_suite in self:
-            if existing_suite == suite:
-                for case in suite:
-                    existing_suite.add_testcase(case, update_statistics=False)
-                return
-        self.append(suite)
-
-    def update_statistics(self):
-        """Update test count, time, etc."""
-        time = 0
-        tests = failures = errors = skipped = 0
-        for suite in self:
-            suite.update_statistics()
-            tests += suite.tests
-            failures += suite.failures
-            errors += suite.errors
-            skipped += suite.skipped
-            time += suite.time
-        self.tests = tests
-        self.failures = failures
-        self.errors = errors
-        self.skipped = skipped
-        self.time = time
-
-    @classmethod
-    def fromstring(cls, text):
-        """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text) # nosec
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
-        else:
-            raise JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
-        return instance
-
-    @classmethod
-    def fromfile(cls, filepath, parse_func=None):
-        """Initiate the object from a report file."""
-        if parse_func:
-            tree = parse_func(filepath)
-        else:
-            tree = etree.parse(filepath) # nosec
-        root_elem = tree.getroot()
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
-        else:
-            raise JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
-        instance.filepath = filepath
-        return instance
-
 
 
 class TestSuite(Element):
@@ -881,6 +775,14 @@ class SystemOut(Element):
     def __eq__(self, other):
         return super(SystemOut, self).__eq__(other)
 
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
+
 
 class SystemErr(Element):
     """Test result when the case has errors during execution."""
@@ -892,6 +794,14 @@ class SystemErr(Element):
 
     def __eq__(self, other):
         return super(SystemErr, self).__eq__(other)
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value):
+        self._elem.text = value
 
 
 POSSIBLE_RESULTS = {Failure, Error, RerunFailure, RerunError, FlakyFailure, FlakyError, Skipped, SystemOut, SystemErr}

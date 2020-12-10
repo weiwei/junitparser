@@ -166,7 +166,7 @@ Suppose you want to add element CustomElement to TestCase.
     # To find a single sub-element:
     testcase.child(CustomElement)
     # To iterate over custom elements:
-    for custom in testcase.iter(CustomElement):
+    for custom in testcase.iterchildren(CustomElement):
         ... # Do things with custom element
 
 Handling custom XML attributes
