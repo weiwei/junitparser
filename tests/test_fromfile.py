@@ -9,19 +9,11 @@ from junitparser import (
     TestSuite,
     Skipped,
     Failure,
-    Error,
-    Attr,
     JUnitXmlError,
     JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
 )
-
 try:
     from lxml.etree import XMLParser, parse
-
     has_lxml = True
 except ImportError:
     has_lxml = False
@@ -29,24 +21,18 @@ except ImportError:
 from io import open
 import pytest
 
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
-
 
 @pytest.fixture
 def tmpfile():
     import tempfile
-    tmp = tempfile.mktemp(suffix=".xml")
-    yield tmp
-    os.remove(tmp)
+
+    tmp = tempfile.mkstemp(suffix=".xml")
+    yield tmp[1]
+    os.remove(tmp[1])
 
 
 def test_fromfile():
-    xml = JUnitXml.fromfile(
-        os.path.join(os.path.dirname(__file__), "data/normal.xml")
-    )
+    xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
     suite1, suite2 = list(iter(xml))
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
@@ -57,6 +43,7 @@ def test_fromfile():
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
+
 
 @pytest.mark.skipif(not has_lxml, reason="lxml required to run the case")
 def test_fromfile_with_parser():
@@ -79,6 +66,7 @@ def test_fromfile_with_parser():
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
 
+
 def test_fromfile_without_testsuites_tag():
     xml = JUnitXml.fromfile(
         os.path.join(os.path.dirname(__file__), "data/no_suites_tag.xml")
@@ -93,6 +81,7 @@ def test_fromfile_without_testsuites_tag():
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
 
+
 def test_write_xml_withouth_testsuite_tag(tmpfile):
     suite = TestSuite()
     suite.name = "suite1"
@@ -105,6 +94,7 @@ def test_write_xml_withouth_testsuite_tag(tmpfile):
     assert "suite1" in text
     assert "case1" in text
 
+
 def test_file_is_not_xml(tmpfile):
     text = "Not really an xml file"
     with open(tmpfile, "w") as f:
@@ -113,12 +103,14 @@ def test_file_is_not_xml(tmpfile):
         xml = JUnitXml.fromfile(tmpfile)
         # Raises lxml.etree.XMLSyntaxError
 
+
 def test_illegal_xml_file(tmpfile):
     text = "<some></some>"
     with open(tmpfile, "w") as f:
         f.write(text)
     with pytest.raises(JUnitXmlError):
         xml = JUnitXml.fromfile(tmpfile)
+
 
 def test_write(tmpfile):
     suite1 = TestSuite()
@@ -134,6 +126,7 @@ def test_write(tmpfile):
     assert "suite1" in text
     assert "case1" in text
 
+
 def test_write_noarg():
     suite1 = TestSuite()
     suite1.name = "suite1"
@@ -144,6 +137,7 @@ def test_write_noarg():
     result.add_testsuite(suite1)
     with pytest.raises(JUnitXmlError):
         result.write()
+
 
 def test_write_nonascii(tmpfile):
     suite1 = TestSuite()
@@ -159,6 +153,7 @@ def test_write_nonascii(tmpfile):
     assert "suite1" in text
     assert "用例1" in text
 
+
 def test_read_written_xml(tmpfile):
     suite1 = TestSuite()
     suite1.name = "suite1"
@@ -172,6 +167,7 @@ def test_read_written_xml(tmpfile):
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
+
 
 def test_multi_results_in_case():
     # Has to be a binary string to include xml declarations.
@@ -188,6 +184,7 @@ def test_multi_results_in_case():
     suite = next(iter(xml))
     case = next(iter(suite))
     assert len(case.result) == 2
+
 
 def test_write_pretty(tmpfile):
     suite1 = TestSuite()

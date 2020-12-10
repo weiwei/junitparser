@@ -47,7 +47,7 @@ def write_xml(obj, filepath=None, pretty=False):
         from xml.dom.minidom import parseString
 
         text = etree.tostring(obj._elem)
-        xml = parseString(text) # nosec
+        xml = parseString(text)  # nosec
         with open(filepath, "wb") as xmlfile:
             xmlfile.write(xml.toprettyxml(encoding="utf-8"))
     else:
@@ -170,7 +170,7 @@ class Element(with_metaclass(junitxml, object)):
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
         instance = cls()
-        instance._elem = etree.fromstring(text) # nosec
+        instance._elem = etree.fromstring(text)  # nosec
         return instance
 
     @classmethod
@@ -292,8 +292,7 @@ class JUnitXml(Element):
 
     @classmethod
     def fromelem(cls, elem):
-        """Create instance from customized TestSuite or TestSuites element.
-        """
+        """Create instance from customized TestSuite or TestSuites element."""
         if elem.tag == "testsuites":
             instance = cls()
         elif elem.tag == "testsuite":
@@ -306,7 +305,7 @@ class JUnitXml(Element):
     @classmethod
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text) # nosec
+        root_elem = etree.fromstring(text)  # nosec
         obj = cls.fromelem(root_elem)
         obj.update_statistics()
         return obj
@@ -317,7 +316,7 @@ class JUnitXml(Element):
         if parse_func:
             tree = parse_func(filepath)
         else:
-            tree = etree.parse(filepath) # nosec
+            tree = etree.parse(filepath)  # nosec
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
             instance = cls()
@@ -353,22 +352,22 @@ class TestSuite(Element):
     """
 
     _tag = "testsuite"
-    name = Attr() # req
+    name = Attr()  # req
     hostname = Attr()
     time = FloatAttr()
     timestamp = Attr()
-    tests = IntAttr() # req
-    failures = IntAttr() # pytest req
-    errors = IntAttr() # pytest req
+    tests = IntAttr()  # req
+    failures = IntAttr()  # pytest req
+    errors = IntAttr()  # pytest req
     skipped = IntAttr()
-    disabled = IntAttr() # junit5
-    group = Attr() # pytest
+    disabled = IntAttr()  # junit5
+    group = Attr()  # pytest
     id = Attr()
     package = Attr()
-    file = Attr() # pytest
-    log = Attr() # pytest
-    url = Attr() # pytest
-    version = Attr() # pytest
+    file = Attr()  # pytest
+    log = Attr()  # pytest
+    url = Attr()  # pytest
+    version = Attr()  # pytest
 
     def __init__(self, name=None):
         super(TestSuite, self).__init__(self._tag)
@@ -536,7 +535,6 @@ class TestSuite(Element):
             err = SystemErr(value)
             self.append(err)
 
-
     def write(self, filepath=None, pretty=False):
         write_xml(self, filepath=filepath, pretty=pretty)
 
@@ -573,8 +571,8 @@ class TestCase(Element):
         elems = self._elem.iter()
         for e in elems:
             for result_type in POSSIBLE_RESULTS:
-                    if result_type._tag == e.tag:
-                        yield result_type.fromelem(e)
+                if result_type._tag == e.tag:
+                    yield result_type.fromelem(e)
 
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
@@ -594,10 +592,10 @@ class TestCase(Element):
     def result(self, value):
         # First remove all existing results
         for entry in self:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.remove(entry)
         for entry in value:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.append(entry)
 
 
@@ -694,6 +692,7 @@ class Result(Element):
     @text.setter
     def text(self, value):
         self._elem.text = value
+
 
 class Skipped(Result):
     """Test result when the case is skipped.
@@ -804,5 +803,14 @@ class SystemErr(Element):
         self._elem.text = value
 
 
-POSSIBLE_RESULTS = {Failure, Error, RerunFailure, RerunError, FlakyFailure, FlakyError, Skipped, SystemOut, SystemErr}
-
+POSSIBLE_RESULTS = {
+    Failure,
+    Error,
+    RerunFailure,
+    RerunError,
+    FlakyFailure,
+    FlakyError,
+    Skipped,
+    SystemOut,
+    SystemErr,
+}

@@ -3,30 +3,13 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from junitparser.junitparser import SystemErr, SystemOut
-import unittest
-from copy import deepcopy
 from junitparser import (
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
-    Error,
-    Attr,
     JUnitXmlError,
     JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
 )
-from xml.etree import ElementTree as etree
 import pytest
-
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
 
 
 def test_merge_test_count():
@@ -48,6 +31,7 @@ def test_merge_test_count():
     assert combined_suites.tests == 4
     assert combined_suites.failures == 1
     assert combined_suites.skipped == 1
+
 
 def test_merge_same_suite():
     text1 = """<testsuite name="suitename1" tests="2" failures="1">
@@ -71,6 +55,7 @@ def test_merge_same_suite():
     assert combined_suites.failures == 1
     assert combined_suites.skipped == 1
 
+
 def test_fromstring():
     text = """<testsuites><testsuite name="suitename1">
     <testcase name="testname1">
@@ -82,6 +67,7 @@ def test_fromstring():
     assert result.time == 0
     assert len(result) == 2
 
+
 def test_fromstring_no_testsuites():
     text = """<testsuite name="suitename1">
     <testcase name="testname1">
@@ -89,6 +75,7 @@ def test_fromstring_no_testsuites():
     result = JUnitXml.fromstring(text)
     assert result.time == 0
     assert len(result) == 1
+
 
 def test_fromstring_multiple_fails():
     text = """<testsuites>
@@ -112,10 +99,12 @@ def test_fromstring_multiple_fails():
     text = cases[1].result[1].text
     assert "@pytest.fixture" in text
 
+
 def test_fromstring_invalid():
     text = """<random name="suitename1"></random>"""
     with pytest.raises(JUnitXmlError):
         JUnitXml.fromstring(text)
+
 
 def test_add_suite():
     suite1 = TestSuite("suite1")
@@ -124,6 +113,7 @@ def test_add_suite():
     result.add_testsuite(suite1)
     result.add_testsuite(suite2)
     assert len(result) == 2
+
 
 def test_construct_xml():
     suite1 = TestSuite()
@@ -141,6 +131,7 @@ def test_construct_xml():
     assert len(case) == 1
     assert case[0].attrib["name"] == "case1"
 
+
 def test_add():
     result1 = JUnitXml()
     suite1 = TestSuite("suite1")
@@ -150,6 +141,7 @@ def test_add():
     result2.add_testsuite(suite2)
     result3 = result1 + result2
     assert len(result3) == 2
+
 
 def test_add_same_suite():
     result1 = JUnitXml()
@@ -161,6 +153,7 @@ def test_add_same_suite():
     result3 = result1 + result2
     assert len(result3) == 1
 
+
 def test_iadd():
     result1 = JUnitXml()
     suite1 = TestSuite("suite1")
@@ -171,6 +164,7 @@ def test_iadd():
     result1 += result2
     assert len(result1) == 2
 
+
 def test_iadd_same_suite():
     result1 = JUnitXml()
     suite1 = TestSuite()
@@ -180,6 +174,7 @@ def test_iadd_same_suite():
     result2.add_testsuite(suite2)
     result1 += result2
     assert len(result1) == 1
+
 
 def test_add_two_same_suites():
     suite1 = TestSuite()
@@ -195,6 +190,7 @@ def test_add_two_same_suites():
     assert len(list(iter(result))) == 2
     assert len(list(iter(result.testsuites()))) == 1
 
+
 def test_iadd_two_same_suites():
     suite1 = TestSuite()
     case1 = TestCase(name="case1")
@@ -209,6 +205,7 @@ def test_iadd_two_same_suites():
     assert len(list(iter(suite1))) == 2
     assert len(list(iter(suite1.testsuites()))) == 1
 
+
 def test_add_two_different_suites():
     suite1 = TestSuite(name="suite1")
     case1 = TestCase(name="case1")
@@ -219,6 +216,7 @@ def test_add_two_different_suites():
     result = suite1 + suite2
     assert isinstance(result, JUnitXml)
     assert len(list(iter(result))) == 2
+
 
 def test_iadd_two_different_suites():
     suite1 = TestSuite(name="suite1")
@@ -231,6 +229,7 @@ def test_iadd_two_different_suites():
     assert isinstance(suite1, JUnitXml)
     assert len(list(iter(suite1))) == 2
 
+
 def test_xml_statistics():
     result1 = JUnitXml()
     suite1 = TestSuite()
@@ -241,7 +240,3 @@ def test_xml_statistics():
     result3 = result1 + result2
     result3.update_statistics()
     assert result3.tests == 0
-
-
-
-

@@ -12,6 +12,8 @@ from .junitparser import (
     Properties,
     IntAttr,
     FloatAttr,
+    SystemErr,
+    SystemOut,
 )
 
 

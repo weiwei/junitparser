@@ -3,8 +3,6 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from junitparser.junitparser import SystemErr, SystemOut
-import unittest
 from copy import deepcopy
 from junitparser import (
     TestCase,
@@ -12,21 +10,11 @@ from junitparser import (
     Skipped,
     Failure,
     Error,
-    Attr,
-    JUnitXmlError,
     JUnitXml,
     Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
 )
-from xml.etree import ElementTree as etree
 import pytest
 
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
 
 def test_fromstring():
     text = """<testsuite name="suitename" time="1.32">
@@ -39,6 +27,7 @@ def test_fromstring():
     assert suite.name == "suitename"
     assert suite.tests == 1
 
+
 def test_props_fromstring():
     text = """<testsuite name="suitename">
     <properties><property name="name1" value="value1"/></properties>
@@ -48,11 +37,13 @@ def test_props_fromstring():
         assert prop.name == "name1"
         assert prop.value == "value1"
 
+
 def test_quoted_attr():
     text = """<testsuite name="suitename with &quot;quotes&quot;">
     </testsuite>"""
     suite = TestSuite.fromstring(text)
     assert suite.name == "suitename with &quot;quotes&quot;"
+
 
 def test_combining_testsuite_should_keep_name():
     text1 = """<testsuite name="suitename1" tests="2" failures="1">
@@ -73,12 +64,14 @@ def test_combining_testsuite_should_keep_name():
 
     assert [s.name for s in combined_suites] == ["suitename1", "suitename2"]
 
+
 def test_len():
     text = """<testsuite name="suitename"><testcase name="testname"/>
     <testcase name="testname2"/>
     </testsuite>"""
     suite = TestSuite.fromstring(text)
     assert len(suite) == 2
+
 
 def test_add_case():
     suite = TestSuite()
@@ -100,6 +93,7 @@ def test_add_case():
     assert suite.errors == 1
     assert suite.skipped == 1
 
+
 def test_case_count():
     suite = TestSuite()
     case1 = TestCase()
@@ -107,12 +101,14 @@ def test_case_count():
     assert suite.tests == 1
     assert suite.failures == 0
 
+
 def test_add_property():
     suite = TestSuite()
     suite.add_property("name1", "value1")
     res_prop = next(suite.properties())
     assert res_prop.name == "name1"
     assert res_prop.value == "value1"
+
 
 def test_remove_case():
     suite = TestSuite()
@@ -125,6 +121,7 @@ def test_remove_case():
     suite.remove_testcase(case1)
     assert len(suite) == 1
 
+
 def test_remove_property():
     suite = TestSuite()
     suite.add_property("name1", "value1")
@@ -135,16 +132,19 @@ def test_remove_property():
             suite.remove_property(prop)
     assert len(list(suite.properties())) == 2
 
+
 def test_remove_property_from_none():
     suite = TestSuite()
     suite.remove_property(Property("key", "value"))
     # Nothing should happen
+
 
 def test_suite_in_suite():
     suite = TestSuite("parent")
     childsuite = TestSuite("child")
     suite.add_testsuite(childsuite)
     assert len(list(suite.testsuites())) == 1
+
 
 def test_case_time():
     suite = TestSuite()
@@ -155,6 +155,7 @@ def test_case_time():
     suite.update_statistics()
     assert suite.time == 15
 
+
 def test_wrong_attr_type():
     suite = TestSuite()
     with pytest.raises(TypeError):
@@ -162,11 +163,13 @@ def test_wrong_attr_type():
     with pytest.raises(TypeError):
         suite.tests = 10.5
 
+
 def test_suite_eq():
     suite = TestSuite()
     suite.add_property("name1", "value1")
     suite2 = deepcopy(suite)
     assert suite == suite2
+
 
 def test_suite_ne():
     suite = TestSuite()
