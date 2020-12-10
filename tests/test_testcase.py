@@ -17,7 +17,6 @@ from xml.etree import ElementTree as etree
 import pytest
 
 
-
 def test_case_fromstring():
     text = """<testcase name="testname">
     <failure message="failure message" type="FailureType"/>
@@ -29,16 +28,6 @@ def test_case_fromstring():
     assert isinstance(case.result[0], Failure)
     assert isinstance(case.result[1], SystemOut)
     assert isinstance(case.result[2], SystemErr)
-
-
-def test_illegal_xml_multi_results():
-    text = """<testcase name="testname">
-    <failure message="failure message" type="FailureType"/>
-    <skipped message="skipped message" type="FailureType"/>
-    </testcase>
-    """
-    case = TestCase.fromstring(text)
-    pytest.raises(JUnitXmlError)
 
 
 def test_case_attributes():

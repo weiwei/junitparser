@@ -12,8 +12,10 @@ from junitparser import (
     JUnitXmlError,
     JUnitXml,
 )
+
 try:
     from lxml.etree import XMLParser, parse
+
     has_lxml = True
 except ImportError:
     has_lxml = False
@@ -100,8 +102,7 @@ def test_file_is_not_xml(tmpfile):
     with open(tmpfile, "w") as f:
         f.write(text)
     with pytest.raises(Exception):
-        xml = JUnitXml.fromfile(tmpfile)
-        # Raises lxml.etree.XMLSyntaxError
+        JUnitXml.fromfile(tmpfile)
 
 
 def test_illegal_xml_file(tmpfile):
