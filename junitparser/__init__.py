@@ -14,6 +14,10 @@ from .junitparser import (
     FloatAttr,
     SystemErr,
     SystemOut,
+    FlakyError,
+    FlakyFailure,
+    RerunError,
+    RerunFailure,
 )
 
 
