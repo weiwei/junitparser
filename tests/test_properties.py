@@ -123,10 +123,15 @@ def test_result_eq(fail_cls):
 
 
 @pytest.mark.parametrize("sys_cls", [SystemOut, SystemErr])
-@pytest.mark.skip()
-def test_result_eq(sys_cls):
+def test_result_comp(sys_cls):
     res1 = sys_cls("foo")
     res2 = sys_cls("foo")
     res3 = sys_cls("bar")
     assert res1 == res2
     assert res1 != res3
+
+
+def test_result_empty():
+    test = TestSuite()
+    assert test.system_out == None
+    assert test.system_err == None

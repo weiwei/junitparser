@@ -28,9 +28,10 @@ import pytest
 def tmpfile():
     import tempfile
 
-    tmp = tempfile.mkstemp(suffix=".xml")
-    yield tmp[1]
-    os.remove(tmp[1])
+    fd, fname = tempfile.mkstemp(suffix=".xml")
+    yield fname
+    os.close(fd)
+    os.remove(fname)
 
 
 def test_fromfile():
