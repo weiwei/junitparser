@@ -9,11 +9,10 @@ from junitparser import (
     CaseFailure,
     CaseError,
     Attr,
-    JUnitXmlError,
     SystemErr,
     SystemOut,
 )
-from xml.etree import ElementTree as etree
+from xml.etree import ElementTree as etree  # nosec
 import pytest
 
 

@@ -12,7 +12,7 @@ from junitparser import (
     CaseError,
     JUnitXml,
     Property,
-    FloatAttr
+    FloatAttr,
 )
 import pytest
 

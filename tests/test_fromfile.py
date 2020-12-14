@@ -111,7 +111,7 @@ def test_illegal_xml_file(tmpfile):
     with open(tmpfile, "w") as f:
         f.write(text)
     with pytest.raises(JUnitXmlError):
-        xml = JUnitXml.fromfile(tmpfile)
+        JUnitXml.fromfile(tmpfile)
 
 
 def test_write(tmpfile):
