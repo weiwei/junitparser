@@ -12,6 +12,7 @@ from junitparser import (
     CaseError,
     JUnitXml,
     Property,
+    FloatAttr
 )
 import pytest
 
@@ -43,6 +44,12 @@ def test_quoted_attr():
     </testsuite>"""
     suite = TestSuite.fromstring(text)
     assert suite.name == "suitename with &quot;quotes&quot;"
+
+
+def test_custom_float_attr():
+    TestSuite.foo = FloatAttr("foo")
+    suite = TestSuite()
+    assert suite.foo == None
 
 
 def test_combining_testsuite_should_keep_name():
