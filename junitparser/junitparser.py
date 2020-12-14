@@ -444,11 +444,11 @@ class TestSuite(Element):
             if case.time is not None:
                 time += case.time
             for entry in case.result:
-                if isinstance(entry, Failure):
+                if isinstance(entry, CaseFailure):
                     failures += 1
-                elif isinstance(entry, Error):
+                elif isinstance(entry, CaseError):
                     errors += 1
-                elif isinstance(entry, Skipped):
+                elif isinstance(entry, CaseSkipped):
                     skipped += 1
         self.tests = tests
         self.errors = errors
@@ -503,7 +503,7 @@ class TestSuite(Element):
 
     @property
     def system_out(self):
-        """stdout."""
+        """<system-out>"""
         elem = self.child(SystemOut)
         if elem is not None:
             return elem.text
@@ -511,6 +511,7 @@ class TestSuite(Element):
 
     @system_out.setter
     def system_out(self, value):
+        """<system-out>"""
         out = self.child(SystemOut)
         if out is not None:
             out.text = value
@@ -520,7 +521,7 @@ class TestSuite(Element):
 
     @property
     def system_err(self):
-        """stderr."""
+        """<system-err>"""
         elem = self.child(SystemErr)
         if elem is not None:
             return elem.text
@@ -528,6 +529,7 @@ class TestSuite(Element):
 
     @system_err.setter
     def system_err(self, value):
+        """<system-err>"""
         err = self.child(SystemErr)
         if err is not None:
             err.text = value
@@ -694,7 +696,7 @@ class Result(Element):
         self._elem.text = value
 
 
-class Skipped(Result):
+class CaseSkipped(Result):
     """Test result when the case is skipped.
 
     JUnit5 doesn't define any attrs, pytest junit defines it to have ``type``
@@ -706,16 +708,25 @@ class Skipped(Result):
     _tag = "skipped"
 
     def __eq__(self, other):
-        return super(Skipped, self).__eq__(other)
+        return super(CaseSkipped, self).__eq__(other)
 
 
-class Failure(Result):
+class CaseFailure(Result):
     """Test result when the case failed."""
 
     _tag = "failure"
 
     def __eq__(self, other):
-        return super(Failure, self).__eq__(other)
+        return super(CaseFailure, self).__eq__(other)
+
+
+class CaseError(Result):
+    """Test result when the case has errors during execution."""
+
+    _tag = "error"
+
+    def __eq__(self, other):
+        return super(CaseError, self).__eq__(other)
 
 
 class RerunFailure(Result):
@@ -754,15 +765,6 @@ class FlakyError(Result):
         return super(FlakyError, self).__eq__(other)
 
 
-class Error(Result):
-    """Test result when the case has errors during execution."""
-
-    _tag = "error"
-
-    def __eq__(self, other):
-        return super(Error, self).__eq__(other)
-
-
 class SystemOut(Element):
     """Test result when the case has errors during execution."""
 
@@ -770,9 +772,10 @@ class SystemOut(Element):
 
     def __init__(self, text=None):
         super(SystemOut, self).__init__(self._tag)
+        self._elem.text = text
 
     def __eq__(self, other):
-        return super(SystemOut, self).__eq__(other)
+        return self.text == other.text
 
     @property
     def text(self):
@@ -790,9 +793,10 @@ class SystemErr(Element):
 
     def __init__(self, text=None):
         super(SystemErr, self).__init__(self._tag)
+        self._elem.text = text
 
     def __eq__(self, other):
-        return super(SystemErr, self).__eq__(other)
+        return self.text == other.text
 
     @property
     def text(self):
@@ -804,13 +808,13 @@ class SystemErr(Element):
 
 
 POSSIBLE_RESULTS = {
-    Failure,
-    Error,
+    CaseFailure,
+    CaseError,
     RerunFailure,
     RerunError,
     FlakyFailure,
     FlakyError,
-    Skipped,
+    CaseSkipped,
     SystemOut,
     SystemErr,
 }

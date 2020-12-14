@@ -7,9 +7,9 @@ from copy import deepcopy
 from junitparser import (
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
-    Error,
+    CaseSkipped,
+    CaseFailure,
+    CaseError,
     JUnitXml,
     Property,
 )
@@ -78,11 +78,11 @@ def test_add_case():
     assert suite.tests == 0
     case1 = TestCase()
     case2 = TestCase()
-    case2.result = [Failure()]
+    case2.result = [CaseFailure()]
     case3 = TestCase()
-    case3.result = [Error()]
+    case3.result = [CaseError()]
     case4 = TestCase()
-    case4.result = [Skipped()]
+    case4.result = [CaseSkipped()]
     suite.add_testcase(case1)
     suite.add_testcase(case2)
     suite.add_testcase(case3)
@@ -177,3 +177,19 @@ def test_suite_ne():
     suite2 = deepcopy(suite)
     suite2.add_property("name2", "value2")
     assert suite != suite2
+
+
+def test_system_out():
+    suite = TestSuite()
+    suite.system_out = "out"
+    assert suite.system_out == "out"
+    suite.system_out = "out2"
+    assert suite.system_out == "out2"
+
+
+def test_system_err():
+    suite = TestSuite()
+    suite.system_err = "err"
+    assert suite.system_err == "err"
+    suite.system_err = "err2"
+    assert suite.system_err == "err2"

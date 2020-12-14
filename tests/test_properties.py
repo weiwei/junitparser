@@ -3,7 +3,11 @@
 from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from build.lib.junitparser.junitparser import SystemErr
 from copy import deepcopy
+import pytest
+
+from junitparser.junitparser import CaseError, CaseFailure, FlakyError, FlakyFailure, RerunError, RerunFailure, CaseSkipped, SystemOut
 from junitparser import (
     TestCase,
     TestSuite,
@@ -89,3 +93,22 @@ def test_attr():
     assert element.text == "foo"
     assert element.int == 10
     assert element.float == 8.5
+
+
+@pytest.mark.parametrize("fail_cls", [CaseSkipped, CaseFailure, CaseError, RerunFailure, RerunError, FlakyFailure, FlakyError])
+def test_result_eq(fail_cls):
+    fail1 = fail_cls()
+    fail2 = fail_cls()
+    fail3 = fail_cls("bar")
+    assert fail1 == fail2
+    assert fail1 != fail3
+
+
+@pytest.mark.parametrize("sys_cls", [SystemOut, SystemErr])
+@pytest.mark.skip()
+def test_result_eq(sys_cls):
+    res1 = sys_cls("foo")
+    res2 = sys_cls("foo")
+    res3 = sys_cls("bar")
+    assert res1 == res2
+    assert res1 != res3

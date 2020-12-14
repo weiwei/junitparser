@@ -5,9 +5,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from junitparser import (
     TestCase,
-    Skipped,
-    Failure,
-    Error,
+    CaseSkipped,
+    CaseFailure,
+    CaseError,
     Attr,
     JUnitXmlError,
     SystemErr,
@@ -25,7 +25,7 @@ def test_case_fromstring():
     </testcase>"""
     case = TestCase.fromstring(text)
     assert case.name == "testname"
-    assert isinstance(case.result[0], Failure)
+    assert isinstance(case.result[0], CaseFailure)
     assert isinstance(case.result[1], SystemOut)
     assert isinstance(case.result[2], SystemErr)
 
@@ -35,12 +35,12 @@ def test_case_attributes():
     case.name = "testname"
     case.classname = "testclassname"
     case.time = 15.123
-    case.result = [Skipped()]
+    case.result = [CaseSkipped()]
     case.result[0].text = "woah skipped"
     assert case.name == "testname"
     assert case.classname == "testclassname"
     assert case.time == 15.123
-    assert isinstance(case.result[0], Skipped)
+    assert isinstance(case.result[0], CaseSkipped)
     assert case.result[0].text == "woah skipped"
 
 
@@ -48,11 +48,11 @@ def test_case_init_with_attributes():
     case = TestCase("testname")
     case.classname = "testclassname"
     case.time = 15.123
-    case.result = [Skipped()]
+    case.result = [CaseSkipped()]
     assert case.name == "testname"
     assert case.classname == "testclassname"
     assert case.time == 15.123
-    assert isinstance(case.result[0], Skipped)
+    assert isinstance(case.result[0], CaseSkipped)
 
 
 def test_case_output():
@@ -69,8 +69,8 @@ def test_case_output():
 
 def test_update_results():
     case = TestCase()
-    case.result = [Skipped()]
-    case.result = [Failure(), Skipped()]
+    case.result = [CaseSkipped()]
+    case.result = [CaseFailure(), CaseSkipped()]
     assert len(case.result) == 2
 
 
@@ -130,7 +130,7 @@ def test_to_string():
 def test_to_nonascii_string():
     case = TestCase()
     case.name = "测试1"
-    case.result = [Failure("失败", "类型")]
+    case.result = [CaseFailure("失败", "类型")]
     case_str = case.tostring()
     assert "测试1" in case_str.decode("utf-8")
     assert "失败" in case_str.decode("utf-8")
@@ -156,12 +156,12 @@ def test_system_err():
 
 
 def test_result_eq():
-    assert Failure("A") == Failure("A")
-    assert Skipped("B") != Skipped("A")
-    assert Error("C") != Error("B")
+    assert CaseFailure("A") == CaseFailure("A")
+    assert CaseSkipped("B") != CaseSkipped("A")
+    assert CaseError("C") != CaseError("B")
 
 
 def test_result_attrs():
-    res1 = Failure("A")
+    res1 = CaseFailure("A")
     # NOTE: lxml gives spaceless result
     assert res1.tostring() in [b'<failure message="A" />', b'<failure message="A"/>']

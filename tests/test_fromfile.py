@@ -7,8 +7,8 @@ import os
 from junitparser import (
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
+    CaseSkipped,
+    CaseFailure,
     JUnitXmlError,
     JUnitXml,
 )
@@ -42,8 +42,8 @@ def test_fromfile():
     assert suite2.name == "JUnitXmlReporter.constructor"
     assert suite2.tests == 3
     cases = list(suite2.iterchildren(TestCase))
-    assert isinstance(cases[0].result[0], Failure)
-    assert isinstance(cases[1].result[0], Skipped)
+    assert isinstance(cases[0].result[0], CaseFailure)
+    assert isinstance(cases[1].result[0], CaseSkipped)
     assert len(cases[2].result) == 0
 
 
@@ -64,8 +64,8 @@ def test_fromfile_with_parser():
     assert suite2.name == "JUnitXmlReporter.constructor"
     assert suite2.tests == 3
     cases = list(suite2.iterchildren(TestCase))
-    assert isinstance(cases[0].result[0], Failure)
-    assert isinstance(cases[1].result[0], Skipped)
+    assert isinstance(cases[0].result[0], CaseFailure)
+    assert isinstance(cases[1].result[0], CaseSkipped)
     assert len(cases[2].result) == 0
 
 
@@ -79,8 +79,8 @@ def test_fromfile_without_testsuites_tag():
     assert len(cases) == 3
     assert xml.name == "JUnitXmlReporter.constructor"
     assert xml.tests == 3
-    assert isinstance(cases[0].result[0], Failure)
-    assert isinstance(cases[1].result[0], Skipped)
+    assert isinstance(cases[0].result[0], CaseFailure)
+    assert isinstance(cases[1].result[0], CaseSkipped)
     assert len(cases[2].result) == 0
 
 
