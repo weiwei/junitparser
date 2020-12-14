@@ -15,8 +15,9 @@ from io import open
 
 try:
     from html import escape  # python 3.x
-except ImportError:
-    from cgi import escape  # python 2.x
+except ImportError: # pragma: no cover
+    # python 2.x
+    from cgi import escape
 
 try:
     import itertools.izip as zip
@@ -25,7 +26,7 @@ except ImportError:
 
 try:
     from lxml import etree
-except ImportError:
+except ImportError: # pragma: no cover
     from xml.etree import ElementTree as etree
 
 from copy import deepcopy
