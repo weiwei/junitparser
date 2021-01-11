@@ -3,11 +3,13 @@
 
 ## [2.0.0] - 2020-11-28
 ### Breaking
-- `TestCase.result` is now a list instead of a single item.
+- `TestCase.result` is now a list instead of a single item. `Failure`, `Skip`, 
+  etc. are all treated as results.
 
 ### Added
 - `TestCase` constructor supports `time` and `classname` as params.
 - `Result` object supports `text` attribute.
+- Handles localized timestamps. Thanks to @ppalucha
 
 ## [1.6.3] - 2020-11-24
 ### Fixed

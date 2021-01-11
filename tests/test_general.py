@@ -30,7 +30,7 @@ import locale
 try:
     locale.setlocale(locale.LC_NUMERIC, 'en_US.UTF-8')
     has_us_locale = True
-except locale.Error:
+except locale.Error: # pragma: no cover
     has_us_locale = False
 
 
