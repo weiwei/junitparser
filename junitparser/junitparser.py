@@ -35,6 +35,9 @@ try:
 except NameError:
     unicode = str
 
+from locale import atof, setlocale, LC_ALL
+
+setlocale(LC_ALL, '')
 
 def write_xml(obj, filepath=None, pretty=False):
     tree = etree.ElementTree(obj._elem)
@@ -115,7 +118,7 @@ class FloatAttr(Attr):
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
-        return float(result) if result else None
+        return atof(result) if result else None
 
     def __set__(self, instance, value):
         if not (isinstance(value, float) or isinstance(value, int)):

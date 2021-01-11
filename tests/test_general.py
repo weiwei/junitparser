@@ -26,6 +26,13 @@ try:
 except ImportError:
     pass
 
+import locale
+try:
+    locale.setlocale(locale.LC_NUMERIC, 'en_US.UTF-8')
+    has_us_locale = True
+except locale.Error:
+    has_us_locale = False
+
 
 class Test_MergeSuiteCounts(unittest.TestCase):
     def test_merge_test_count(self):
@@ -94,7 +101,7 @@ class Test_JunitXml(unittest.TestCase):
     def test_fromstring_multiple_fails(self):
         text = """<testsuites>
         <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
-        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="1""" + ("," if has_us_locale else "") + """000.000"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
         <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
         <error message="test teardown failure">
