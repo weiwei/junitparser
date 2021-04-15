@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from future.utils import with_metaclass
 from builtins import object
 from io import open
+import itertools
 
 try:
     from html import escape  # python 3.x
@@ -361,7 +362,12 @@ class TestSuite(Element):
         self.filepath = None
 
     def __iter__(self):
-        return super(TestSuite, self).iterchildren(TestCase)
+        return itertools.chain(
+            super(TestSuite, self).iterchildren(TestCase),
+            [case
+             for suite in super(TestSuite, self).iterchildren(TestSuite)
+             for case in suite],
+        )
 
     def __len__(self):
         return len(list(self.__iter__()))

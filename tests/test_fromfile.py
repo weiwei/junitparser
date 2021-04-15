@@ -95,6 +95,24 @@ class Test_RealFile(unittest.TestCase):
         self.assertIsInstance(cases[1].result[0], Skipped)
         self.assertEqual(len(cases[2].result), 0)
 
+    def test_fromfile_with_testsuite_in_testsuite(self):
+        xml = JUnitXml.fromfile(
+            os.path.join(os.path.dirname(__file__), "data/jenkins.xml")
+        )
+        suite1, suite2 = list(iter(xml))
+        self.assertEqual(len(list(suite1.properties())), 0)
+        self.assertEqual(len(list(suite2.properties())), 3)
+        self.assertEqual(len(suite2), 3)
+        self.assertEqual(suite2.name, "JUnitXmlReporter.constructor")
+        self.assertEqual(suite2.tests, 3)
+        direct_cases = list(suite2.iterchildren(TestCase))
+        self.assertEqual(len(direct_cases), 1)
+        self.assertIsInstance(direct_cases[0].result[0], Failure)
+        all_cases = list(suite2)
+        self.assertIsInstance(all_cases[0].result[0], Failure)
+        self.assertIsInstance(all_cases[1].result[0], Skipped)
+        self.assertEqual(len(all_cases[2].result), 0)
+
     def test_write_xml_withouth_testsuite_tag(self):
         suite = TestSuite()
         suite.name = "suite1"
