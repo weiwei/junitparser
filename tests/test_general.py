@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from __future__ import with_statement
+
+import locale
 import unittest
 from copy import deepcopy
+from xml.etree import ElementTree as etree
+
 from junitparser import (
     TestCase,
     TestSuite,
@@ -19,19 +23,11 @@ from junitparser import (
     IntAttr,
     FloatAttr,
 )
-from xml.etree import ElementTree as etree
 
 try:
     import itertools.izip as zip
 except ImportError:
     pass
-
-import locale
-try:
-    locale.setlocale(locale.LC_NUMERIC, 'en_US.UTF-8')
-    has_us_locale = True
-except locale.Error: # pragma: no cover
-    has_us_locale = False
 
 
 class Test_MergeSuiteCounts(unittest.TestCase):
@@ -98,10 +94,30 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(result.time, 0)
         self.assertEqual(len(result), 1)
 
+    def test_fromstring_numbers_locale_insensitive(self):
+        for loc in ['', 'en_US.UTF-8', 'de_DE.UTF-8']:
+            old_locale = locale.getlocale(locale.LC_NUMERIC)
+            try:
+                locale.setlocale(locale.LC_NUMERIC, loc)
+                text = """<testsuites>
+                <testsuite errors="0" failures="0" hostname="hooch" name="pytest" skipped="0" tests="2" time="1000.125" timestamp="2020-02-05T10:52:33.843536">
+                <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="1,000.025"/>
+                <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.1"/>
+                </testsuite>
+                </testsuites>"""
+                result = JUnitXml.fromstring(text)
+                suite = list(iter(result))[0]
+                self.assertEqual(suite.time, 1000.125, msg=loc)
+                cases = list(iter(suite))
+                self.assertEqual(cases[0].time, 1000.025, msg=loc)
+                self.assertEqual(cases[1].time, 0.1, msg=loc)
+            finally:
+                locale.setlocale(locale.LC_NUMERIC, old_locale)
+
     def test_fromstring_multiple_fails(self):
         text = """<testsuites>
         <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
-        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="1""" + ("," if has_us_locale else "") + """000.000"/>
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
         <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
         <error message="test teardown failure">
