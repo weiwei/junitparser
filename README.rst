@@ -177,7 +177,7 @@ read them out:
 
 .. code-block:: python
 
-    from junitparser import Element, Attr, TestSuite
+    from junitparser import TestCase, Attr, JUnitXml
 
     # Create the new element by subclassing Element or one of its child class,
     # and add custom attributes to it.
