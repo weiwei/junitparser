@@ -1,6 +1,15 @@
 # Changelog
 
 
+
+## [2.1.0] - 2021-05-30
+### Fixed
+- Should not have used default sys locale to parse numbers. Thanks to @EnricoMi
+
+### Added
+- Merge parameter enhancement: output to console if output file name is set to "-"
+- Support testcase tags inside testcase tags. Thanks to @EnricoMi
+
 ## [2.0.0] - 2020-11-28
 ### Breaking
 - `TestCase.result` is now a list instead of a single item. `Failure`, `Skip`, 

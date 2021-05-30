@@ -217,7 +217,7 @@ Command Line
 
     positional arguments:
       paths       Original XML path(s).
-      output      Merged XML Path.
+      output      Merged XML Path, setting to "-" will output console
 
     optional arguments:
       -h, --help  show this help message and exit

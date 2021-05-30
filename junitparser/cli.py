@@ -12,7 +12,7 @@ def merge(paths, output):
         result += JUnitXml.fromfile(path)
 
     result.update_statistics()
-    result.write(output, to_concole=output=="-")
+    result.write(output, to_concole=output == "-")
     return 0
 
 
@@ -39,7 +39,9 @@ def _parser(prog_name=None):  # pragma: no cover
         default=False,
     )
     merge_parser.add_argument("paths", nargs="+", help="Original XML path(s).")
-    merge_parser.add_argument("output", help="Merged XML Path.")
+    merge_parser.add_argument(
+        "output", help="Merged XML Path, setting to " - " will output console"
+    )
 
     return parser
 
