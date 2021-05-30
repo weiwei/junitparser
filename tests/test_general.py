@@ -95,6 +95,7 @@ class Test_JunitXml(unittest.TestCase):
         self.assertEqual(len(result), 1)
 
     def test_fromstring_numbers_locale_insensitive(self):
+        "Case relies on that LC_ALL is set in the console."
         for loc in ['', 'en_US.UTF-8', 'de_DE.UTF-8']:
             old_locale = locale.getlocale(locale.LC_NUMERIC)
             try:

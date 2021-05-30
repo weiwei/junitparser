@@ -37,7 +37,7 @@ except NameError:
     unicode = str
 
 
-def write_xml(obj, filepath=None, pretty=False):
+def write_xml(obj, filepath=None, pretty=False, to_concole=False):
     tree = etree.ElementTree(obj._elem)
     if filepath is None:
         filepath = obj.filepath
@@ -48,11 +48,22 @@ def write_xml(obj, filepath=None, pretty=False):
         from xml.dom.minidom import parseString
 
         text = etree.tostring(obj._elem)
-        xml = parseString(text) # nosec
-        with open(filepath, "wb") as xmlfile:
-            xmlfile.write(xml.toprettyxml(encoding="utf-8"))
+        xml = parseString(text)  # nosec
+        content = xml.toprettyxml(encoding="utf-8")
+        if to_concole:
+            print(content)
+        else:
+            with open(filepath, "wb") as xmlfile:
+                xmlfile.write(content)
     else:
-        tree.write(filepath, encoding="utf-8", xml_declaration=True)
+        if to_concole:
+            print(
+                etree.tostring(
+                    obj._elem, encoding="utf-8", xml_declaration=True
+                ).decode("utf-8")
+            )
+        else:
+            tree.write(filepath, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -116,7 +127,7 @@ class FloatAttr(Attr):
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
             result = super(FloatAttr, self).__get__(instance, cls)
-        return float(result.replace(',', '')) if result else None
+        return float(result.replace(",", "")) if result else None
 
     def __set__(self, instance, value):
         if not (isinstance(value, float) or isinstance(value, int)):
@@ -171,7 +182,7 @@ class Element(with_metaclass(junitxml, object)):
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
         instance = cls()
-        instance._elem = etree.fromstring(text) # nosec
+        instance._elem = etree.fromstring(text)  # nosec
         return instance
 
     @classmethod
@@ -292,7 +303,7 @@ class JUnitXml(Element):
     @classmethod
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text) # nosec
+        root_elem = etree.fromstring(text)  # nosec
         if root_elem.tag == "testsuites":
             instance = cls()
         elif root_elem.tag == "testsuite":
@@ -308,7 +319,7 @@ class JUnitXml(Element):
         if parse_func:
             tree = parse_func(filepath)
         else:
-            tree = etree.parse(filepath) # nosec
+            tree = etree.parse(filepath)  # nosec
         root_elem = tree.getroot()
         if root_elem.tag == "testsuites":
             instance = cls()
@@ -320,13 +331,13 @@ class JUnitXml(Element):
         instance.filepath = filepath
         return instance
 
-    def write(self, filepath=None, pretty=False):
+    def write(self, filepath=None, pretty=False, to_concole=False):
         """Write the object into a junit xml file.
 
         If `file_path` is not specified, it will write to the original file.
         If `pretty` is True, the result file will be more human friendly.
         """
-        write_xml(self, filepath=filepath, pretty=pretty)
+        write_xml(self, filepath=filepath, pretty=pretty, to_concole=to_concole)
 
 
 class TestSuite(Element):
@@ -361,9 +372,11 @@ class TestSuite(Element):
     def __iter__(self):
         return itertools.chain(
             super(TestSuite, self).iterchildren(TestCase),
-            [case
-             for suite in super(TestSuite, self).iterchildren(TestSuite)
-             for case in suite],
+            [
+                case
+                for suite in super(TestSuite, self).iterchildren(TestSuite)
+                for case in suite
+            ],
         )
 
     def __len__(self):
@@ -594,6 +607,7 @@ class Result(Element):
     def text(self, value):
         self._elem.text = value
 
+
 class Skipped(Result):
     """Test result when the case is skipped."""
 
@@ -680,10 +694,10 @@ class TestCase(Element):
     def result(self, value):
         # First remove all existing results
         for entry in self:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.remove(entry)
         for entry in value:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS ):
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.append(entry)
 
     @property
