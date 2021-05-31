@@ -1,6 +1,8 @@
 # Changelog
 
-
+## [2.1.1] - 2021-05-31
+### Fixed
+- CLI broken due to a quotation mark.
 
 ## [2.1.0] - 2021-05-30
 ### Fixed

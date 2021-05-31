@@ -40,7 +40,7 @@ def _parser(prog_name=None):  # pragma: no cover
     )
     merge_parser.add_argument("paths", nargs="+", help="Original XML path(s).")
     merge_parser.add_argument(
-        "output", help="Merged XML Path, setting to " - " will output console"
+        "output", help='Merged XML Path, setting to "-" will output console'
     )
 
     return parser
