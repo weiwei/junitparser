@@ -294,7 +294,7 @@ class Test_TestSuite(unittest.TestCase):
         text = """<testsuite name="suitename with &quot;quotes&quot;">
         </testsuite>"""
         suite = TestSuite.fromstring(text)
-        self.assertEqual(suite.name, "suitename with &quot;quotes&quot;")
+        self.assertEqual(suite.name, 'suitename with "quotes"')
 
     def test_combining_testsuite_should_keep_name(self):
         text1 = """<testsuite name="suitename1" tests="2" failures="1">

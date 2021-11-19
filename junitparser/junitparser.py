@@ -15,11 +15,6 @@ from io import open
 import itertools
 
 try:
-    from html import escape  # python 3.x
-except ImportError:
-    from cgi import escape  # python 2.x
-
-try:
     import itertools.izip as zip
 except ImportError:
     pass
@@ -84,10 +79,7 @@ class Attr(object):
 
     def __get__(self, instance, cls):
         """Gets value from attribute, return None if attribute doesn't exist."""
-        value = instance._elem.attrib.get(self.name)
-        if value is not None:
-            return escape(value)
-        return value
+        return instance._elem.attrib.get(self.name)
 
     def __set__(self, instance, value):
         """Sets XML element attribute."""

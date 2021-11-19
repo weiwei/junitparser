@@ -1,5 +1,10 @@
 # Changelog
 
+
+## [2.2.0] - 2021-11-20
+### Fixed
+- Unescaping attribute values (#71).
+
 ## [2.1.1] - 2021-05-31
 ### Fixed
 - CLI broken due to a quotation mark.
