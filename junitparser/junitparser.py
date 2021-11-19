@@ -6,30 +6,13 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 :license: Apache2, see LICENSE for more details.
 """
 
-from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from future.utils import with_metaclass
-from builtins import object
-from io import open
 import itertools
-
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
+from copy import deepcopy
 
 try:
     from lxml import etree
 except ImportError:
     from xml.etree import ElementTree as etree
-
-from copy import deepcopy
-
-try:
-    type(unicode)
-except NameError:
-    unicode = str
 
 
 def write_xml(obj, filepath=None, pretty=False, to_concole=False):
@@ -84,7 +67,7 @@ class Attr(object):
     def __set__(self, instance, value):
         """Sets XML element attribute."""
         if value is not None:
-            instance._elem.attrib[self.name] = unicode(value)
+            instance._elem.attrib[self.name] = str(value)
 
 
 class IntAttr(Attr):
@@ -144,7 +127,7 @@ class junitxml(type):
         return cls
 
 
-class Element(with_metaclass(junitxml, object)):
+class Element(metaclass=junitxml):
     """Base class for all Junit XML elements."""
 
     def __init__(self, name=None):
