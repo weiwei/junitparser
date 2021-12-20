@@ -290,7 +290,7 @@ class JUnitXml(Element):
         self.failures = failures
         self.errors = errors
         self.skipped = skipped
-        self.time = time
+        self.time = round(time, 3)
 
     @classmethod
     def fromstring(cls, text):
@@ -448,7 +448,7 @@ class TestSuite(Element):
         self.errors = errors
         self.failures = failures
         self.skipped = skipped
-        self.time = time
+        self.time = round(time, 3)
 
     def add_property(self, name, value):
         """Adds a property to the testsuite.
