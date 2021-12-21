@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.3.0] - 2021-11-20
+### Possibly Breaking
+-  The time value now has a precision of 3 (#72). Thanks to @bryan-hunt.
 
 ## [2.2.0] - 2021-11-20
 ### Fixed
