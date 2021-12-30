@@ -5,7 +5,8 @@ from junitparser import version
 
 def read(fname):
     try:
-        return open(os.path.join(os.path.dirname(__file__), fname)).read()
+        with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+            return f.read()
     except IOError:
         return ''
 
