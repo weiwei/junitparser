@@ -32,7 +32,7 @@ except NameError:
     unicode = str
 
 
-def write_xml(obj, filepath=None, pretty=False, to_concole=False):
+def write_xml(obj, filepath=None, pretty=False, to_console=False):
     tree = etree.ElementTree(obj._elem)
     if filepath is None:
         filepath = obj.filepath
@@ -45,13 +45,13 @@ def write_xml(obj, filepath=None, pretty=False, to_concole=False):
         text = etree.tostring(obj._elem)
         xml = parseString(text)  # nosec
         content = xml.toprettyxml(encoding="utf-8")
-        if to_concole:
+        if to_console:
             print(content)
         else:
             with open(filepath, "wb") as xmlfile:
                 xmlfile.write(content)
     else:
-        if to_concole:
+        if to_console:
             print(
                 etree.tostring(
                     obj._elem, encoding="utf-8", xml_declaration=True
@@ -323,13 +323,13 @@ class JUnitXml(Element):
         instance.filepath = filepath
         return instance
 
-    def write(self, filepath=None, pretty=False, to_concole=False):
+    def write(self, filepath=None, pretty=False, to_console=False):
         """Write the object into a junit xml file.
 
         If `file_path` is not specified, it will write to the original file.
         If `pretty` is True, the result file will be more human friendly.
         """
-        write_xml(self, filepath=filepath, pretty=pretty, to_concole=to_concole)
+        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
 
 
 class TestSuite(Element):
