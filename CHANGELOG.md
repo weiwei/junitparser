@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.4.0] - 2021-12-30
+
+This release addresses issues and PRs by @markgras. 
+### Fixed
+-  Parameter typo in function `write_xml()`.
+- Properly closes file in `setup.py`.
+### Enhancement
+- Use generators in stead of lists in a few occasions.
+
 ## [2.3.0] - 2021-11-20
 ### Possibly Breaking
 -  The time value now has a precision of 3 (#72). Thanks to @bryan-hunt.
