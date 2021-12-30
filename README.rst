@@ -72,7 +72,7 @@ format.
     xml.add_testsuite(suite)
     xml.write('junit.xml')
 
-Read and manipulate exiting JUnit/xUnit XML files
+Read and manipulate existing JUnit/xUnit XML files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You have some existing junit.xml files, and you want to modify the content.
