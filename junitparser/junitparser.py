@@ -158,7 +158,7 @@ class Element(with_metaclass(junitxml, object)):
         keys = sorted(self._elem.attrib.keys())
         if keys:
             attrs_str = " ".join(
-                ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
+                '%s="%s"' % (key, self._elem.attrib[key]) for key in keys
             )
             return """<Element '%s' %s>""" % (tag, attrs_str)
 
@@ -364,11 +364,11 @@ class TestSuite(Element):
     def __iter__(self):
         return itertools.chain(
             super(TestSuite, self).iterchildren(TestCase),
-            [
+            (
                 case
                 for suite in super(TestSuite, self).iterchildren(TestSuite)
                 for case in suite
-            ],
+            ),
         )
 
     def __len__(self):
@@ -383,7 +383,7 @@ class TestSuite(Element):
             props1.sort(key=lambda x: x.name)
             props2.sort(key=lambda x: x.name)
             zipped = zip(props1, props2)
-            return all([x == y for x, y in zipped])
+            return all(x == y for x, y in zipped)
 
         return (
             self.name == other.name
