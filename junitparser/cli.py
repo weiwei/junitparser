@@ -16,7 +16,7 @@ def merge(paths, output):
     return 0
 
 
-def _parser(prog_name=None):  # pragma: no cover
+def _parser(prog_name=None):
     """Create the CLI arg parser."""
     parser = ArgumentParser(description="Junitparser CLI helper.", prog=prog_name)
 
