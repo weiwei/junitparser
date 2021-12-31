@@ -12,7 +12,7 @@ def merge(paths, output):
         result += JUnitXml.fromfile(path)
 
     result.update_statistics()
-    result.write(output, to_concole=output == "-")
+    result.write(output, to_console=output == "-")
     return 0
 
 
