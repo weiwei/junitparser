@@ -73,7 +73,7 @@ format.
     xml.write('junit.xml')
 
 Read and manipulate existing JUnit/xUnit XML files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You have some existing junit.xml files, and you want to modify the content.
 

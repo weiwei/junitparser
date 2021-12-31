@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.4.1] - 2021-12-31
+### Fixed
+-  Parameter typo in the cli. Thanks to @petterssonandreas
+-  
 ## [2.4.0] - 2021-12-30
 
 This release addresses issues and PRs by @markgras. 
