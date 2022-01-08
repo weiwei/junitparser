@@ -14,4 +14,4 @@ from .junitparser import (
     FloatAttr,
 )
 
-version = "2.4.1"
+version = "2.4.2a2"
