@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-from junitparser import version
+from .junitparser import version
 
 def read(fname):
     try:
