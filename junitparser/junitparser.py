@@ -15,7 +15,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, filepath=None, pretty=False, to_concole=False):
+def write_xml(obj, filepath=None, pretty=False, to_console=False):
     tree = etree.ElementTree(obj._elem)
     if filepath is None:
         filepath = obj.filepath
@@ -28,13 +28,13 @@ def write_xml(obj, filepath=None, pretty=False, to_concole=False):
         text = etree.tostring(obj._elem)
         xml = parseString(text)  # nosec
         content = xml.toprettyxml(encoding="utf-8")
-        if to_concole:
+        if to_console:
             print(content)
         else:
             with open(filepath, "wb") as xmlfile:
                 xmlfile.write(content)
     else:
-        if to_concole:
+        if to_console:
             print(
                 etree.tostring(
                     obj._elem, encoding="utf-8", xml_declaration=True
@@ -141,7 +141,7 @@ class Element(metaclass=junitxml):
         keys = sorted(self._elem.attrib.keys())
         if keys:
             attrs_str = " ".join(
-                ['%s="%s"' % (key, self._elem.attrib[key]) for key in keys]
+                '%s="%s"' % (key, self._elem.attrib[key]) for key in keys
             )
             return """<Element '%s' %s>""" % (tag, attrs_str)
 
@@ -273,7 +273,7 @@ class JUnitXml(Element):
         self.failures = failures
         self.errors = errors
         self.skipped = skipped
-        self.time = time
+        self.time = round(time, 3)
 
     @classmethod
     def fromstring(cls, text):
@@ -306,13 +306,13 @@ class JUnitXml(Element):
         instance.filepath = filepath
         return instance
 
-    def write(self, filepath=None, pretty=False, to_concole=False):
+    def write(self, filepath=None, pretty=False, to_console=False):
         """Write the object into a junit xml file.
 
         If `file_path` is not specified, it will write to the original file.
         If `pretty` is True, the result file will be more human friendly.
         """
-        write_xml(self, filepath=filepath, pretty=pretty, to_concole=to_concole)
+        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
 
 
 class TestSuite(Element):
@@ -347,11 +347,11 @@ class TestSuite(Element):
     def __iter__(self):
         return itertools.chain(
             super(TestSuite, self).iterchildren(TestCase),
-            [
+            (
                 case
                 for suite in super(TestSuite, self).iterchildren(TestSuite)
                 for case in suite
-            ],
+            ),
         )
 
     def __len__(self):
@@ -366,7 +366,7 @@ class TestSuite(Element):
             props1.sort(key=lambda x: x.name)
             props2.sort(key=lambda x: x.name)
             zipped = zip(props1, props2)
-            return all([x == y for x, y in zipped])
+            return all(x == y for x, y in zipped)
 
         return (
             self.name == other.name
@@ -431,7 +431,7 @@ class TestSuite(Element):
         self.errors = errors
         self.failures = failures
         self.skipped = skipped
-        self.time = time
+        self.time = round(time, 3)
 
     def add_property(self, name, value):
         """Adds a property to the testsuite.
