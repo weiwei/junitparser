@@ -148,6 +148,8 @@ class Element(with_metaclass(junitxml, object)):
     """Base class for all Junit XML elements."""
 
     def __init__(self, name=None):
+        if not name:
+            name = self._tag
         self._elem = etree.Element(name)
 
     def __hash__(self):

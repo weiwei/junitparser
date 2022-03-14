@@ -22,6 +22,7 @@ from junitparser import (
     Properties,
     IntAttr,
     FloatAttr,
+    Element
 )
 
 try:
@@ -561,6 +562,18 @@ class Test_TestCase(unittest.TestCase):
         self.assertIn(
             res1.tostring(), [b'<failure message="A" />', b'<failure message="A"/>']
         )
+
+    def test_add_child_element(self):
+        class CustomElement(Element):
+            _tag = 'custom'
+            foo = Attr()
+            bar = Attr()
+
+        testcase = TestCase()
+        custom = CustomElement()
+        testcase.append(custom)
+
+        self.assertEqual(testcase.tostring(), b'<testcase><custom /></testcase>')
 
 
 class Test_Properties(unittest.TestCase):
