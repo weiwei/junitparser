@@ -22,7 +22,7 @@ from junitparser import (
     Properties,
     IntAttr,
     FloatAttr,
-    Element
+    Element,
 )
 
 try:
@@ -97,7 +97,7 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_fromstring_numbers_locale_insensitive(self):
         "Case relies on that LC_ALL is set in the console."
-        for loc in ['', 'en_US.UTF-8', 'de_DE.UTF-8']:
+        for loc in ["", "en_US.UTF-8", "de_DE.UTF-8"]:
             old_locale = locale.getlocale(locale.LC_NUMERIC)
             try:
                 locale.setlocale(locale.LC_NUMERIC, loc)
@@ -565,7 +565,7 @@ class Test_TestCase(unittest.TestCase):
 
     def test_add_child_element(self):
         class CustomElement(Element):
-            _tag = 'custom'
+            _tag = "custom"
             foo = Attr()
             bar = Attr()
 
@@ -573,7 +573,10 @@ class Test_TestCase(unittest.TestCase):
         custom = CustomElement()
         testcase.append(custom)
 
-        self.assertEqual(testcase.tostring(), b'<testcase><custom /></testcase>')
+        self.assertIn(
+            testcase.tostring(),
+            [b"<testcase><custom /></testcase>", b"<testcase><custom/></testcase>"],
+        )
 
 
 class Test_Properties(unittest.TestCase):
