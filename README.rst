@@ -67,6 +67,11 @@ format.
     suite.add_testcase(case2)
     suite.remove_testcase(case2)
 
+    #Bulk add cases to suite
+    case3 = TestCase('case3')
+    case4 = TestCase('case4')
+    suite.add_testcases([case3, case4])
+
     # Add suite to JunitXml
     xml = JUnitXml()
     xml.add_testsuite(suite)

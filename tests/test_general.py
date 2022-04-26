@@ -420,6 +420,22 @@ class Test_TestSuite(unittest.TestCase):
         suite2.add_property("name2", "value2")
         self.assertNotEqual(suite, suite2)
 
+    def test_add_cases(self):
+        suite = TestSuite()
+        self.assertEqual(suite.tests, 0)
+        case1 = TestCase()
+        case2 = TestCase()
+        case2.result = [Failure()]
+        case3 = TestCase()
+        case3.result = [Error()]
+        case4 = TestCase()
+        case4.result = [Skipped()]
+        suite.add_testcases([case1, case2, case3, case4])
+        suite.update_statistics()
+        self.assertEqual(suite.tests, 4)
+        self.assertEqual(suite.failures, 1)
+        self.assertEqual(suite.errors, 1)
+        self.assertEqual(suite.skipped, 1)
 
 class Test_TestCase(unittest.TestCase):
     def test_case_fromstring(self):

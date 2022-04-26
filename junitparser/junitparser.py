@@ -470,6 +470,12 @@ class TestSuite(Element):
         self.append(testcase)
         self.update_statistics()
 
+    def add_testcases(self, testcases):
+        """Adds a testcases to the suite."""
+        for testcase in testcases:
+            self.append(testcase)
+        self.update_statistics()
+
     def _add_testcase_no_update_stats(self, testcase):
         """
         Adds a testcase to the suite (without updating stats).
