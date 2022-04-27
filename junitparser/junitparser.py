@@ -172,6 +172,12 @@ class Element(with_metaclass(junitxml, object)):
         """
         self._elem.append(sub_elem._elem)
 
+    def extend(self, sub_elems):
+        """Adds elements subelement to the end of this elements internal
+        list of subelements.
+        """
+        self._elem.extend((sub_elem._elem for sub_elem in sub_elems))
+
     @classmethod
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""
@@ -471,9 +477,8 @@ class TestSuite(Element):
         self.update_statistics()
 
     def add_testcases(self, testcases):
-        """Adds a testcases to the suite."""
-        for testcase in testcases:
-            self.append(testcase)
+        """Adds test cases to the suite."""
+        self.extend(testcases)
         self.update_statistics()
 
     def _add_testcase_no_update_stats(self, testcase):
