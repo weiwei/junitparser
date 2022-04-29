@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.5.0] - 2022-03-14
+### Added
+- Bulk add test cases. Thanks to @Goblenus 
+- 
 ## [2.4.3] - 2022-03-14
 ### Fixed
 - Custom element not properly initiated according to the readme example.
