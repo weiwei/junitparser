@@ -16,6 +16,20 @@ def merge(paths, output):
     return 0
 
 
+def verify(paths):
+    """Verify is none of the testcases failed or errored."""
+    # We could grab the number of failures and errors from the statistics of the root element
+    # or from the test suites elements, but those attributes are not guaranteed to be present
+    # not guaranteed to be correct. So we'll just loop over all the testcases.
+    for path in paths:
+        xml = JUnitXml.fromfile(path)
+        for suite in xml:
+            for case in suite:
+                if not case.is_passed and not case.is_skipped:
+                    return 1
+    return 0
+
+
 def _parser(prog_name=None):  # pragma: no cover
     """Create the CLI arg parser."""
     parser = ArgumentParser(description="Junitparser CLI helper.", prog=prog_name)
@@ -43,6 +57,19 @@ def _parser(prog_name=None):  # pragma: no cover
         "output", help='Merged XML Path, setting to "-" will output console'
     )
 
+    # command: verify
+    merge_parser = command_parser.add_parser(
+        "verify", help="Return a non-zero exit code if one of the testcases failed or errored."
+    )
+    merge_parser.add_argument(
+        "--glob",
+        help="Treat original XML path(s) as glob(s).",
+        dest="paths_are_globs",
+        action="store_true",
+        default=False,
+    )
+    merge_parser.add_argument("paths", nargs="+", help="XML path(s) of reports to verify.")
+
     return parser
 
 
@@ -55,5 +82,11 @@ def main(args=None, prog_name=None):
             if args.paths_are_globs
             else args.paths,
             args.output,
+        )
+    if args.command == "verify":
+        return verify(
+            chain.from_iterable(iglob(path) for path in args.paths)
+            if args.paths_are_globs
+            else args.paths
         )
     return 255
