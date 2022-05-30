@@ -17,10 +17,10 @@ def merge(paths, output):
 
 
 def verify(paths):
-    """Verify is none of the testcases failed or errored."""
+    """Verify if none of the testcases failed or errored."""
     # We could grab the number of failures and errors from the statistics of the root element
     # or from the test suites elements, but those attributes are not guaranteed to be present
-    # not guaranteed to be correct. So we'll just loop over all the testcases.
+    # or correct. So we'll just loop over all the testcases.
     for path in paths:
         xml = JUnitXml.fromfile(path)
         for suite in xml:
