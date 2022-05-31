@@ -686,6 +686,19 @@ class TestCase(Element):
         return hash(self) == hash(other)
 
     @property
+    def is_passed(self):
+        """Whether this testcase was a success (i.e. if it isn't skipped, failed, or errored)."""
+        return not self.result
+
+    @property
+    def is_skipped(self):
+        """Whether this testcase was skipped."""
+        for r in self.result:
+            if isinstance(r, Skipped):
+                return True
+        return False
+
+    @property
     def result(self):
         """A list of Failure, Skipped, or Error objects."""
         results = []

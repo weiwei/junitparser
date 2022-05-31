@@ -594,6 +594,24 @@ class Test_TestCase(unittest.TestCase):
             [b"<testcase><custom /></testcase>", b"<testcase><custom/></testcase>"],
         )
 
+    def test_case_is_skipped(self):
+        case = TestCase()
+        case.result = [Skipped()]
+        self.assertTrue(case.is_skipped)
+        self.assertFalse(case.is_passed)
+
+    def test_case_is_passed(self):
+        case = TestCase()
+        case.result = []
+        self.assertFalse(case.is_skipped)
+        self.assertTrue(case.is_passed)
+
+    def test_case_is_failed(self):
+        case = TestCase()
+        case.result = [Failure()]
+        self.assertFalse(case.is_skipped)
+        self.assertFalse(case.is_passed)
+
 
 class Test_Properties(unittest.TestCase):
     def test_property_repr1(self):
