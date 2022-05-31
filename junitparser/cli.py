@@ -31,7 +31,7 @@ def verify(paths):
 
 
 def compare(path_before, path_after, output):
-    """Create a new report with testcases that did not fail or error before."""
+    """Create a new report with testcases that passed before but fail or error now."""
     before = JUnitXml.fromfile(path_before)
     after = JUnitXml.fromfile(path_after)
     xml = before.compare(after)
@@ -81,7 +81,7 @@ def _parser(prog_name=None):  # pragma: no cover
 
     # command: compare
     merge_parser = command_parser.add_parser(
-        "compare", help="Create a new report with testcases that did not fail or error before."
+        "compare", help="Create a new report with testcases that passed before but fail or error now."
     )
     merge_parser.add_argument("before", help="Path of the initial XML report to compare.")
     merge_parser.add_argument("after", help="Path of the re-run XML report to compare.")

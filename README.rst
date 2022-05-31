@@ -210,7 +210,7 @@ Command Line
     {merge}        command
       merge        Merge Junit XML format reports with junitparser.
       verify       Return a non-zero exit code if one of the testcases failed or errored.
-      compare      Create a new report with testcases that did not fail or error before.
+      compare      Create a new report with testcases that passed before but fail or error now.
 
     optional arguments:
     -h, --help     show this help message and exit

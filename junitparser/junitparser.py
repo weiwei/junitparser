@@ -301,7 +301,7 @@ class JUnitXml(Element):
         self.time = round(time, 3)
 
     def compare(self, other):
-        """Create a new report with testcases that did not fail or error in the other report."""
+        """Create a new report with testcases that passed in this report but fail or error in the other."""
         passed = []
         for suite in self:
             for case in suite:
