@@ -210,6 +210,7 @@ Command Line
     {merge}        command
       merge        Merge Junit XML format reports with junitparser.
       verify       Return a non-zero exit code if one of the testcases failed or errored.
+      compare      Create a new report with testcases that did not fail or error before.
 
     optional arguments:
     -h, --help     show this help message and exit
@@ -241,6 +242,20 @@ Command Line
     optional arguments:
       -h, --help  show this help message and exit
       --glob      Treat original XML path(s) as glob(s).
+
+
+.. code-block:: shell
+
+    $ junitparser compare --help
+    usage: junitparser compare [-h] before after output
+
+    positional arguments:
+      before      Path of the initial XML report to compare.
+      after       Path of the re-run XML report to compare.
+      output      Compared XML Path, setting to "-" will output console
+
+    optional arguments:
+      -h, --help  show this help message and exit
 
 Test
 ----

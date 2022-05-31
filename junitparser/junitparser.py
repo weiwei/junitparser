@@ -300,6 +300,34 @@ class JUnitXml(Element):
         self.skipped = skipped
         self.time = round(time, 3)
 
+    def compare(self, other):
+        """Create a new report with testcases that did not fail or error in the other report."""
+        passed = []
+        for suite in self:
+            for case in suite:
+                if case.is_passed:
+                    passed.append(case)
+
+        failed = []
+        for suite in other:
+            for case in suite:
+                if not case.is_passed and not case.is_skipped:
+                    failed.append(case)
+
+        newly_failed = []
+        for f in failed:
+            for p in passed:
+                if (f.classname, f.name) == (p.classname, p.name):
+                    newly_failed.append(f)
+
+        xml = JUnitXml()
+        suite = TestSuite('newly_failed_tests')
+        suite.add_testcases(newly_failed)
+        xml.add_testsuite(suite)
+        xml.update_statistics()
+
+        return xml
+
     @classmethod
     def fromstring(cls, text):
         """Construct Junit objects from a XML string."""

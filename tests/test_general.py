@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from __future__ import with_statement
 
 import locale
+import os
 import unittest
 from copy import deepcopy
 from xml.etree import ElementTree as etree
@@ -268,6 +269,26 @@ class Test_JunitXml(unittest.TestCase):
         result3 = result1 + result2
         result3.update_statistics()
         self.assertEqual(result3.tests, 0)
+
+    def test_compare(self):
+        normal = JUnitXml.fromfile(
+            os.path.join(os.path.dirname(__file__), "data/normal.xml")
+        )
+        # Identical to `normal` but with a failure removed.
+        no_fails = JUnitXml.fromfile(
+            os.path.join(os.path.dirname(__file__), "data/no_fails.xml")
+        )
+        compared = normal.compare(no_fails)
+        self.assertEqual(compared.errors, 0)
+        self.assertEqual(compared.tests, 0)
+        self.assertEqual(compared.failures, 0)
+        self.assertEqual(compared.skipped, 0)
+
+        compared = no_fails.compare(normal)
+        self.assertEqual(compared.errors, 0)
+        self.assertEqual(compared.tests, 1)
+        self.assertEqual(compared.failures, 1)
+        self.assertEqual(compared.skipped, 0)
 
 
 class Test_TestSuite(unittest.TestCase):

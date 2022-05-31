@@ -30,6 +30,15 @@ def verify(paths):
     return 0
 
 
+def compare(path_before, path_after, output):
+    """Create a new report with testcases that did not fail or error before."""
+    before = JUnitXml.fromfile(path_before)
+    after = JUnitXml.fromfile(path_after)
+    xml = before.compare(after)
+    xml.write(output, to_console=output == "-")
+    return 0
+
+
 def _parser(prog_name=None):  # pragma: no cover
     """Create the CLI arg parser."""
     parser = ArgumentParser(description="Junitparser CLI helper.", prog=prog_name)
@@ -70,6 +79,16 @@ def _parser(prog_name=None):  # pragma: no cover
     )
     merge_parser.add_argument("paths", nargs="+", help="XML path(s) of reports to verify.")
 
+    # command: compare
+    merge_parser = command_parser.add_parser(
+        "compare", help="Create a new report with testcases that did not fail or error before."
+    )
+    merge_parser.add_argument("before", help="Path of the initial XML report to compare.")
+    merge_parser.add_argument("after", help="Path of the re-run XML report to compare.")
+    merge_parser.add_argument(
+        "output", help='Compared XML Path, setting to "-" will output console'
+    )
+
     return parser
 
 
@@ -89,4 +108,6 @@ def main(args=None, prog_name=None):
             if args.paths_are_globs
             else args.paths
         )
+    if args.command == "compare":
+        return compare(args.before, args.after, args.output)
     return 255
