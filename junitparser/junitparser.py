@@ -293,9 +293,8 @@ class JUnitXml(Element):
         self.time = round(time, 3)
 
     @classmethod
-    def fromstring(cls, text):
-        """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text)  # nosec
+    def fromroot(cls, root_elem):
+        """Constructs Junit objects from an elementTree root element."""
         if root_elem.tag == "testsuites":
             instance = cls()
         elif root_elem.tag == "testsuite":
@@ -306,6 +305,12 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
+    def fromstring(cls, text):
+        """Construct Junit objects from a XML string."""
+        root_elem = etree.fromstring(text)  # nosec
+        return cls.fromroot(root_elem)
+
+    @classmethod
     def fromfile(cls, filepath, parse_func=None):
         """Initiate the object from a report file."""
         if parse_func:
@@ -313,13 +318,7 @@ class JUnitXml(Element):
         else:
             tree = etree.parse(filepath)  # nosec
         root_elem = tree.getroot()
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
-        else:
-            raise JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
+        instance = cls.fromroot(root_elem)
         instance.filepath = filepath
         return instance
 
