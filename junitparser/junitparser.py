@@ -3,9 +3,10 @@ junitparser is a JUnit/xUnit Result XML Parser. Use it to parse and manipulate
 existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
 Reference schema: https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd
-This according to the document is Apache Ant's JUnit output.
 
-See documentation for other supported schemas.
+This, according to the document, is Apache Ant's JUnit output.
+
+See the documentation for other supported schemas.
 """
 
 import itertools
@@ -56,14 +57,14 @@ class Attr(object):
     By default they are all string values. To support different value types,
     inherit this class and define your own methods.
 
-    Also see: :class:`InitAttr`, :class:`FloatAttr`.
+    Also see: :class:`IntAttr`, :class:`FloatAttr`.
     """
 
     def __init__(self, name: str = None):
         self.name = name
 
     def __get__(self, instance, cls):
-        """Gets value from attribute, return None if attribute doesn't exist."""
+        """Get value from attribute, return ``None`` if attribute doesn't exist."""
         return instance._elem.attrib.get(self.name)
 
     def __set__(self, instance, value: str):
@@ -75,7 +76,7 @@ class Attr(object):
 class IntAttr(Attr):
     """An integer attribute for an XML element.
 
-    This class is used internally for counting test cases, but you could use
+    This class is used internally for counting testcases, but you could use
     it for any specific purpose.
     """
 
@@ -121,7 +122,7 @@ def attributed(cls):
 
 
 class junitxml(type):
-    """Metaclass to decorate the xml class"""
+    """Metaclass to decorate the XML class."""
 
     def __new__(meta, name, bases, methods):
         cls = super(junitxml, meta).__new__(meta, name, bases, methods)
@@ -130,7 +131,7 @@ class junitxml(type):
 
 
 class Element(metaclass=junitxml):
-    """Base class for all Junit XML elements."""
+    """Base class for all JUnit XML elements."""
 
     def __init__(self, name: str = None):
         if not name:
@@ -152,27 +153,27 @@ class Element(metaclass=junitxml):
         return """<Element '%s'>""" % tag
 
     def append(self, sub_elem):
-        """Adds the element subelement to the end of this elements internal
+        """Add the element subelement to the end of this elements internal
         list of subelements.
         """
         self._elem.append(sub_elem._elem)
 
     def extend(self, sub_elems):
-        """Adds elements subelement to the end of this elements internal
+        """Add elements subelement to the end of this elements internal
         list of subelements.
         """
         self._elem.extend((sub_elem._elem for sub_elem in sub_elems))
 
     @classmethod
     def fromstring(cls, text: str):
-        """Construct Junit objects from a XML string."""
+        """Construct JUnit object *cls* from XML string *test*."""
         instance = cls()
         instance._elem = etree.fromstring(text)  # nosec
         return instance
 
     @classmethod
     def fromelem(cls, elem):
-        """Constructs Junit objects from an elementTree element."""
+        """Construct JUnit objects from an ElementTree element *elem*."""
         if elem is None:
             return
         instance = cls()
@@ -183,25 +184,25 @@ class Element(metaclass=junitxml):
         return instance
 
     def iterchildren(self, Child):
-        """Iterate through specified Child type elements."""
+        """Iterate through specified *Child* type elements."""
         elems = self._elem.iterfind(Child._tag)
         for elem in elems:
             yield Child.fromelem(elem)
 
     def child(self, Child):
-        """Find a single child of specified Child type."""
+        """Find a single child of specified *Child* type."""
         elem = self._elem.find(Child._tag)
         return Child.fromelem(elem)
 
     def remove(self, sub_elem):
-        """Remove a sub element."""
+        """Remove subelement *sub_elem*."""
         for elem in self._elem.iterfind(sub_elem._tag):
             child = sub_elem.__class__.fromelem(elem)
             if child == sub_elem:
                 self._elem.remove(child._elem)
 
     def tostring(self):
-        """Converts element to XML string."""
+        """Convert element to XML string."""
         return etree.tostring(self._elem, encoding="utf-8")
 
 
@@ -209,8 +210,8 @@ class Result(Element):
     """Base class for test result.
 
     Attributes:
-        message: result as message string
-        type: message type
+        message: Result as message string.
+        type: Message type.
     """
 
     _tag = None
@@ -271,10 +272,10 @@ POSSIBLE_RESULTS = {Failure, Error, Skipped}
 
 
 class System(Element):
-    """Parent class for SystemOut and SystemErr.
+    """Parent class for :class:`SystemOut` and :class:`SystemErr`.
 
     Attributes:
-        text: the output message
+        text: The output message.
     """
 
     _tag = ""
@@ -304,14 +305,9 @@ class TestCase(Element):
     """Object to store a testcase and its result.
 
     Attributes:
-        name: case name
-        classname: the parent class of the case
-        time: how much time is consumed by the test
-
-    Properties:
-        result: Failure, Skipped, or Error
-        system_out: stdout
-        system_err: stderr
+        name: Name of the testcase.
+        classname: The parent class of the testcase.
+        time: The time consumed by the testcase.
     """
 
     _tag = "testcase"
@@ -357,7 +353,7 @@ class TestCase(Element):
 
     @property
     def result(self):
-        """A list of Failure, Skipped, or Error objects."""
+        """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
         results = []
         for entry in self:
             if isinstance(entry, tuple(POSSIBLE_RESULTS)):
@@ -411,13 +407,13 @@ class TestCase(Element):
 
 
 class Property(Element):
-    """A key/value pare that's stored in the test suite.
+    """A key/value pare that's stored in the testsuite.
 
     Use it to store anything you find interesting or useful.
 
     Attributes:
-        name: the property name
-        value: the property value
+        name: The property name.
+        value: The property value.
     """
 
     _tag = "property"
@@ -441,7 +437,7 @@ class Property(Element):
 
 
 class Properties(Element):
-    """A list of properties inside a test suite.
+    """A list of properties inside a testsuite.
 
     See :class:`Property`
     """
@@ -474,14 +470,14 @@ class TestSuite(Element):
     """The <testsuite> object.
 
     Attributes:
-        name: test suite name
-        hostname: name of the test machine
-        time: time concumed by the test suite
-        timestamp: when the test was run
-        tests: total number of tests
-        failures: number of failed tests
-        errors: number of cases with errors
-        skipped: number of skipped cases
+        name: The name of the testsuite.
+        hostname: Name of the test machine.
+        time: Time consumed by the testsuite.
+        timestamp: When the test was run.
+        tests: Total number of tests.
+        failures: Number of failed tests.
+        errors: Number of cases with errors.
+        skipped: Number of skipped cases.
     """
 
     _tag = "testsuite"
@@ -527,7 +523,7 @@ class TestSuite(Element):
 
     def __add__(self, other):
         if self == other:
-            # Merge the two suites
+            # Merge the two testsuites
             result = deepcopy(self)
             for case in other:
                 result._add_testcase_no_update_stats(case)
@@ -535,7 +531,7 @@ class TestSuite(Element):
                 result.add_testsuite(suite)
             result.update_statistics()
         else:
-            # Create a new test result containing two suites
+            # Create a new test result containing two testsuites
             result = JUnitXml()
             result.add_testsuite(self)
             result.add_testsuite(other)
@@ -556,15 +552,15 @@ class TestSuite(Element):
         result.add_testsuite(other)
         return result
 
-    def remove_testcase(self, testcase: TestCase):
-        """Removes a test case from the suite."""
+    def remove_testcase(self, testcase):
+        """Remove testcase *testcase* from the testsuite."""
         for case in self:
             if case == testcase:
                 super().remove(case)
                 self.update_statistics()
 
     def update_statistics(self):
-        """Updates test count and test time."""
+        """Update test count and test time."""
         tests = errors = failures = skipped = 0
         time = 0
         for case in self:
@@ -585,9 +581,9 @@ class TestSuite(Element):
         self.time = round(time, 3)
 
     def add_property(self, name, value):
-        """Adds a property to the testsuite.
+        """Add a property *name* = *value* to the testsuite.
 
-        See :class:`Property` and :class:`Properties`
+        See :class:`Property` and :class:`Properties`.
         """
 
         props = self.child(Properties)
@@ -598,28 +594,28 @@ class TestSuite(Element):
         props.add_property(prop)
 
     def add_testcase(self, testcase):
-        """Adds a testcase to the suite."""
+        """Add a testcase *testcase* to the testsuite."""
         self.append(testcase)
         self.update_statistics()
 
     def add_testcases(self, testcases):
-        """Adds test cases to the suite."""
+        """Add testcases *testcases* to the testsuite."""
         self.extend(testcases)
         self.update_statistics()
 
     def _add_testcase_no_update_stats(self, testcase):
-        """
-        Adds a testcase to the suite (without updating stats).
+        """Add *testcase* to the testsuite (without updating statistics).
+
         For internal use only to avoid quadratic behaviour in merge.
         """
         self.append(testcase)
 
     def add_testsuite(self, suite):
-        """Adds a testsuite inside current testsuite."""
+        """Add a testsuite *suite* to the testsuite."""
         self.append(suite)
 
     def properties(self):
-        """Iterates through all properties."""
+        """Iterate through all :class:`Property` elements in the testsuite."""
         props = self.child(Properties)
         if props is None:
             return
@@ -627,7 +623,7 @@ class TestSuite(Element):
             yield prop
 
     def remove_property(self, property_: Property):
-        """Removes a property."""
+        """Remove property *property_* from the testsuite."""
         props = self.child(Properties)
         if props is None:
             return
@@ -636,7 +632,7 @@ class TestSuite(Element):
                 props.remove(property_)
 
     def testsuites(self):
-        """Iterates through all testsuites."""
+        """Iterate through all testsuites."""
         for suite in self.iterchildren(TestSuite):
             yield suite
 
@@ -647,15 +643,15 @@ class TestSuite(Element):
 class JUnitXml(Element):
     """The JUnitXml root object.
 
-    It may contains a :class:`TestSuites` or a :class:`TestSuite`.
+    It may contain ``<TestSuites>`` or a ``<TestSuite>``.
 
     Attributes:
-        name: test suite name if it only contains one test suite
-        time: time consumed by the test suites
-        tests: total number of tests
-        failures: number of failed cases
-        errors: number of cases with errors
-        skipped: number of skipped cases
+        name: Name of the testsuite if it only contains one testsuite.
+        time: Time consumed by the testsuites.
+        tests: Total number of tests.
+        failures: Number of failed cases.
+        errors: Number of cases with errors.
+        skipped: Number of skipped cases.
     """
 
     _tag = "testsuites"
@@ -699,7 +695,7 @@ class JUnitXml(Element):
         return self
 
     def add_testsuite(self, suite: TestSuite):
-        """Add a test suite."""
+        """Add a testsuite."""
         for existing_suite in self:
             if existing_suite == suite:
                 for case in suite:
@@ -726,7 +722,7 @@ class JUnitXml(Element):
 
     @classmethod
     def fromroot(cls, root_elem: Element):
-        """Constructs Junit objects from an elementTree root element."""
+        """Construct JUnit objects from an elementTree root element."""
         if root_elem.tag == "testsuites":
             instance = cls()
         elif root_elem.tag == "testsuite":
@@ -738,7 +734,7 @@ class JUnitXml(Element):
 
     @classmethod
     def fromstring(cls, text: str):
-        """Construct Junit objects from a XML string."""
+        """Construct JUnit objects from an XML string."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
@@ -755,7 +751,7 @@ class JUnitXml(Element):
         return instance
 
     def write(self, filepath: str = None, pretty=False, to_console=False):
-        """Write the object into a junit xml file.
+        """Write the object into a JUnit XML file.
 
         If `file_path` is not specified, it will write to the original file.
         If `pretty` is True, the result file will be more human friendly.

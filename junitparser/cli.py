@@ -6,7 +6,7 @@ from . import JUnitXml, version
 
 
 def merge(paths, output, suite_name):
-    """Merge xml report."""
+    """Merge XML report."""
     result = JUnitXml()
     for path in paths:
         result += JUnitXml.fromfile(path)
@@ -45,7 +45,7 @@ def _parser(prog_name=None):  # pragma: no cover
 
     # command: merge
     merge_parser = command_parser.add_parser(
-        "merge", help="Merge Junit XML format reports with junitparser."
+        "merge", help="Merge JUnit XML format reports with junitparser."
     )
     merge_parser.add_argument(
         "--glob",
@@ -56,7 +56,7 @@ def _parser(prog_name=None):  # pragma: no cover
     )
     merge_parser.add_argument("paths", nargs="+", help="Original XML path(s).")
     merge_parser.add_argument(
-        "output", help='Merged XML Path, setting to "-" will output console'
+        "output", help='Merged XML Path, setting to "-" will output to the console'
     )
     merge_parser.add_argument(
         "--suite-name",

@@ -2,9 +2,9 @@
 The flavor based on Jenkins xunit plugin:
 https://github.com/jenkinsci/xunit-plugin/blob/xunit-2.3.2/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd
 
-According to the internet, The schema is compatible with:
+According to the internet, the schema is compatible with:
 
-- pytest (as default, though it also supports a "legacy" xunit1 flavor)
+- Pytest (as default, though it also supports a "legacy" xunit1 flavor)
 - Erlang/OTP
 - Maven Surefire
 - CppTest
@@ -20,7 +20,7 @@ T = TypeVar("T")
 
 
 class JUnitXml(junitparser.JUnitXml):
-    # Pytest and xunit schema doesn't have skipped in testsuites
+    # Pytest and xunit schema doesn't have "skipped" in testsuites
     skipped = None
 
     def update_statistics(self):
@@ -40,7 +40,7 @@ class JUnitXml(junitparser.JUnitXml):
 
 
 class TestSuite(junitparser.TestSuite):
-    """TestSuit for Pytest, with some different attributes."""
+    """TestSuite for Pytest, with some different attributes."""
 
     group = junitparser.Attr()
     id = junitparser.Attr()
@@ -194,9 +194,9 @@ class TestCase(junitparser.TestCase):
         return self._rerun_results(FlakyFailure)
 
     def flaky_errors(self):
-        """<flakyFailure>"""
+        """<flakyError>"""
         return self._rerun_results(FlakyError)
 
     def add_rerun_result(self, result: RerunType):
-        """Append a rerun result to the test case. A case can have multiple rerun results"""
+        """Append a rerun result to the testcase. A testcase can have multiple rerun results."""
         self.append(result)
