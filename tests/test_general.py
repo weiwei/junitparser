@@ -129,6 +129,52 @@ class Test_JunitXml(unittest.TestCase):
         </testsuite>
         </testsuites>"""
         result = JUnitXml.fromstring(text)
+        self.assertIsInstance(result, JUnitXml)
+        self.assertEqual(result.errors, 1)
+        self.assertEqual(result.skipped, 1)
+        suite = list(iter(result))[0]
+        cases = list(iter(suite))
+        self.assertEqual(len(cases[0].result), 0)
+        self.assertEqual(len(cases[1].result), 2)
+        text = cases[1].result[1].text
+        self.assertTrue("@pytest.fixture" in text)
+
+    def test_fromroot_testsuite(self):
+        text = """
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>"""
+        root_elemt = etree.fromstring(text)
+        result = JUnitXml.fromroot(root_elemt)
+        self.assertIsInstance(result, TestSuite)
+        self.assertEqual(result.errors, 1)
+        self.assertEqual(result.skipped, 1)
+        cases = list(iter(result))
+        self.assertEqual(len(cases[0].result), 0)
+        self.assertEqual(len(cases[1].result), 2)
+        text = cases[1].result[1].text
+        self.assertTrue("@pytest.fixture" in text)
+
+    def test_fromroot_testsuites(self):
+        text = """<testsuites>
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>
+        </testsuites>"""
+        root_elemt = etree.fromstring(text)
+        result = JUnitXml.fromroot(root_elemt)
         self.assertEqual(result.errors, 1)
         self.assertEqual(result.skipped, 1)
         suite = list(iter(result))[0]
