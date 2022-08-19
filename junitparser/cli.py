@@ -5,13 +5,15 @@ from itertools import chain
 from . import JUnitXml, version
 
 
-def merge(paths, output):
+def merge(paths, output, suite_name):
     """Merge xml report."""
     result = JUnitXml()
     for path in paths:
         result += JUnitXml.fromfile(path)
 
     result.update_statistics()
+    if suite_name:
+        result.name = suite_name
     result.write(output, to_console=output == "-")
     return 0
 
@@ -56,6 +58,10 @@ def _parser(prog_name=None):  # pragma: no cover
     merge_parser.add_argument(
         "output", help='Merged XML Path, setting to "-" will output console'
     )
+    merge_parser.add_argument(
+        "--suite-name",
+        help="Name added to <testsuites>.",
+    )
 
     # command: verify
     merge_parser = command_parser.add_parser(
@@ -82,6 +88,7 @@ def main(args=None, prog_name=None):
             if args.paths_are_globs
             else args.paths,
             args.output,
+            args.suite_name,
         )
     if args.command == "verify":
         return verify(
