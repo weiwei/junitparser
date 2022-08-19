@@ -228,7 +228,8 @@ Command Line
     optional arguments:
       -h, --help  show this help message and exit
       --glob      Treat original XML path(s) as glob(s).
-
+      --suite-name SUITE_NAME
+                  Name added to <testsuites>.
 
 .. code-block:: shell
 

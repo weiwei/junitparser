@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.8.0] - 2022-08-19
+### Added
+- `--suite-name` parameter for merging xmls with cli. Thanks to @yusijs
+
 ## [2.7.0] - 2022-06-25
 ### Added
 - `fromroot` class method to create object from a root element. Thanks to @EnricoMi 
