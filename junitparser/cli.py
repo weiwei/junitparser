@@ -12,7 +12,7 @@ def merge(paths, output, suite_name):
         result += JUnitXml.fromfile(path)
 
     result.update_statistics()
-    if suite_name != "":
+    if suite_name:
         result.name = suite_name
     result.write(output, to_console=output == "-")
     return 0
@@ -61,7 +61,6 @@ def _parser(prog_name=None):  # pragma: no cover
     merge_parser.add_argument(
         "--suite-name",
         help="Name added to <testsuites>.",
-        default="",
     )
 
     # command: verify
