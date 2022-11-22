@@ -33,20 +33,20 @@ except ImportError:
 
 try:
     from lxml import etree as expected_lxml_etree
-    used_xml = "lxml"
+    has_lxml = True
 except ImportError:
     from xml.etree import ElementTree as expected_xml_etree
-    used_xml = "xml"
+    has_lxml = False
 
 
 class Test_XmlPackage(unittest.TestCase):
 
-    @unittest.skipIf(used_xml != "xml", "xml package is not expected to be used")
+    @unittest.skipIf(has_lxml, "xml package is used unless lxml is installed")
     def test_xml_etree(self):
         from junitparser.junitparser import etree as actual_etree
         self.assertEqual(actual_etree, expected_xml_etree)
 
-    @unittest.skipIf(used_xml != "lxml", "lxml package is not installed")
+    @unittest.skipUnless(has_lxml, "lxml package has to be installed")
     def test_lxml_etree(self):
         from junitparser.junitparser import etree as actual_etree
         self.assertEqual(actual_etree, expected_lxml_etree)
