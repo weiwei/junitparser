@@ -40,7 +40,8 @@ jobs:
         pip install lxml
         pytest
 
-  publish:
+  coverage-lint:
+    needs: build-test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -68,8 +69,17 @@ jobs:
       run: |
         coverage run -m pytest
         bash <(curl -s https://codecov.io/bash)
+
+  package-publish:
+    needs: coverage-lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
     - name: Build packages
-      if: startsWith(github.ref, 'refs/tags')
       run: |
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
