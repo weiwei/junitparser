@@ -31,6 +31,27 @@ except ImportError:
     pass
 
 
+try:
+    from lxml import etree as expected_lxml_etree
+    used_xml = "lxml"
+except ImportError:
+    from xml.etree import ElementTree as expected_xml_etree
+    used_xml = "xml"
+
+
+class Test_XmlPackage(unittest.TestCase):
+
+    @unittest.skipIf(used_xml != "xml", "xml package is not expected to be used")
+    def test_xml_etree(self):
+        from junitparser.junitparser import etree as actual_etree
+        self.assertEqual(actual_etree, expected_xml_etree)
+
+    @unittest.skipIf(used_xml != "lxml", "lxml package is not installed")
+    def test_lxml_etree(self):
+        from junitparser.junitparser import etree as actual_etree
+        self.assertEqual(actual_etree, expected_lxml_etree)
+
+
 class Test_MergeSuiteCounts(unittest.TestCase):
     def test_merge_test_count(self):
         text1 = """<testsuite name="suitename1" tests="2" failures="1">

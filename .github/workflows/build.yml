@@ -34,6 +34,10 @@ jobs:
     - name: Test
       run: |
         pytest
+    - name: Test with lxml
+      run: |
+        pip install lxml
+        pytest
 
   publish:
     runs-on: ubuntu-latest
