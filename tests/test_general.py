@@ -507,6 +507,24 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.name, "testname")
         self.assertEqual(len(case.result), 2)
 
+    def test_multi_results(self):
+        case = TestCase("testname", "testclassname")
+        err = Error("err msg", "err_type")
+        fail1 = Failure("fail msg 1", "fail_type")
+        fail2 = Failure("fail msg 2", "fail_type")
+        fail3 = Failure("fail msg 3", "fail_type")
+        fail4 = Failure("fail msg 4", "fail_type")
+        case.result += [err]
+        self.assertEqual(len(case.result), 1)
+        case.result += [fail1]
+        self.assertEqual(len(case.result), 2)
+        case.result += [fail2]
+        self.assertEqual(len(case.result), 3)
+        case.result += [fail3]
+        self.assertEqual(len(case.result), 4)
+        case.result += [fail4]
+        self.assertEqual(len(case.result), 5)
+
     def test_case_attributes(self):
         case = TestCase()
         case.name = "testname"
