@@ -81,6 +81,7 @@ jobs:
         python-version: 3.x
     - name: Build packages
       run: |
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
     - name: Publish to pypi
