@@ -496,14 +496,16 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.system_out, "System out")
         self.assertEqual(case.system_err, "System err")
 
-    def test_illegal_xml_multi_results(self):
+    def test_xml_multi_results(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
         <skipped message="skipped message" type="FailureType"/>
         </testcase>
         """
         case = TestCase.fromstring(text)
-        self.assertRaises(JUnitXmlError)
+        # no assertion raised
+        self.assertEqual(case.name, "testname")
+        self.assertEqual(len(case.result), 2)
 
     def test_case_attributes(self):
         case = TestCase()
