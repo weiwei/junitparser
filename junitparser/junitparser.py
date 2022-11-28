@@ -710,7 +710,7 @@ class TestCase(Element):
     @result.setter
     def result(self, value):
         # First remove all existing results
-        for entry in self:
+        for entry in self.result:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.remove(entry)
         for entry in value:
