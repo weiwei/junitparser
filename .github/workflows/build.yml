@@ -11,14 +11,15 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    # Python version < 3.7 requires ubuntu-20.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [2.7, 3.5]
+        python-version: ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.x"]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup locales
@@ -34,13 +35,18 @@ jobs:
     - name: Test
       run: |
         pytest
+    - name: Test with lxml
+      run: |
+        pip install lxml
+        pytest
 
-  publish:
+  coverage-lint:
+    needs: build-test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.x
     - name: Setup locales
@@ -63,14 +69,24 @@ jobs:
       run: |
         coverage run -m pytest
         bash <(curl -s https://codecov.io/bash)
+
+  package-publish:
+    needs: coverage-lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.x
     - name: Build packages
-      if: startsWith(github.ref, 'refs/tags')
       run: |
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
     - name: Publish to pypi
       if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
