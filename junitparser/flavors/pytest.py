@@ -1,9 +1,7 @@
 import itertools
-from junitparser.junitparser import JUnitXml, JUnitXmlError, Result, TestSuite as OrigTestSuite, Attr, \
-    SystemOut, SystemErr, TestCase as OrigTestCase, System
+from .. import junitparser
 
-
-class PytestXml(JUnitXml):
+class JUnitXml(junitparser.JUnitXml):
     # Pytest and xunit schema doesn't have skipped in testsuites
     skipped = None
     def __init__(self, name=None):
@@ -28,7 +26,7 @@ class PytestXml(JUnitXml):
         elif root_elem.tag == "testsuite":
             instance = TestSuite()
         else:
-            raise JUnitXmlError("Invalid format.")
+            raise junitparser.JUnitXmlError("Invalid format.")
         instance._elem = root_elem
         return instance
 
@@ -48,15 +46,15 @@ class PytestXml(JUnitXml):
         self.time = round(time, 3)
 
 
-class TestSuite(OrigTestSuite):
+class TestSuite(junitparser.TestSuite):
     """TestSuit for Pytest, with some different attributes."""
-    group = Attr()
-    id = Attr()
-    package = Attr()
-    file = Attr()
-    log = Attr()
-    url = Attr()
-    version = Attr()
+    group = junitparser.Attr()
+    id = junitparser.Attr()
+    package = junitparser.Attr()
+    file = junitparser.Attr()
+    log = junitparser.Attr()
+    url = junitparser.Attr()
+    version = junitparser.Attr()
 
     def __init__(self, name=None):
         super().__init__(self._tag)
@@ -75,35 +73,35 @@ class TestSuite(OrigTestSuite):
     @property
     def system_out(self):
         """stdout."""
-        elem = self.child(SystemOut)
+        elem = self.child(junitparser.SystemOut)
         if elem is not None:
             return elem.text
         return None
 
     @system_out.setter
     def system_out(self, value):
-        out = self.child(SystemOut)
+        out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
         else:
-            out = SystemOut(value)
+            out = junitparser.SystemOut(value)
             self.append(out)
 
     @property
     def system_err(self):
         """stderr."""
-        elem = self.child(SystemErr)
+        elem = self.child(junitparser.SystemErr)
         if elem is not None:
             return elem.text
         return None
 
     @system_err.setter
     def system_err(self, value):
-        err = self.child(SystemErr)
+        err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
         else:
-            err = SystemErr(value)
+            err = junitparser.SystemErr(value)
             self.append(err)
 
     def testsuites(self):
@@ -118,10 +116,10 @@ class TestSuite(OrigTestSuite):
                 super().remove(case)
                 self.update_statistics()
 
-class StackTrace(System):
+class StackTrace(junitparser.System):
     _tag = "stackTrace"
 
-class RerunType(Result):
+class RerunType(junitparser.Result):
     _tag = "rerunType"
 
     @property
@@ -144,35 +142,35 @@ class RerunType(Result):
     @property
     def system_out(self):
         """stdout."""
-        elem = self.child(SystemOut)
+        elem = self.child(junitparser.SystemOut)
         if elem is not None:
             return elem.text
         return None
 
     @system_out.setter
     def system_out(self, value):
-        out = self.child(SystemOut)
+        out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
         else:
-            out = SystemOut(value)
+            out = junitparser.SystemOut(value)
             self.append(out)
 
     @property
     def system_err(self):
         """stderr."""
-        elem = self.child(SystemErr)
+        elem = self.child(junitparser.SystemErr)
         if elem is not None:
             return elem.text
         return None
 
     @system_err.setter
     def system_err(self, value):
-        err = self.child(SystemErr)
+        err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
         else:
-            err = SystemErr(value)
+            err = junitparser.SystemErr(value)
             self.append(err)
 
 class RerunFailure(RerunType):

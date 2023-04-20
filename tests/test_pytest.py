@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from junitparser.flavors.pytest_xml import PytestXml, TestSuite, TestCase, FlakyError, FlakyFailure, RerunError, RerunFailure
+from junitparser.flavors.pytest import PytestXml, TestSuite, TestCase, FlakyError, FlakyFailure, RerunError, RerunFailure
 from junitparser import Failure
 
 
