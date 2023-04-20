@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.0.0] - 2023-04-20
+### Breaking
+Python 2 is no longer supported. Version 2.x will keep supporting py2 and it will be maintained as long as possible, though no new features will be added.
+
 ## [2.8.0] - 2022-08-19
 ### Added
 - `--suite-name` parameter for merging xmls with cli. Thanks to @yusijs
