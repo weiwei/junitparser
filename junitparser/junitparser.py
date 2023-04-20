@@ -78,16 +78,16 @@ class IntAttr(Attr):
     """
 
     def __get__(self, instance, cls):
-        result = super(IntAttr, self).__get__(instance, cls)
+        result = super().__get__(instance, cls)
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
-            result = super(IntAttr, self).__get__(instance, cls)
+            result = super().__get__(instance, cls)
         return int(result) if result else None
 
     def __set__(self, instance, value):
         if not isinstance(value, int):
             raise TypeError("Expected integer value.")
-        super(IntAttr, self).__set__(instance, value)
+        super().__set__(instance, value)
 
 
 class FloatAttr(Attr):
@@ -98,16 +98,16 @@ class FloatAttr(Attr):
     """
 
     def __get__(self, instance, cls):
-        result = super(FloatAttr, self).__get__(instance, cls)
+        result = super().__get__(instance, cls)
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
             instance.update_statistics()
-            result = super(FloatAttr, self).__get__(instance, cls)
+            result = super().__get__(instance, cls)
         return float(result.replace(",", "")) if result else None
 
     def __set__(self, instance, value):
         if not (isinstance(value, float) or isinstance(value, int)):
             raise TypeError("Expected float value.")
-        super(FloatAttr, self).__set__(instance, value)
+        super().__set__(instance, value)
 
 
 def attributed(cls):
@@ -226,12 +226,12 @@ class JUnitXml(Element):
     skipped = IntAttr()
 
     def __init__(self, name=None):
-        super(JUnitXml, self).__init__(self._tag)
+        super().__init__(self._tag)
         self.filepath = None
         self.name = name
 
     def __iter__(self):
-        return super(JUnitXml, self).iterchildren(TestSuite)
+        return super().iterchildren(TestSuite)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -347,16 +347,16 @@ class TestSuite(Element):
     skipped = IntAttr()
 
     def __init__(self, name=None):
-        super(TestSuite, self).__init__(self._tag)
+        super().__init__(self._tag)
         self.name = name
         self.filepath = None
 
     def __iter__(self):
         return itertools.chain(
-            super(TestSuite, self).iterchildren(TestCase),
+            super().iterchildren(TestCase),
             (
                 case
-                for suite in super(TestSuite, self).iterchildren(TestSuite)
+                for suite in super().iterchildren(TestSuite)
                 for case in suite
             ),
         )
@@ -416,7 +416,7 @@ class TestSuite(Element):
         """Removes a test case from the suite."""
         for case in self:
             if case == testcase:
-                super(TestSuite, self).remove(case)
+                super().remove(case)
                 self.update_statistics()
 
     def update_statistics(self):
@@ -509,13 +509,13 @@ class Properties(Element):
     _tag = "properties"
 
     def __init__(self):
-        super(Properties, self).__init__(self._tag)
+        super().__init__(self._tag)
 
     def add_property(self, property_):
         self.append(property_)
 
     def __iter__(self):
-        return super(Properties, self).iterchildren(Property)
+        return super().iterchildren(Property)
 
     def __eq__(self, other):
         p1 = list(self)
@@ -545,7 +545,7 @@ class Property(Element):
     value = Attr()
 
     def __init__(self, name=None, value=None):
-        super(Property, self).__init__(self._tag)
+        super().__init__(self._tag)
         self.name = name
         self.value = value
 
@@ -601,7 +601,7 @@ class Skipped(Result):
     _tag = "skipped"
 
     def __eq__(self, other):
-        return super(Skipped, self).__eq__(other)
+        return super().__eq__(other)
 
 
 class Failure(Result):
@@ -610,7 +610,7 @@ class Failure(Result):
     _tag = "failure"
 
     def __eq__(self, other):
-        return super(Failure, self).__eq__(other)
+        return super().__eq__(other)
 
 
 class Error(Result):
@@ -619,7 +619,7 @@ class Error(Result):
     _tag = "error"
 
     def __eq__(self, other):
-        return super(Error, self).__eq__(other)
+        return super().__eq__(other)
 
 
 POSSIBLE_RESULTS = {Failure, Error, Skipped}
@@ -645,7 +645,7 @@ class TestCase(Element):
     time = FloatAttr()
 
     def __init__(self, name=None, classname=None, time=None):
-        super(TestCase, self).__init__(self._tag)
+        super().__init__(self._tag)
         if name is not None:
             self.name = name
         if classname is not None:
@@ -654,7 +654,7 @@ class TestCase(Element):
             self.time = float(time)
 
     def __hash__(self):
-        return super(TestCase, self).__hash__()
+        return super().__hash__()
 
     def __iter__(self):
         all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
@@ -745,7 +745,7 @@ class System(Element):
     _tag = ""
 
     def __init__(self, content=None):
-        super(System, self).__init__(self._tag)
+        super().__init__(self._tag)
         self.text = content
 
     @property
