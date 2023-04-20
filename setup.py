@@ -22,7 +22,6 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Text Processing",
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
     url="https://github.com/weiwei/junitparser",

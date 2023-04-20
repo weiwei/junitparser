@@ -25,11 +25,6 @@ from junitparser import (
     Element,
 )
 
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
-
 
 try:
     from lxml import etree as expected_lxml_etree
