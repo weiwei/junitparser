@@ -67,6 +67,11 @@ format.
     suite.add_testcase(case2)
     suite.remove_testcase(case2)
 
+    #Bulk add cases to suite
+    case3 = TestCase('case3')
+    case4 = TestCase('case4')
+    suite.add_testcases([case3, case4])
+
     # Add suite to JunitXml
     xml = JUnitXml()
     xml.add_testsuite(suite)
@@ -204,6 +209,7 @@ Command Line
     positional arguments:
     {merge}        command
       merge        Merge Junit XML format reports with junitparser.
+      verify       Return a non-zero exit code if one of the testcases failed or errored.
 
     optional arguments:
     -h, --help     show this help message and exit
@@ -218,6 +224,20 @@ Command Line
     positional arguments:
       paths       Original XML path(s).
       output      Merged XML Path, setting to "-" will output console
+
+    optional arguments:
+      -h, --help  show this help message and exit
+      --glob      Treat original XML path(s) as glob(s).
+      --suite-name SUITE_NAME
+                  Name added to <testsuites>.
+
+.. code-block:: shell
+
+    $ junitparser verify --help
+    usage: junitparser verify [-h] [--glob] paths [paths ...]
+
+    positional arguments:
+      paths       XML path(s) of reports to verify.
 
     optional arguments:
       -h, --help  show this help message and exit

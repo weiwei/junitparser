@@ -131,6 +131,8 @@ class Element(metaclass=junitxml):
     """Base class for all Junit XML elements."""
 
     def __init__(self, name=None):
+        if not name:
+            name = self._tag
         self._elem = etree.Element(name)
 
     def __hash__(self):
@@ -152,6 +154,12 @@ class Element(metaclass=junitxml):
         list of subelements.
         """
         self._elem.append(sub_elem._elem)
+
+    def extend(self, sub_elems):
+        """Adds elements subelement to the end of this elements internal
+        list of subelements.
+        """
+        self._elem.extend((sub_elem._elem for sub_elem in sub_elems))
 
     @classmethod
     def fromstring(cls, text):
@@ -276,9 +284,8 @@ class JUnitXml(Element):
         self.time = round(time, 3)
 
     @classmethod
-    def fromstring(cls, text):
-        """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text)  # nosec
+    def fromroot(cls, root_elem):
+        """Constructs Junit objects from an elementTree root element."""
         if root_elem.tag == "testsuites":
             instance = cls()
         elif root_elem.tag == "testsuite":
@@ -289,6 +296,12 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
+    def fromstring(cls, text):
+        """Construct Junit objects from a XML string."""
+        root_elem = etree.fromstring(text)  # nosec
+        return cls.fromroot(root_elem)
+
+    @classmethod
     def fromfile(cls, filepath, parse_func=None):
         """Initiate the object from a report file."""
         if parse_func:
@@ -296,13 +309,7 @@ class JUnitXml(Element):
         else:
             tree = etree.parse(filepath)  # nosec
         root_elem = tree.getroot()
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
-        else:
-            raise JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
+        instance = cls.fromroot(root_elem)
         instance.filepath = filepath
         return instance
 
@@ -449,6 +456,11 @@ class TestSuite(Element):
     def add_testcase(self, testcase):
         """Adds a testcase to the suite."""
         self.append(testcase)
+        self.update_statistics()
+
+    def add_testcases(self, testcases):
+        """Adds test cases to the suite."""
+        self.extend(testcases)
         self.update_statistics()
 
     def _add_testcase_no_update_stats(self, testcase):
@@ -656,6 +668,19 @@ class TestCase(Element):
         return hash(self) == hash(other)
 
     @property
+    def is_passed(self):
+        """Whether this testcase was a success (i.e. if it isn't skipped, failed, or errored)."""
+        return not self.result
+
+    @property
+    def is_skipped(self):
+        """Whether this testcase was skipped."""
+        for r in self.result:
+            if isinstance(r, Skipped):
+                return True
+        return False
+
+    @property
     def result(self):
         """A list of Failure, Skipped, or Error objects."""
         results = []
@@ -668,7 +693,7 @@ class TestCase(Element):
     @result.setter
     def result(self, value):
         # First remove all existing results
-        for entry in self:
+        for entry in self.result:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.remove(entry)
         for entry in value:

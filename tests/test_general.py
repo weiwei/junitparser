@@ -22,12 +22,34 @@ from junitparser import (
     Properties,
     IntAttr,
     FloatAttr,
+    Element,
 )
 
 try:
     import itertools.izip as zip
 except ImportError:
     pass
+
+
+try:
+    from lxml import etree as expected_lxml_etree
+    has_lxml = True
+except ImportError:
+    from xml.etree import ElementTree as expected_xml_etree
+    has_lxml = False
+
+
+class Test_XmlPackage(unittest.TestCase):
+
+    @unittest.skipIf(has_lxml, "xml package is used unless lxml is installed")
+    def test_xml_etree(self):
+        from junitparser.junitparser import etree as actual_etree
+        self.assertEqual(actual_etree, expected_xml_etree)
+
+    @unittest.skipUnless(has_lxml, "lxml package has to be installed")
+    def test_lxml_etree(self):
+        from junitparser.junitparser import etree as actual_etree
+        self.assertEqual(actual_etree, expected_lxml_etree)
 
 
 class Test_MergeSuiteCounts(unittest.TestCase):
@@ -96,7 +118,7 @@ class Test_JunitXml(unittest.TestCase):
 
     def test_fromstring_numbers_locale_insensitive(self):
         "Case relies on that LC_ALL is set in the console."
-        for loc in ['', 'en_US.UTF-8', 'de_DE.UTF-8']:
+        for loc in ["", "en_US.UTF-8", "de_DE.UTF-8"]:
             old_locale = locale.getlocale(locale.LC_NUMERIC)
             try:
                 locale.setlocale(locale.LC_NUMERIC, loc)
@@ -128,6 +150,52 @@ class Test_JunitXml(unittest.TestCase):
         </testsuite>
         </testsuites>"""
         result = JUnitXml.fromstring(text)
+        self.assertIsInstance(result, JUnitXml)
+        self.assertEqual(result.errors, 1)
+        self.assertEqual(result.skipped, 1)
+        suite = list(iter(result))[0]
+        cases = list(iter(suite))
+        self.assertEqual(len(cases[0].result), 0)
+        self.assertEqual(len(cases[1].result), 2)
+        text = cases[1].result[1].text
+        self.assertTrue("@pytest.fixture" in text)
+
+    def test_fromroot_testsuite(self):
+        text = """
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>"""
+        root_elemt = etree.fromstring(text)
+        result = JUnitXml.fromroot(root_elemt)
+        self.assertIsInstance(result, TestSuite)
+        self.assertEqual(result.errors, 1)
+        self.assertEqual(result.skipped, 1)
+        cases = list(iter(result))
+        self.assertEqual(len(cases[0].result), 0)
+        self.assertEqual(len(cases[1].result), 2)
+        text = cases[1].result[1].text
+        self.assertTrue("@pytest.fixture" in text)
+
+    def test_fromroot_testsuites(self):
+        text = """<testsuites>
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>
+        </testsuites>"""
+        root_elemt = etree.fromstring(text)
+        result = JUnitXml.fromroot(root_elemt)
         self.assertEqual(result.errors, 1)
         self.assertEqual(result.skipped, 1)
         suite = list(iter(result))[0]
@@ -419,6 +487,22 @@ class Test_TestSuite(unittest.TestCase):
         suite2.add_property("name2", "value2")
         self.assertNotEqual(suite, suite2)
 
+    def test_add_cases(self):
+        suite = TestSuite()
+        self.assertEqual(suite.tests, 0)
+        case1 = TestCase()
+        case2 = TestCase()
+        case2.result = [Failure()]
+        case3 = TestCase()
+        case3.result = [Error()]
+        case4 = TestCase()
+        case4.result = [Skipped()]
+        suite.add_testcases([case1, case2, case3, case4])
+        suite.update_statistics()
+        self.assertEqual(suite.tests, 4)
+        self.assertEqual(suite.failures, 1)
+        self.assertEqual(suite.errors, 1)
+        self.assertEqual(suite.skipped, 1)
 
 class Test_TestCase(unittest.TestCase):
     def test_case_fromstring(self):
@@ -433,14 +517,34 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(case.system_out, "System out")
         self.assertEqual(case.system_err, "System err")
 
-    def test_illegal_xml_multi_results(self):
+    def test_xml_multi_results(self):
         text = """<testcase name="testname">
         <failure message="failure message" type="FailureType"/>
         <skipped message="skipped message" type="FailureType"/>
         </testcase>
         """
         case = TestCase.fromstring(text)
-        self.assertRaises(JUnitXmlError)
+        # no assertion raised
+        self.assertEqual(case.name, "testname")
+        self.assertEqual(len(case.result), 2)
+
+    def test_multi_results(self):
+        case = TestCase("testname", "testclassname")
+        err = Error("err msg", "err_type")
+        fail1 = Failure("fail msg 1", "fail_type")
+        fail2 = Failure("fail msg 2", "fail_type")
+        fail3 = Failure("fail msg 3", "fail_type")
+        fail4 = Failure("fail msg 4", "fail_type")
+        case.result += [err]
+        self.assertEqual(len(case.result), 1)
+        case.result += [fail1]
+        self.assertEqual(len(case.result), 2)
+        case.result += [fail2]
+        self.assertEqual(len(case.result), 3)
+        case.result += [fail3]
+        self.assertEqual(len(case.result), 4)
+        case.result += [fail4]
+        self.assertEqual(len(case.result), 5)
 
     def test_case_attributes(self):
         case = TestCase()
@@ -561,6 +665,39 @@ class Test_TestCase(unittest.TestCase):
         self.assertIn(
             res1.tostring(), [b'<failure message="A" />', b'<failure message="A"/>']
         )
+
+    def test_add_child_element(self):
+        class CustomElement(Element):
+            _tag = "custom"
+            foo = Attr()
+            bar = Attr()
+
+        testcase = TestCase()
+        custom = CustomElement()
+        testcase.append(custom)
+
+        self.assertIn(
+            testcase.tostring(),
+            [b"<testcase><custom /></testcase>", b"<testcase><custom/></testcase>"],
+        )
+
+    def test_case_is_skipped(self):
+        case = TestCase()
+        case.result = [Skipped()]
+        self.assertTrue(case.is_skipped)
+        self.assertFalse(case.is_passed)
+
+    def test_case_is_passed(self):
+        case = TestCase()
+        case.result = []
+        self.assertFalse(case.is_skipped)
+        self.assertTrue(case.is_passed)
+
+    def test_case_is_failed(self):
+        case = TestCase()
+        case.result = [Failure()]
+        self.assertFalse(case.is_skipped)
+        self.assertFalse(case.is_passed)
 
 
 class Test_Properties(unittest.TestCase):

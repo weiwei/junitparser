@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.8.0] - 2022-08-19
+### Added
+- `--suite-name` parameter for merging xmls with cli. Thanks to @yusijs
+
+## [2.7.0] - 2022-06-25
+### Added
+- `fromroot` class method to create object from a root element. Thanks to @EnricoMi 
+
+## [2.6.0] - 2022-05-31
+### Added
+- `verify` subcommand. Thanks to @teake
+
+## [2.5.0] - 2022-03-14
+### Added
+- Bulk add test cases. Thanks to @Goblenus 
+- 
+## [2.4.3] - 2022-03-14
+### Fixed
+- Custom element not properly initiated according to the readme example.
+
+## [2.4.2] - 2022-01-08
+### Fixed
+-  Fix the package build for a specific install method
 ## [2.4.1] - 2021-12-31
 ### Fixed
 -  Parameter typo in the cli. Thanks to @petterssonandreas
