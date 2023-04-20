@@ -29,11 +29,6 @@ except ImportError:
 
 from io import open
 
-try:
-    import itertools.izip as zip
-except ImportError:
-    pass
-
 
 class Test_RealFile(unittest.TestCase):
     def setUp(self):
