@@ -2,8 +2,9 @@
 junitparser is a JUnit/xUnit Result XML Parser. Use it to parse and manipulate
 existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
-:copyright: (c) 2019 by Joel Wang.
-:license: Apache2, see LICENSE for more details.
+Reference schema: https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd
+
+See documentation for other supported schemas.
 """
 
 import itertools

@@ -1,5 +1,22 @@
+"""
+The flavor based on Jenkins xunit plugin:
+https://github.com/jenkinsci/xunit-plugin/blob/xunit-2.3.2/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd
+
+According to the internet, The schema is compatible with:
+
+- pytest (as default, though it also supports a "legacy" xunit1 flavor)
+- Erlang/OTP
+- Maven Surefire
+- CppTest
+
+There may be many others that I'm not aware of.
+"""
+
 import itertools
+from typing import TypeVar
 from .. import junitparser
+
+T = TypeVar('T')
 
 class JUnitXml(junitparser.JUnitXml):
     # Pytest and xunit schema doesn't have skipped in testsuites
@@ -56,11 +73,6 @@ class TestSuite(junitparser.TestSuite):
     url = junitparser.Attr()
     version = junitparser.Attr()
 
-    def __init__(self, name=None):
-        super().__init__(self._tag)
-        self.name = name
-        self.filepath = None
-
     def __iter__(self):
         return itertools.chain(
             super().iterchildren(TestCase),
@@ -108,13 +120,6 @@ class TestSuite(junitparser.TestSuite):
         """Iterates through all testsuites."""
         for suite in self.iterchildren(TestSuite):
             yield suite
-
-    def remove_testcase(self, testcase):
-        """Removes a test case from the suite."""
-        for case in self:
-            if case == testcase:
-                super().remove(case)
-                self.update_statistics()
 
 class StackTrace(junitparser.System):
     _tag = "stackTrace"
@@ -185,10 +190,10 @@ class FlakyFailure(RerunType):
 class FlakyError(RerunType):
     _tag = "flakyError"
 
-class TestCase(OrigTestCase):
-    group = Attr()
+class TestCase(junitparser.TestCase):
+    group = junitparser.Attr()
 
-    def _rerun_results(self, _type):
+    def _rerun_results(self, _type: T) -> T:
         elems = self.iterchildren(_type)
         results = []
         for elem in elems:
@@ -207,7 +212,7 @@ class TestCase(OrigTestCase):
     def flaky_errors(self):
         return self._rerun_results(FlakyError)
 
-    def add_rerun_result(self, result):
+    def add_rerun_result(self, result: RerunType):
         self.append(result)
 
 
