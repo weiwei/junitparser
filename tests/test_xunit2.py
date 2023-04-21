@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from junitparser.flavors.xunit2 import JUnitXml, StackTrace, TestSuite, TestCase, FlakyError, FlakyFailure, RerunError, RerunFailure
+from junitparser.flavors.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure
 from junitparser import Failure
 from copy import deepcopy
 
@@ -82,3 +82,16 @@ class Test_TestSuite(unittest.TestCase):
         suite.add_testcase(test)
         suite.remove_testcase(test)
         self.assertEqual(list(iter(suite)), [])
+
+class Test_JUnitXml(unittest.TestCase):
+    def test_init(self):
+        xml = JUnitXml("tests")
+        self.assertEqual(xml.name, "tests")
+        xml = JUnitXml("myname")
+        xml.add_testsuite(TestSuite("suite1"))
+        xml.update_statistics()
+        self.assertEqual(xml.skipped, None)
+        # errors="0"
+        self.assertEqual(xml.tostring().count(b"errors"), 2)
+        # "skipped" attribute doesn't exist
+        self.assertEqual(xml.tostring().count(b"skipped"), 1)

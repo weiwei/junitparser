@@ -21,31 +21,6 @@ T = TypeVar('T')
 class JUnitXml(junitparser.JUnitXml):
     # Pytest and xunit schema doesn't have skipped in testsuites
     skipped = None
-    def __init__(self, name=None):
-        super().__init__(name)
-    def __iter__(self):
-        return super().iterchildren(TestSuite)
-    def __iadd__(self, other):
-        if other._elem.tag == "testsuites":
-            for suite in other:
-                self.add_testsuite(suite)
-        elif other._elem.tag == "testsuite":
-            suite = TestSuite(name=other.name)
-            for case in other:
-                suite._add_testcase_no_update_stats(case)
-            self.add_testsuite(suite)
-            self.update_statistics()
-    @classmethod
-    def fromroot(cls, root_elem):
-        """Constructs Junit objects from an elementTree root element."""
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
-        else:
-            raise junitparser.JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
-        return instance
 
     def update_statistics(self):
         """Update test count, time, etc."""
@@ -115,11 +90,6 @@ class TestSuite(junitparser.TestSuite):
         else:
             err = junitparser.SystemErr(value)
             self.append(err)
-
-    def testsuites(self):
-        """Iterates through all testsuites."""
-        for suite in self.iterchildren(TestSuite):
-            yield suite
 
 class StackTrace(junitparser.System):
     _tag = "stackTrace"
