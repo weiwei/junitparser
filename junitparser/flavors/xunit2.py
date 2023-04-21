@@ -16,7 +16,8 @@ import itertools
 from typing import TypeVar
 from .. import junitparser
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class JUnitXml(junitparser.JUnitXml):
     # Pytest and xunit schema doesn't have skipped in testsuites
@@ -40,6 +41,7 @@ class JUnitXml(junitparser.JUnitXml):
 
 class TestSuite(junitparser.TestSuite):
     """TestSuit for Pytest, with some different attributes."""
+
     group = junitparser.Attr()
     id = junitparser.Attr()
     package = junitparser.Attr()
@@ -51,12 +53,9 @@ class TestSuite(junitparser.TestSuite):
     def __iter__(self):
         return itertools.chain(
             super().iterchildren(TestCase),
-            (
-                case
-                for suite in super().iterchildren(TestSuite)
-                for case in suite
-            ),
+            (case for suite in super().iterchildren(TestSuite) for case in suite),
         )
+
     @property
     def system_out(self):
         """stdout."""
@@ -91,8 +90,10 @@ class TestSuite(junitparser.TestSuite):
             err = junitparser.SystemErr(value)
             self.append(err)
 
+
 class StackTrace(junitparser.System):
     _tag = "stackTrace"
+
 
 class RerunType(junitparser.Result):
     _tag = "rerunType"
@@ -148,17 +149,22 @@ class RerunType(junitparser.Result):
             err = junitparser.SystemErr(value)
             self.append(err)
 
+
 class RerunFailure(RerunType):
     _tag = "rerunFailure"
+
 
 class RerunError(RerunType):
     _tag = "rerunError"
 
+
 class FlakyFailure(RerunType):
     _tag = "flakyFailure"
 
+
 class FlakyError(RerunType):
     _tag = "flakyError"
+
 
 class TestCase(junitparser.TestCase):
     group = junitparser.Attr()
@@ -184,5 +190,3 @@ class TestCase(junitparser.TestCase):
 
     def add_rerun_result(self, result: RerunType):
         self.append(result)
-
-

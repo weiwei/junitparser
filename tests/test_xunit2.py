@@ -5,6 +5,7 @@ from junitparser.flavors.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailu
 from junitparser import Failure
 from copy import deepcopy
 
+
 class Test_TestCase(unittest.TestCase):
     def test_case_fromstring(self):
         text = """<testcase name="testname">
@@ -34,6 +35,7 @@ class Test_TestCase(unittest.TestCase):
         self.assertEqual(len(case.rerun_errors()), 0)
         self.assertEqual(len(case.flaky_failures()), 0)
         self.assertEqual(len(case.flaky_errors()), 0)
+
     def test_rerun(self):
         case = TestCase("testname")
         rerun_failure = RerunFailure("Not found", "404")
@@ -66,22 +68,26 @@ class Test_TestSuite(unittest.TestCase):
         suite.system_out = "System out2"
         self.assertEqual(suite.system_out, "System out2")
         self.assertEqual(suite.system_err, "System err2")
+
     def test_iterate_case(self):
         suite = TestSuite("mySuite")
         suite.add_testcase(TestCase("test1"))
         case = next(iter(suite))
         self.assertEqual(case.name, "test1")
+
     def test_iterate_suite(self):
         suite = TestSuite("mySuite")
         suite.add_testsuite(TestSuite("suite1"))
         suite = next(suite.testsuites())
         self.assertEqual(suite.name, "suite1")
+
     def test_remove_case(self):
         suite = TestSuite("mySuite")
         test = TestCase("test1")
         suite.add_testcase(test)
         suite.remove_testcase(test)
         self.assertEqual(list(iter(suite)), [])
+
 
 class Test_JUnitXml(unittest.TestCase):
     def test_init(self):

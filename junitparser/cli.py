@@ -65,7 +65,8 @@ def _parser(prog_name=None):  # pragma: no cover
 
     # command: verify
     merge_parser = command_parser.add_parser(
-        "verify", help="Return a non-zero exit code if one of the testcases failed or errored."
+        "verify",
+        help="Return a non-zero exit code if one of the testcases failed or errored.",
     )
     merge_parser.add_argument(
         "--glob",
@@ -74,7 +75,9 @@ def _parser(prog_name=None):  # pragma: no cover
         action="store_true",
         default=False,
     )
-    merge_parser.add_argument("paths", nargs="+", help="XML path(s) of reports to verify.")
+    merge_parser.add_argument(
+        "paths", nargs="+", help="XML path(s) of reports to verify."
+    )
 
     return parser
 
