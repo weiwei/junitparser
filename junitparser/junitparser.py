@@ -58,14 +58,14 @@ class Attr(object):
     Also see: :class:`InitAttr`, :class:`FloatAttr`.
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None):
         self.name = name
 
     def __get__(self, instance, cls):
         """Gets value from attribute, return None if attribute doesn't exist."""
         return instance._elem.attrib.get(self.name)
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: str):
         """Sets XML element attribute."""
         if value is not None:
             instance._elem.attrib[self.name] = str(value)
@@ -85,7 +85,7 @@ class IntAttr(Attr):
             result = super().__get__(instance, cls)
         return int(result) if result else None
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: int):
         if not isinstance(value, int):
             raise TypeError("Expected integer value.")
         super().__set__(instance, value)
@@ -105,7 +105,7 @@ class FloatAttr(Attr):
             result = super().__get__(instance, cls)
         return float(result.replace(",", "")) if result else None
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: float):
         if not (isinstance(value, float) or isinstance(value, int)):
             raise TypeError("Expected float value.")
         super().__set__(instance, value)
@@ -216,7 +216,7 @@ class Result(Element):
     message = Attr()
     type = Attr()
 
-    def __init__(self, message=None, type_=None):
+    def __init__(self, message: str = None, type_: str = None):
         super(Result, self).__init__(self._tag)
         if message:
             self.message = message
@@ -235,7 +235,7 @@ class Result(Element):
         return self._elem.text
 
     @text.setter
-    def text(self, value):
+    def text(self, value: str):
         self._elem.text = value
 
 
@@ -278,7 +278,7 @@ class System(Element):
 
     _tag = ""
 
-    def __init__(self, content=None):
+    def __init__(self, content: str = None):
         super().__init__(self._tag)
         self.text = content
 
@@ -287,7 +287,7 @@ class System(Element):
         return self._elem.text
 
     @text.setter
-    def text(self, value):
+    def text(self, value: str):
         self._elem.text = value
 
 
@@ -318,7 +318,7 @@ class TestCase(Element):
     classname = Attr()
     time = FloatAttr()
 
-    def __init__(self, name=None, classname=None, time=None):
+    def __init__(self, name: str = None, classname: str = None, time: float = None):
         super().__init__(self._tag)
         if name is not None:
             self.name = name
@@ -365,7 +365,7 @@ class TestCase(Element):
         return results
 
     @result.setter
-    def result(self, value):
+    def result(self, value: Result):
         # First remove all existing results
         for entry in self.result:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
@@ -383,7 +383,7 @@ class TestCase(Element):
         return None
 
     @system_out.setter
-    def system_out(self, value):
+    def system_out(self, value: str):
         out = self.child(SystemOut)
         if out is not None:
             out.text = value
@@ -400,7 +400,7 @@ class TestCase(Element):
         return None
 
     @system_err.setter
-    def system_err(self, value):
+    def system_err(self, value: str):
         err = self.child(SystemErr)
         if err is not None:
             err.text = value
@@ -423,7 +423,7 @@ class Property(Element):
     name = Attr()
     value = Attr()
 
-    def __init__(self, name:str=None, value:str=None):
+    def __init__(self, name: str = None, value: str = None):
         super().__init__(self._tag)
         self.name = name
         self.value = value
@@ -625,7 +625,7 @@ class TestSuite(Element):
         for prop in props:
             yield prop
 
-    def remove_property(self, property_):
+    def remove_property(self, property_: Property):
         """Removes a property."""
         props = self.child(Properties)
         if props is None:
@@ -639,7 +639,7 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, filepath=None, pretty=False):
+    def write(self, filepath: str = None, pretty=False):
         write_xml(self, filepath=filepath, pretty=pretty)
 
 
@@ -753,7 +753,7 @@ class JUnitXml(Element):
         instance.filepath = filepath
         return instance
 
-    def write(self, filepath=None, pretty=False, to_console=False):
+    def write(self, filepath: str = None, pretty=False, to_console=False):
         """Write the object into a junit xml file.
 
         If `file_path` is not specified, it will write to the original file.

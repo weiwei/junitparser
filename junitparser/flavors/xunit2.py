@@ -65,7 +65,7 @@ class TestSuite(junitparser.TestSuite):
         return None
 
     @system_out.setter
-    def system_out(self, value):
+    def system_out(self, value: str):
         out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
@@ -82,7 +82,7 @@ class TestSuite(junitparser.TestSuite):
         return None
 
     @system_err.setter
-    def system_err(self, value):
+    def system_err(self, value: str):
         err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
@@ -107,7 +107,7 @@ class RerunType(junitparser.Result):
         return None
 
     @stack_trace.setter
-    def stack_trace(self, value):
+    def stack_trace(self, value: str):
         trace = self.child(StackTrace)
         if trace is not None:
             trace.text = value
@@ -124,7 +124,7 @@ class RerunType(junitparser.Result):
         return None
 
     @system_out.setter
-    def system_out(self, value):
+    def system_out(self, value: str):
         out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
@@ -141,7 +141,7 @@ class RerunType(junitparser.Result):
         return None
 
     @system_err.setter
-    def system_err(self, value):
+    def system_err(self, value: str):
         err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
