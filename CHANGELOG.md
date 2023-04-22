@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.0] - 2023-04-22
+### Added
+- Support for different schemas as flavors.
+- xunit2 flavor support
+- Type hints
+
 ## [3.0.0] - 2023-04-20
 ### Breaking
 Python 2 is no longer supported. Version 2.x will keep supporting py2 and it will be maintained as long as possible, though no new features will be added.
