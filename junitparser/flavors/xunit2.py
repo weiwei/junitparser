@@ -13,7 +13,7 @@ There may be many others that I'm not aware of.
 """
 
 import itertools
-from typing import TypeVar
+from typing import List, TypeVar
 from .. import junitparser
 
 T = TypeVar("T")
@@ -58,7 +58,7 @@ class TestSuite(junitparser.TestSuite):
 
     @property
     def system_out(self):
-        """stdout."""
+        """<system-out>"""
         elem = self.child(junitparser.SystemOut)
         if elem is not None:
             return elem.text
@@ -66,6 +66,7 @@ class TestSuite(junitparser.TestSuite):
 
     @system_out.setter
     def system_out(self, value: str):
+        """<system-out>"""
         out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
@@ -75,7 +76,7 @@ class TestSuite(junitparser.TestSuite):
 
     @property
     def system_err(self):
-        """stderr."""
+        """<system-err>"""
         elem = self.child(junitparser.SystemErr)
         if elem is not None:
             return elem.text
@@ -83,6 +84,7 @@ class TestSuite(junitparser.TestSuite):
 
     @system_err.setter
     def system_err(self, value: str):
+        """<system-err>"""
         err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
@@ -100,7 +102,7 @@ class RerunType(junitparser.Result):
 
     @property
     def stack_trace(self):
-        """stderr."""
+        """<stackTrace>"""
         elem = self.child(StackTrace)
         if elem is not None:
             return elem.text
@@ -108,6 +110,7 @@ class RerunType(junitparser.Result):
 
     @stack_trace.setter
     def stack_trace(self, value: str):
+        """<stackTrace>"""
         trace = self.child(StackTrace)
         if trace is not None:
             trace.text = value
@@ -117,7 +120,7 @@ class RerunType(junitparser.Result):
 
     @property
     def system_out(self):
-        """stdout."""
+        """<system-out>"""
         elem = self.child(junitparser.SystemOut)
         if elem is not None:
             return elem.text
@@ -125,6 +128,7 @@ class RerunType(junitparser.Result):
 
     @system_out.setter
     def system_out(self, value: str):
+        """<system-out>"""
         out = self.child(junitparser.SystemOut)
         if out is not None:
             out.text = value
@@ -134,7 +138,7 @@ class RerunType(junitparser.Result):
 
     @property
     def system_err(self):
-        """stderr."""
+        """<system-err>"""
         elem = self.child(junitparser.SystemErr)
         if elem is not None:
             return elem.text
@@ -142,6 +146,7 @@ class RerunType(junitparser.Result):
 
     @system_err.setter
     def system_err(self, value: str):
+        """<system-err>"""
         err = self.child(junitparser.SystemErr)
         if err is not None:
             err.text = value
@@ -169,7 +174,7 @@ class FlakyError(RerunType):
 class TestCase(junitparser.TestCase):
     group = junitparser.Attr()
 
-    def _rerun_results(self, _type: T) -> T:
+    def _rerun_results(self, _type: T) -> List[T]:
         elems = self.iterchildren(_type)
         results = []
         for elem in elems:
@@ -177,16 +182,21 @@ class TestCase(junitparser.TestCase):
         return results
 
     def rerun_failures(self):
+        """<rerunFailure>"""
         return self._rerun_results(RerunFailure)
 
     def rerun_errors(self):
+        """<rerunError>"""
         return self._rerun_results(RerunError)
 
     def flaky_failures(self):
+        """<flakyFailure>"""
         return self._rerun_results(FlakyFailure)
 
     def flaky_errors(self):
+        """<flakyFailure>"""
         return self._rerun_results(FlakyError)
 
     def add_rerun_result(self, result: RerunType):
+        """Append a rerun result to the test case. A case can have multiple rerun results"""
         self.append(result)

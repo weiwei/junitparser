@@ -129,6 +129,39 @@ You have two or more XML files, and you want to merge them into one.
 Note that it won't check for duplicate entries. You need to deal with them on
 your own.
 
+Schema Support
+~~~~~~~~~~~~~~~
+
+By default junitparser supports the schema of windyroad_, which is a relatively
+simple schema. 
+
+.. _windyroad: https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd
+
+Junitparser also support extra schemas asas flavors:
+
+.. code-block:: python
+
+    from junitparser.flavors.xunit2 import JUnitParser, TestCase, TestSuite, \
+        RerunFailure
+    # These classes are redefined to support extra properties and attributes
+    # of the xunit2 schema.
+    suite = TestSuite("mySuite")
+    suite.system_err = "System err" # xunit2 specific property
+    case = TestCase("myCase")
+    rerun_failure = RerunFailure("Not found", "404") # case property
+    rerun_failure.stack_trace = "Stack"
+    rerun_failure.system_err = "E404"
+    rerun_failure.system_out = "NOT FOUND"
+    case.add_rerun_result(rerun_failure)
+
+Currently supported schemas including:
+
+- xunit2_, supported by pytest, Erlang/OTP, Maven Surefire, CppTest, etc.
+
+.. _xunit2: https://github.com/jenkinsci/xunit-plugin/blob/xunit-2.3.2/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd
+
+PRs are welcome to support more schemas.
+
 Create XML with custom attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
