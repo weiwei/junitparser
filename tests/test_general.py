@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import with_statement
-
 import locale
 import unittest
 from copy import deepcopy
@@ -771,7 +767,3 @@ class Test_Attrs(unittest.TestCase):
         self.assertEqual(element.text, "foo")
         self.assertEqual(element.int, 10)
         self.assertEqual(element.float, 8.5)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from junitparser.flavors.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure
+from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure
 from junitparser import Failure
 from copy import deepcopy
 

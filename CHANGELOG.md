@@ -2,7 +2,7 @@
 
 ## [3.1.0] - 2023-04-22
 ### Added
-- Support for different schemas as flavors.
+- Support for different schemas.
 - xunit2 flavor support
 - Type hints
 
