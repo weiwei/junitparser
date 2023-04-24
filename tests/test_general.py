@@ -24,22 +24,25 @@ from junitparser import (
 
 try:
     from lxml import etree as expected_lxml_etree
+
     has_lxml = True
 except ImportError:
     from xml.etree import ElementTree as expected_xml_etree
+
     has_lxml = False
 
 
 class Test_XmlPackage(unittest.TestCase):
-
     @unittest.skipIf(has_lxml, "xml package is used unless lxml is installed")
     def test_xml_etree(self):
         from junitparser.junitparser import etree as actual_etree
+
         self.assertEqual(actual_etree, expected_xml_etree)
 
     @unittest.skipUnless(has_lxml, "lxml package has to be installed")
     def test_lxml_etree(self):
         from junitparser.junitparser import etree as actual_etree
+
         self.assertEqual(actual_etree, expected_lxml_etree)
 
 
@@ -495,6 +498,7 @@ class Test_TestSuite(unittest.TestCase):
         self.assertEqual(suite.errors, 1)
         self.assertEqual(suite.skipped, 1)
 
+
 class Test_TestCase(unittest.TestCase):
     def test_case_fromstring(self):
         text = """<testcase name="testname">
@@ -763,7 +767,3 @@ class Test_Attrs(unittest.TestCase):
         self.assertEqual(element.text, "foo")
         self.assertEqual(element.int, 10)
         self.assertEqual(element.float, 8.5)
-
-
-if __name__ == "__main__":
-    unittest.main()

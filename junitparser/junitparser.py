@@ -2,8 +2,10 @@
 junitparser is a JUnit/xUnit Result XML Parser. Use it to parse and manipulate
 existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 
-:copyright: (c) 2019 by Joel Wang.
-:license: Apache2, see LICENSE for more details.
+Reference schema: https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd
+This according to the document is Apache Ant's JUnit output.
+
+See documentation for other supported schemas.
 """
 
 import itertools
@@ -57,14 +59,14 @@ class Attr(object):
     Also see: :class:`InitAttr`, :class:`FloatAttr`.
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None):
         self.name = name
 
     def __get__(self, instance, cls):
         """Gets value from attribute, return None if attribute doesn't exist."""
         return instance._elem.attrib.get(self.name)
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: str):
         """Sets XML element attribute."""
         if value is not None:
             instance._elem.attrib[self.name] = str(value)
@@ -84,7 +86,7 @@ class IntAttr(Attr):
             result = super().__get__(instance, cls)
         return int(result) if result else None
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: int):
         if not isinstance(value, int):
             raise TypeError("Expected integer value.")
         super().__set__(instance, value)
@@ -104,7 +106,7 @@ class FloatAttr(Attr):
             result = super().__get__(instance, cls)
         return float(result.replace(",", "")) if result else None
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: float):
         if not (isinstance(value, float) or isinstance(value, int)):
             raise TypeError("Expected float value.")
         super().__set__(instance, value)
@@ -130,7 +132,7 @@ class junitxml(type):
 class Element(metaclass=junitxml):
     """Base class for all Junit XML elements."""
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None):
         if not name:
             name = self._tag
         self._elem = etree.Element(name)
@@ -162,7 +164,7 @@ class Element(metaclass=junitxml):
         self._elem.extend((sub_elem._elem for sub_elem in sub_elems))
 
     @classmethod
-    def fromstring(cls, text):
+    def fromstring(cls, text: str):
         """Construct Junit objects from a XML string."""
         instance = cls()
         instance._elem = etree.fromstring(text)  # nosec
@@ -203,123 +205,269 @@ class Element(metaclass=junitxml):
         return etree.tostring(self._elem, encoding="utf-8")
 
 
-class JUnitXml(Element):
-    """The JUnitXml root object.
-
-    It may contains a :class:`TestSuites` or a :class:`TestSuite`.
+class Result(Element):
+    """Base class for test result.
 
     Attributes:
-        name: test suite name if it only contains one test suite
-        time: time consumed by the test suites
-        tests: total number of tests
-        failures: number of failed cases
-        errors: number of cases with errors
-        skipped: number of skipped cases
+        message: result as message string
+        type: message type
     """
 
-    _tag = "testsuites"
-    name = Attr()
-    time = FloatAttr()
-    tests = IntAttr()
-    failures = IntAttr()
-    errors = IntAttr()
-    skipped = IntAttr()
+    _tag = None
+    message = Attr()
+    type = Attr()
 
-    def __init__(self, name=None):
+    def __init__(self, message: str = None, type_: str = None):
+        super(Result, self).__init__(self._tag)
+        if message:
+            self.message = message
+        if type_:
+            self.type = type_
+
+    def __eq__(self, other):
+        return (
+            self._tag == other._tag
+            and self.type == other.type
+            and self.message == other.message
+        )
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value: str):
+        self._elem.text = value
+
+
+class Skipped(Result):
+    """Test result when the case is skipped."""
+
+    _tag = "skipped"
+
+    def __eq__(self, other):
+        return super().__eq__(other)
+
+
+class Failure(Result):
+    """Test result when the case failed."""
+
+    _tag = "failure"
+
+    def __eq__(self, other):
+        return super().__eq__(other)
+
+
+class Error(Result):
+    """Test result when the case has errors during execution."""
+
+    _tag = "error"
+
+    def __eq__(self, other):
+        return super().__eq__(other)
+
+
+POSSIBLE_RESULTS = {Failure, Error, Skipped}
+
+
+class System(Element):
+    """Parent class for SystemOut and SystemErr.
+
+    Attributes:
+        text: the output message
+    """
+
+    _tag = ""
+
+    def __init__(self, content: str = None):
         super().__init__(self._tag)
-        self.filepath = None
-        self.name = name
+        self.text = content
+
+    @property
+    def text(self):
+        return self._elem.text
+
+    @text.setter
+    def text(self, value: str):
+        self._elem.text = value
+
+
+class SystemOut(System):
+    _tag = "system-out"
+
+
+class SystemErr(System):
+    _tag = "system-err"
+
+
+class TestCase(Element):
+    """Object to store a testcase and its result.
+
+    Attributes:
+        name: case name
+        classname: the parent class of the case
+        time: how much time is consumed by the test
+
+    Properties:
+        result: Failure, Skipped, or Error
+        system_out: stdout
+        system_err: stderr
+    """
+
+    _tag = "testcase"
+    name = Attr()
+    classname = Attr()
+    time = FloatAttr()
+
+    def __init__(self, name: str = None, classname: str = None, time: float = None):
+        super().__init__(self._tag)
+        if name is not None:
+            self.name = name
+        if classname is not None:
+            self.classname = classname
+        if time is not None:
+            self.time = float(time)
+
+    def __hash__(self):
+        return super().__hash__()
 
     def __iter__(self):
-        return super().iterchildren(TestSuite)
+        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
+        for elem in self._elem.iter():
+            for entry_type in all_types:
+                if elem.tag == entry_type._tag:
+                    yield entry_type.fromelem(elem)
 
-    def __len__(self):
-        return len(list(self.__iter__()))
+    def __eq__(self, other):
+        # TODO: May not work correctly if unreliable hash method is used.
+        return hash(self) == hash(other)
 
-    def __add__(self, other):
-        result = JUnitXml()
-        for suite in self:
-            result.add_testsuite(suite)
-        for suite in other:
-            result.add_testsuite(suite)
-        return result
+    @property
+    def is_passed(self):
+        """Whether this testcase was a success (i.e. if it isn't skipped, failed, or errored)."""
+        return not self.result
 
-    def __iadd__(self, other):
-        if other._elem.tag == "testsuites":
-            for suite in other:
-                self.add_testsuite(suite)
-        elif other._elem.tag == "testsuite":
-            suite = TestSuite(name=other.name)
-            for case in other:
-                suite._add_testcase_no_update_stats(case)
-            self.add_testsuite(suite)
-            self.update_statistics()
+    @property
+    def is_skipped(self):
+        """Whether this testcase was skipped."""
+        for r in self.result:
+            if isinstance(r, Skipped):
+                return True
+        return False
 
-        return self
+    @property
+    def result(self):
+        """A list of Failure, Skipped, or Error objects."""
+        results = []
+        for entry in self:
+            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+                results.append(entry)
 
-    def add_testsuite(self, suite):
-        """Add a test suite."""
-        for existing_suite in self:
-            if existing_suite == suite:
-                for case in suite:
-                    existing_suite._add_testcase_no_update_stats(case)
-                return
-        self.append(suite)
+        return results
 
-    def update_statistics(self):
-        """Update test count, time, etc."""
-        time = 0
-        tests = failures = errors = skipped = 0
-        for suite in self:
-            suite.update_statistics()
-            tests += suite.tests
-            failures += suite.failures
-            errors += suite.errors
-            skipped += suite.skipped
-            time += suite.time
-        self.tests = tests
-        self.failures = failures
-        self.errors = errors
-        self.skipped = skipped
-        self.time = round(time, 3)
+    @result.setter
+    def result(self, value: Result):
+        # First remove all existing results
+        for entry in self.result:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
+                self.remove(entry)
+        for entry in value:
+            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
+                self.append(entry)
 
-    @classmethod
-    def fromroot(cls, root_elem):
-        """Constructs Junit objects from an elementTree root element."""
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = TestSuite()
+    @property
+    def system_out(self):
+        """stdout."""
+        elem = self.child(SystemOut)
+        if elem is not None:
+            return elem.text
+        return None
+
+    @system_out.setter
+    def system_out(self, value: str):
+        out = self.child(SystemOut)
+        if out is not None:
+            out.text = value
         else:
-            raise JUnitXmlError("Invalid format.")
-        instance._elem = root_elem
-        return instance
+            out = SystemOut(value)
+            self.append(out)
 
-    @classmethod
-    def fromstring(cls, text):
-        """Construct Junit objects from a XML string."""
-        root_elem = etree.fromstring(text)  # nosec
-        return cls.fromroot(root_elem)
+    @property
+    def system_err(self):
+        """stderr."""
+        elem = self.child(SystemErr)
+        if elem is not None:
+            return elem.text
+        return None
 
-    @classmethod
-    def fromfile(cls, filepath, parse_func=None):
-        """Initiate the object from a report file."""
-        if parse_func:
-            tree = parse_func(filepath)
+    @system_err.setter
+    def system_err(self, value: str):
+        err = self.child(SystemErr)
+        if err is not None:
+            err.text = value
         else:
-            tree = etree.parse(filepath)  # nosec
-        root_elem = tree.getroot()
-        instance = cls.fromroot(root_elem)
-        instance.filepath = filepath
-        return instance
+            err = SystemErr(value)
+            self.append(err)
 
-    def write(self, filepath=None, pretty=False, to_console=False):
-        """Write the object into a junit xml file.
 
-        If `file_path` is not specified, it will write to the original file.
-        If `pretty` is True, the result file will be more human friendly.
-        """
-        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
+class Property(Element):
+    """A key/value pare that's stored in the test suite.
+
+    Use it to store anything you find interesting or useful.
+
+    Attributes:
+        name: the property name
+        value: the property value
+    """
+
+    _tag = "property"
+    name = Attr()
+    value = Attr()
+
+    def __init__(self, name: str = None, value: str = None):
+        super().__init__(self._tag)
+        self.name = name
+        self.value = value
+
+    def __eq__(self, other):
+        return self.name == other.name and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        """Supports sort() for properties."""
+        return self.name > other.name
+
+
+class Properties(Element):
+    """A list of properties inside a test suite.
+
+    See :class:`Property`
+    """
+
+    _tag = "properties"
+
+    def __init__(self):
+        super().__init__(self._tag)
+
+    def add_property(self, property_: Property):
+        self.append(property_)
+
+    def __iter__(self):
+        return super().iterchildren(Property)
+
+    def __eq__(self, other):
+        p1 = list(self)
+        p2 = list(other)
+        p1.sort()
+        p2.sort()
+        if len(p1) != len(p2):
+            return False
+        for e1, e2 in zip(p1, p2):
+            if e1 != e2:
+                return False
+        return True
 
 
 class TestSuite(Element):
@@ -354,11 +502,7 @@ class TestSuite(Element):
     def __iter__(self):
         return itertools.chain(
             super().iterchildren(TestCase),
-            (
-                case
-                for suite in super().iterchildren(TestSuite)
-                for case in suite
-            ),
+            (case for suite in super().iterchildren(TestSuite) for case in suite),
         )
 
     def __len__(self):
@@ -412,7 +556,7 @@ class TestSuite(Element):
         result.add_testsuite(other)
         return result
 
-    def remove_testcase(self, testcase):
+    def remove_testcase(self, testcase: TestCase):
         """Removes a test case from the suite."""
         for case in self:
             if case == testcase:
@@ -482,7 +626,7 @@ class TestSuite(Element):
         for prop in props:
             yield prop
 
-    def remove_property(self, property_):
+    def remove_property(self, property_: Property):
         """Removes a property."""
         props = self.child(Properties)
         if props is None:
@@ -496,270 +640,124 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, filepath=None, pretty=False):
+    def write(self, filepath: str = None, pretty=False):
         write_xml(self, filepath=filepath, pretty=pretty)
 
 
-class Properties(Element):
-    """A list of properties inside a test suite.
+class JUnitXml(Element):
+    """The JUnitXml root object.
 
-    See :class:`Property`
-    """
-
-    _tag = "properties"
-
-    def __init__(self):
-        super().__init__(self._tag)
-
-    def add_property(self, property_):
-        self.append(property_)
-
-    def __iter__(self):
-        return super().iterchildren(Property)
-
-    def __eq__(self, other):
-        p1 = list(self)
-        p2 = list(other)
-        p1.sort()
-        p2.sort()
-        if len(p1) != len(p2):
-            return False
-        for e1, e2 in zip(p1, p2):
-            if e1 != e2:
-                return False
-        return True
-
-
-class Property(Element):
-    """A key/value pare that's stored in the test suite.
-
-    Use it to store anything you find interesting or useful.
+    It may contains a :class:`TestSuites` or a :class:`TestSuite`.
 
     Attributes:
-        name: the property name
-        value: the property value
+        name: test suite name if it only contains one test suite
+        time: time consumed by the test suites
+        tests: total number of tests
+        failures: number of failed cases
+        errors: number of cases with errors
+        skipped: number of skipped cases
     """
 
-    _tag = "property"
+    _tag = "testsuites"
     name = Attr()
-    value = Attr()
-
-    def __init__(self, name=None, value=None):
-        super().__init__(self._tag)
-        self.name = name
-        self.value = value
-
-    def __eq__(self, other):
-        return self.name == other.name and self.value == other.value
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __lt__(self, other):
-        """Supports sort() for properties."""
-        return self.name > other.name
-
-
-class Result(Element):
-    """Base class for test result.
-
-    Attributes:
-        message: result as message string
-        type: message type
-    """
-
-    _tag = None
-    message = Attr()
-    type = Attr()
-
-    def __init__(self, message=None, type_=None):
-        super(Result, self).__init__(self._tag)
-        if message:
-            self.message = message
-        if type_:
-            self.type = type_
-
-    def __eq__(self, other):
-        return (
-            self._tag == other._tag
-            and self.type == other.type
-            and self.message == other.message
-        )
-
-    @property
-    def text(self):
-        return self._elem.text
-
-    @text.setter
-    def text(self, value):
-        self._elem.text = value
-
-
-class Skipped(Result):
-    """Test result when the case is skipped."""
-
-    _tag = "skipped"
-
-    def __eq__(self, other):
-        return super().__eq__(other)
-
-
-class Failure(Result):
-    """Test result when the case failed."""
-
-    _tag = "failure"
-
-    def __eq__(self, other):
-        return super().__eq__(other)
-
-
-class Error(Result):
-    """Test result when the case has errors during execution."""
-
-    _tag = "error"
-
-    def __eq__(self, other):
-        return super().__eq__(other)
-
-
-POSSIBLE_RESULTS = {Failure, Error, Skipped}
-
-
-class TestCase(Element):
-    """Object to store a testcase and its result.
-
-    Attributes:
-        name: case name
-        classname: the parent class of the case
-        time: how much time is consumed by the test
-
-    Properties:
-        result: Failure, Skipped, or Error
-        system_out: stdout
-        system_err: stderr
-    """
-
-    _tag = "testcase"
-    name = Attr()
-    classname = Attr()
     time = FloatAttr()
+    tests = IntAttr()
+    failures = IntAttr()
+    errors = IntAttr()
+    skipped = IntAttr()
 
-    def __init__(self, name=None, classname=None, time=None):
+    def __init__(self, name=None):
         super().__init__(self._tag)
-        if name is not None:
-            self.name = name
-        if classname is not None:
-            self.classname = classname
-        if time is not None:
-            self.time = float(time)
-
-    def __hash__(self):
-        return super().__hash__()
+        self.filepath = None
+        self.name = name
 
     def __iter__(self):
-        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
-        for elem in self._elem.iter():
-            for entry_type in all_types:
-                if elem.tag == entry_type._tag:
-                    yield entry_type.fromelem(elem)
+        return super().iterchildren(TestSuite)
 
-    def __eq__(self, other):
-        # TODO: May not work correctly if unreliable hash method is used.
-        return hash(self) == hash(other)
+    def __len__(self):
+        return len(list(self.__iter__()))
 
-    @property
-    def is_passed(self):
-        """Whether this testcase was a success (i.e. if it isn't skipped, failed, or errored)."""
-        return not self.result
+    def __add__(self, other):
+        result = JUnitXml()
+        for suite in self:
+            result.add_testsuite(suite)
+        for suite in other:
+            result.add_testsuite(suite)
+        return result
 
-    @property
-    def is_skipped(self):
-        """Whether this testcase was skipped."""
-        for r in self.result:
-            if isinstance(r, Skipped):
-                return True
-        return False
+    def __iadd__(self, other):
+        if other._elem.tag == "testsuites":
+            for suite in other:
+                self.add_testsuite(suite)
+        elif other._elem.tag == "testsuite":
+            suite = TestSuite(name=other.name)
+            for case in other:
+                suite._add_testcase_no_update_stats(case)
+            self.add_testsuite(suite)
+            self.update_statistics()
 
-    @property
-    def result(self):
-        """A list of Failure, Skipped, or Error objects."""
-        results = []
-        for entry in self:
-            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
-                results.append(entry)
+        return self
 
-        return results
+    def add_testsuite(self, suite: TestSuite):
+        """Add a test suite."""
+        for existing_suite in self:
+            if existing_suite == suite:
+                for case in suite:
+                    existing_suite._add_testcase_no_update_stats(case)
+                return
+        self.append(suite)
 
-    @result.setter
-    def result(self, value):
-        # First remove all existing results
-        for entry in self.result:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
-                self.remove(entry)
-        for entry in value:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
-                self.append(entry)
+    def update_statistics(self):
+        """Update test count, time, etc."""
+        time = 0
+        tests = failures = errors = skipped = 0
+        for suite in self:
+            suite.update_statistics()
+            tests += suite.tests
+            failures += suite.failures
+            errors += suite.errors
+            skipped += suite.skipped
+            time += suite.time
+        self.tests = tests
+        self.failures = failures
+        self.errors = errors
+        self.skipped = skipped
+        self.time = round(time, 3)
 
-    @property
-    def system_out(self):
-        """stdout."""
-        elem = self.child(SystemOut)
-        if elem is not None:
-            return elem.text
-        return None
-
-    @system_out.setter
-    def system_out(self, value):
-        out = self.child(SystemOut)
-        if out is not None:
-            out.text = value
+    @classmethod
+    def fromroot(cls, root_elem: Element):
+        """Constructs Junit objects from an elementTree root element."""
+        if root_elem.tag == "testsuites":
+            instance = cls()
+        elif root_elem.tag == "testsuite":
+            instance = TestSuite()
         else:
-            out = SystemOut(value)
-            self.append(out)
+            raise JUnitXmlError("Invalid format.")
+        instance._elem = root_elem
+        return instance
 
-    @property
-    def system_err(self):
-        """stderr."""
-        elem = self.child(SystemErr)
-        if elem is not None:
-            return elem.text
-        return None
+    @classmethod
+    def fromstring(cls, text: str):
+        """Construct Junit objects from a XML string."""
+        root_elem = etree.fromstring(text)  # nosec
+        return cls.fromroot(root_elem)
 
-    @system_err.setter
-    def system_err(self, value):
-        err = self.child(SystemErr)
-        if err is not None:
-            err.text = value
+    @classmethod
+    def fromfile(cls, filepath: str, parse_func=None):
+        """Initiate the object from a report file."""
+        if parse_func:
+            tree = parse_func(filepath)
         else:
-            err = SystemErr(value)
-            self.append(err)
+            tree = etree.parse(filepath)  # nosec
+        root_elem = tree.getroot()
+        instance = cls.fromroot(root_elem)
+        instance.filepath = filepath
+        return instance
 
+    def write(self, filepath: str = None, pretty=False, to_console=False):
+        """Write the object into a junit xml file.
 
-class System(Element):
-    """Parent class for SystemOut and SystemErr.
-
-    Attributes:
-        text: the output message
-    """
-
-    _tag = ""
-
-    def __init__(self, content=None):
-        super().__init__(self._tag)
-        self.text = content
-
-    @property
-    def text(self):
-        return self._elem.text
-
-    @text.setter
-    def text(self, value):
-        self._elem.text = value
-
-
-class SystemOut(System):
-    _tag = "system-out"
-
-
-class SystemErr(System):
-    _tag = "system-err"
+        If `file_path` is not specified, it will write to the original file.
+        If `pretty` is True, the result file will be more human friendly.
+        """
+        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
