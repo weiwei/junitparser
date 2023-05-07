@@ -35,7 +35,7 @@ def tmpfile():
         os.remove(tmp)
 
 
-def test_fromfile(tmpfile):
+def test_fromfile():
     xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
     suite1, suite2 = list(iter(xml))
     assert len(list(suite1.properties())) == 0
@@ -50,7 +50,7 @@ def test_fromfile(tmpfile):
 
 
 @pytest.mark.skipif(not has_lxml, reason="lxml required to run the case")
-def test_fromfile_with_parser(tmpfile):
+def test_fromfile_with_parser():
     def parse_func(file_path):
         xml_parser = XMLParser(huge_tree=True)
         return parse(file_path, xml_parser)
@@ -71,7 +71,7 @@ def test_fromfile_with_parser(tmpfile):
     assert len(cases[2].result) == 0
 
 
-def test_fromfile_without_testsuites_tag(tmpfile):
+def test_fromfile_without_testsuites_tag():
     xml = JUnitXml.fromfile(
         os.path.join(os.path.dirname(__file__), "data/no_suites_tag.xml")
     )
@@ -86,7 +86,7 @@ def test_fromfile_without_testsuites_tag(tmpfile):
     assert len(cases[2].result) == 0
 
 
-def test_fromfile_with_testsuite_in_testsuite(tmpfile):
+def test_fromfile_with_testsuite_in_testsuite():
     xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/jenkins.xml"))
     suite1, suite2 = list(iter(xml))
     assert len(list(suite1.properties())) == 0
@@ -148,7 +148,7 @@ def test_write(tmpfile):
     assert "case1" in text
 
 
-def test_write_noarg(tmpfile):
+def test_write_noarg():
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -190,7 +190,7 @@ def test_read_written_xml(tmpfile):
     assert case.name == "用例1"
 
 
-def test_multi_results_in_case(tmpfile):
+def test_multi_results_in_case():
     # Has to be a binary string to include xml declarations.
     text = b"""<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
