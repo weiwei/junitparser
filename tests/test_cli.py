@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import os
-import unittest
-
+import pytest
 from junitparser.cli import verify
 
 
-class Test_Cli(unittest.TestCase):
-    def test_verify(self):
-        files_expectedexitcodes = {
-            "data/jenkins.xml": 1,
-            "data/no_fails.xml": 0,
-            "data/normal.xml": 1,
-        }
-        for file, expected_exitcode in files_expectedexitcodes.items():
-            path = os.path.join(os.path.dirname(__file__), file)
-            self.assertEqual(verify([path]), expected_exitcode)
+@pytest.mark.parametrize(
+    "file, expected_exitcode",
+    [("data/jenkins.xml", 1), ("data/no_fails.xml", 0), ("data/normal.xml", 1)],
+)
+def test_verify(file, expected_exitcode):
+    path = os.path.join(os.path.dirname(__file__), file)
+    assert verify([path]) == expected_exitcode
