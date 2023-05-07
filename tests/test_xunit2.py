@@ -71,7 +71,6 @@ class Test_TestSuite:
         assert suite.system_out == "System out2"
         assert suite.system_err == "System err2"
 
-
     def test_iterate_case(self):
         suite = TestSuite("mySuite")
         suite.add_testcase(TestCase("test1"))
@@ -102,4 +101,3 @@ class Test_JUnitXml:
         assert xml.skipped is None
         assert xml.tostring().count(b"errors") == 2
         assert xml.tostring().count(b"skipped") == 1
-

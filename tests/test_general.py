@@ -36,10 +36,13 @@ class Test_XmlPackage:
     @pytest.mark.skipif(has_lxml, reason="xml package is used unless lxml is installed")
     def test_xml_etree(self):
         from junitparser.junitparser import etree as actual_etree
+
         assert actual_etree == expected_xml_etree
+
     @pytest.mark.skipif(not has_lxml, reason="lxml package has to be installed")
     def test_lxml_etree(self):
         from junitparser.junitparser import etree as actual_etree
+
         assert actual_etree == expected_lxml_etree
 
 
@@ -87,12 +90,12 @@ class Test_MergeSuiteCounts:
         assert combined_suites.skipped == 1
 
 
-
 @pytest.fixture()
 def locale_fixture():
     old_locale = locale.getlocale(locale.LC_NUMERIC)
     yield
     locale.setlocale(locale.LC_NUMERIC, old_locale)
+
 
 class Locale:
     @pytest.mark.parametrize("loc", ["", "en_US.UTF-8", "de_DE.UTF-8"])
@@ -132,7 +135,6 @@ class Test_JunitXml:
         result = JUnitXml.fromstring(text)
         assert len(result) == 1
         assert result.time == 0
-
 
     def test_fromstring_multiple_fails(self):
         text = """<testsuites>
@@ -657,7 +659,10 @@ class Test_TestCase:
     def test_result_attrs(self):
         res1 = Failure("A")
         # NOTE: lxml gives spaceless result
-        assert res1.tostring() in [b'<failure message="A" />', b'<failure message="A"/>']
+        assert res1.tostring() in [
+            b'<failure message="A" />',
+            b'<failure message="A"/>',
+        ]
 
     def test_add_child_element(self):
         class CustomElement(Element):
@@ -669,7 +674,10 @@ class Test_TestCase:
         custom = CustomElement()
         testcase.append(custom)
 
-        assert testcase.tostring() in [b"<testcase><custom /></testcase>", b"<testcase><custom/></testcase>"]
+        assert testcase.tostring() in [
+            b"<testcase><custom /></testcase>",
+            b"<testcase><custom/></testcase>",
+        ]
 
     def test_case_is_skipped(self):
         case = TestCase()
@@ -689,11 +697,11 @@ class Test_TestCase:
         assert not case.is_skipped
         assert not case.is_passed
 
+
 class Test_Properties:
     def test_property_repr1(self):
         prop1 = Property("prop1", "1")
         assert prop1.__repr__() == '<Element \'property\' name="prop1" value="1">'
-
 
     def test_property_repr2(self):
         prop1 = TestSuite()
