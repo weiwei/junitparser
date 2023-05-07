@@ -97,7 +97,7 @@ def locale_fixture():
     locale.setlocale(locale.LC_NUMERIC, old_locale)
 
 
-class Locale:
+class Test_Locale:
     @pytest.mark.parametrize("loc", ["", "en_US.UTF-8", "de_DE.UTF-8"])
     def test_fromstring_numbers_locale_insensitive(self, loc, locale_fixture):
         "Case relies on that LC_ALL is set in the console."
