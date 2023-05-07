@@ -29,7 +29,7 @@ except ImportError:
 def tmpfile():
     import tempfile
 
-    tmp = tempfile.mktemp(suffix=".xml")
+    tmp = tempfile.mkstemp(suffix=".xml")
     yield tmp
     if os.path.exists(tmp):
         os.remove(tmp)
@@ -121,7 +121,7 @@ def test_file_is_not_xml(tmpfile):
     with open(tmpfile, "w") as f:
         f.write(text)
     with pytest.raises(Exception):
-        xml = JUnitXml.fromfile(tmpfile)
+        JUnitXml.fromfile(tmpfile)
         # Raises lxml.etree.XMLSyntaxError
 
 
@@ -130,7 +130,7 @@ def test_illegal_xml_file(tmpfile):
     with open(tmpfile, "w") as f:
         f.write(text)
     with pytest.raises(JUnitXmlError):
-        xml = JUnitXml.fromfile(tmpfile)
+        JUnitXml.fromfile(tmpfile)
 
 
 def test_write(tmpfile):
