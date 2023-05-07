@@ -29,8 +29,9 @@ except ImportError:
 def tmpfile():
     import tempfile
 
-    tmp = tempfile.mkstemp(suffix=".xml")
+    fd, tmp = tempfile.mkstemp(suffix=".xml")
     yield tmp
+    os.close(fd)
     if os.path.exists(tmp):
         os.remove(tmp)
 
