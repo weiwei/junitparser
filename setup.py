@@ -28,7 +28,7 @@ setup(
     author="Weiwei Wang",
     author_email="gastlygem@gmail.com",
     license="Apache 2.0",
-    install_requires=["future"],
+    install_requires=[],
     keywords="junit xunit xml parser",
     packages=find_packages(exclude=["tests"]),
     entry_points={"console_scripts": ["junitparser=junitparser.cli:main"]},
