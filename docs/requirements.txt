@@ -1,0 +1,3 @@
+# Python dependencies to build the documentation
+
+Sphinx ~= 7.0
