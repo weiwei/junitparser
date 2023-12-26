@@ -1,6 +1,11 @@
 # Changelog
 
 ## [3.1.0] - 2023-04-22
+### Fixed
+- Sphinx documentation, thanks to @cmarqu
+- type check by adding `py.typed` file.
+
+## [3.1.0] - 2023-04-22
 ### Added
 - Support for different schemas.
 - xunit2 flavor support
