@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "junitparser"
-copyright = "2019-2023, Joel Wang"
+copyright = "2019-2024, Joel Wang"
 author = "Joel Wang"
 
 # The short X.Y version
@@ -184,3 +184,7 @@ epub_exclude_files = ["search.html"]
 
 
 # -- Extension configuration -------------------------------------------------
+
+# -- Extra setup for inheritance_diagram directive which uses graphviz ---------
+
+graphviz_output_format = "svg"

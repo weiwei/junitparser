@@ -1,15 +1,15 @@
 .. include:: ../README.rst
 
+..
+   NOTE: the "index" self-reference in the toctree below produces a warning
+         but makes sure it shows up in the left-side TOC like all the other pages
+
 .. toctree::
    :maxdepth: 2
    :hidden:
 
-   api/inheritance_diagram
-   api/modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   index
+   api
+   genindex
+   modindex
+   search
