@@ -17,5 +17,5 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	@$(SPHINXAPIDOC) -f -o api_generated/ -H "API" -e ../junitparser
+	@$(SPHINXAPIDOC) --force --output-dir api_generated/ --doc-project "API" --separate ../junitparser
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

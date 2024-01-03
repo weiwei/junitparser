@@ -9,6 +9,9 @@ build:
     python: "3.11"
   apt_packages:
     - graphviz
+  jobs:
+    pre_build:
+      - sphinx-apidoc --force --output-dir api_generated/ --doc-project "API" --separate ../junitparser
 
 python:
   install:
