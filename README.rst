@@ -279,7 +279,7 @@ Command Line
 Test
 ----
 
-The tests are written with python `unittest`, to run them, use pytest::
+The tests are written with python ``unittest``, to run them, use pytest::
 
     pytest test.py
 
