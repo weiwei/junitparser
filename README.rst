@@ -12,12 +12,12 @@ existing Result XML files, or create new JUnit/xUnit result XMLs from scratch.
 Features
 --------
 
-* Parse or modify existing JUnit/xUnit xml files.
-* Parse or modify non-standard or customized JUnit/xUnit xml files, by monkey
+* Parse or modify existing JUnit/xUnit XML files.
+* Parse or modify non-standard or customized JUnit/xUnit XML files, by monkey
   patching existing element definitions.
 * Create JUnit/xUnit test results from scratch.
-* Merge test result xml files.
-* Specify xml parser. For example you can use lxml to speed things up.
+* Merge test result XML files.
+* Specify XML parser. For example you can use lxml to speed things up.
 * Invoke from command line, or `python -m junitparser`
 * Python 2 and 3 support (As of Nov 2020, 1/4 of the users are still on Python
   2, so there is no plan to drop Python 2 support)
@@ -25,7 +25,7 @@ Features
 Note on version 2
 -----------------
 
-Version 2 improved support for pytest result xml files by fixing a few issues,
+Version 2 improved support for pytest result XML files by fixing a few issues,
 notably that there could be multiple <Failure> or <Error> entries. There is a
 breaking change that ``TestCase.result`` is now a list instead of a single item.
 If you are using this attribute, please update your code accordingly.
@@ -133,7 +133,7 @@ Schema Support
 ~~~~~~~~~~~~~~~
 
 By default junitparser supports the schema of windyroad_, which is a relatively
-simple schema. 
+simple schema.
 
 .. _windyroad: https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd
 
