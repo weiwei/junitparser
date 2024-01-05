@@ -11,7 +11,7 @@ build:
     - graphviz
   jobs:
     pre_build:
-      - sphinx-apidoc --force --output-dir api_generated/ --doc-project "API" --separate ../junitparser
+      - sphinx-apidoc --force --output-dir docs/api_generated/ --doc-project "API" --separate junitparser
 
 python:
   install:
