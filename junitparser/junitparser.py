@@ -314,6 +314,7 @@ class TestCase(Element):
     name = Attr()
     classname = Attr()
     time = FloatAttr()
+    __test__ = False
 
     def __init__(self, name: str = None, classname: str = None, time: float = None):
         super().__init__(self._tag)
@@ -489,6 +490,7 @@ class TestSuite(Element):
     failures = IntAttr()
     errors = IntAttr()
     skipped = IntAttr()
+    __test__ = False
 
     def __init__(self, name=None):
         super().__init__(self._tag)
