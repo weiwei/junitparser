@@ -11,6 +11,7 @@ See the documentation for other supported schemas.
 
 import itertools
 from copy import deepcopy
+from typing import List
 
 try:
     from lxml import etree
@@ -552,7 +553,7 @@ class TestSuite(Element):
         result.add_testsuite(other)
         return result
 
-    def remove_testcase(self, testcase):
+    def remove_testcase(self, testcase: TestCase):
         """Remove testcase *testcase* from the testsuite."""
         for case in self:
             if case == testcase:
@@ -580,7 +581,7 @@ class TestSuite(Element):
         self.skipped = skipped
         self.time = round(time, 3)
 
-    def add_property(self, name, value):
+    def add_property(self, name: str, value: str):
         """Add a property *name* = *value* to the testsuite.
 
         See :class:`Property` and :class:`Properties`.
@@ -593,17 +594,17 @@ class TestSuite(Element):
         prop = Property(name, value)
         props.add_property(prop)
 
-    def add_testcase(self, testcase):
+    def add_testcase(self, testcase: TestCase):
         """Add a testcase *testcase* to the testsuite."""
         self.append(testcase)
         self.update_statistics()
 
-    def add_testcases(self, testcases):
+    def add_testcases(self, testcases: List[TestCase]):
         """Add testcases *testcases* to the testsuite."""
         self.extend(testcases)
         self.update_statistics()
 
-    def _add_testcase_no_update_stats(self, testcase):
+    def _add_testcase_no_update_stats(self, testcase: TestCase):
         """Add *testcase* to the testsuite (without updating statistics).
 
         For internal use only to avoid quadratic behaviour in merge.
