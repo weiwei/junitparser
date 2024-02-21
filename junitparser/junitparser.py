@@ -11,7 +11,7 @@ See the documentation for other supported schemas.
 
 import itertools
 from copy import deepcopy
-from typing import List, Self
+from typing import List
 
 try:
     from lxml import etree
@@ -505,7 +505,7 @@ class TestSuite(Element):
     def __len__(self):
         return len(list(self.__iter__()))
 
-    def __eq__(self, other: Self):
+    def __eq__(self, other):
         def props_eq(props1, props2):
             props1 = list(props1)
             props2 = list(props2)
@@ -522,7 +522,7 @@ class TestSuite(Element):
             and self.timestamp == other.timestamp
         ) and props_eq(self.properties(), other.properties())
 
-    def __add__(self, other: Self):
+    def __add__(self, other):
         if self == other:
             # Merge the two testsuites
             result = deepcopy(self)
@@ -538,7 +538,7 @@ class TestSuite(Element):
             result.add_testsuite(other)
         return result
 
-    def __iadd__(self, other: Self):
+    def __iadd__(self, other):
         if self == other:
             for case in other:
                 self._add_testcase_no_update_stats(case)
@@ -611,7 +611,7 @@ class TestSuite(Element):
         """
         self.append(testcase)
 
-    def add_testsuite(self, suite: Self):
+    def add_testsuite(self, suite):
         """Add a testsuite *suite* to the testsuite."""
         self.append(suite)
 
