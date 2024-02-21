@@ -1,9 +1,17 @@
 # Changelog
 
-## [3.1.0] - 2023-04-22
+## [3.1.2] - 2024-02-21
+### Fixed
+- Excluded `TestCase` and `TestSuite` from pytest discovery. Thanks to @kurtsansom
+### Added
+- More type annotations.
+
+## [3.1.1] - 2023-12-26
 ### Fixed
 - Sphinx documentation, thanks to @cmarqu
 - type check by adding `py.typed` file.
+### Other
+- Tests converted to `pytest`
 
 ## [3.1.0] - 2023-04-22
 ### Added
