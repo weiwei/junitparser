@@ -747,7 +747,8 @@ class JUnitXml(Element):
         if parse_func:
             tree = parse_func(filepath)
         else:
-            tree = etree.parse(filepath)  # nosec
+            parser = etree.XMLParser(encoding='utf-8', recover=True)
+            tree = etree.parse(filepath, parser)  # nosec
         root_elem = tree.getroot()
         instance = cls.fromroot(root_elem)
         instance.filepath = filepath
