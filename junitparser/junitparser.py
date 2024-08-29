@@ -665,6 +665,8 @@ class JUnitXml(Element):
     errors = IntAttr()
     skipped = IntAttr()
 
+    testsuite = TestSuite
+
     def __init__(self, name=None):
         super().__init__(self._tag)
         self.filepath = None
@@ -729,7 +731,7 @@ class JUnitXml(Element):
         if root_elem.tag == "testsuites":
             instance = cls()
         elif root_elem.tag == "testsuite":
-            instance = TestSuite()
+            instance = cls.testsuite()
         else:
             raise JUnitXmlError("Invalid format.")
         instance._elem = root_elem

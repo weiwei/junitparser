@@ -101,3 +101,14 @@ class Test_JUnitXml:
         assert xml.skipped is None
         assert xml.tostring().count(b"errors") == 2
         assert xml.tostring().count(b"skipped") == 1
+
+    def test_fromstring(self):
+        text = """<testsuite name="suite name">
+         <testcase name="test name 1"/>
+         <testcase name="test name 2"/>
+        </testsuite>"""
+        suite = JUnitXml.fromstring(text)
+        assert isinstance(suite, TestSuite)
+        assert suite.name == "suite name"
+        assert len(list(suite)) == 2
+        assert [test.name for test in suite] == ["test name 1", "test name 2"]
