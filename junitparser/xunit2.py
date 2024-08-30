@@ -19,26 +19,6 @@ from . import junitparser
 T = TypeVar("T")
 
 
-class JUnitXml(junitparser.JUnitXml):
-    # Pytest and xunit schema doesn't have "skipped" in testsuites
-    skipped = None
-
-    def update_statistics(self):
-        """Update test count, time, etc."""
-        time = 0
-        tests = failures = errors = 0
-        for suite in self:
-            suite.update_statistics()
-            tests += suite.tests
-            failures += suite.failures
-            errors += suite.errors
-            time += suite.time
-        self.tests = tests
-        self.failures = failures
-        self.errors = errors
-        self.time = round(time, 3)
-
-
 class TestSuite(junitparser.TestSuite):
     """TestSuite for Pytest, with some different attributes."""
 
@@ -91,6 +71,28 @@ class TestSuite(junitparser.TestSuite):
         else:
             err = junitparser.SystemErr(value)
             self.append(err)
+
+
+class JUnitXml(junitparser.JUnitXml):
+    # Pytest and xunit schema doesn't have "skipped" in testsuites
+    skipped = None
+
+    testsuite = TestSuite
+
+    def update_statistics(self):
+        """Update test count, time, etc."""
+        time = 0
+        tests = failures = errors = 0
+        for suite in self:
+            suite.update_statistics()
+            tests += suite.tests
+            failures += suite.failures
+            errors += suite.errors
+            time += suite.time
+        self.tests = tests
+        self.failures = failures
+        self.errors = errors
+        self.time = round(time, 3)
 
 
 class StackTrace(junitparser.System):
