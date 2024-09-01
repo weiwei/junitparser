@@ -578,7 +578,8 @@ class Test_TestCase:
 
     def test_update_results(self):
         case = TestCase()
-        case.result = [Skipped()]
+        case.result = Skipped()
+        assert len(case.result) == 1
         case.result = [Failure(), Skipped()]
         assert len(case.result) == 2
 

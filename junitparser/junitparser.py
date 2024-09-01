@@ -8,7 +8,7 @@ This, according to the document, is Apache Ant's JUnit output.
 
 See the documentation for other supported schemas.
 """
-
+from __future__ import annotations
 import itertools
 from copy import deepcopy
 from typing import List
@@ -364,14 +364,17 @@ class TestCase(Element):
         return results
 
     @result.setter
-    def result(self, value: Result):
+    def result(self, value: Result | List[Result]):
         # First remove all existing results
         for entry in self.result:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
                 self.remove(entry)
-        for entry in value:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
-                self.append(entry)
+        if isinstance(value, Result):
+            self.append(value)
+        elif isinstance(value, list):
+            for entry in value:
+                if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
+                    self.append(entry)
 
     @property
     def system_out(self):
