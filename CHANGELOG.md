@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.1.2] - 2024-08-31
+### Fixed
+- the `TestCase.result` type annotation
+- `xunit2.JUnitXml.fromroot` type annotation
+
 ## [3.1.2] - 2024-02-21
 ### Fixed
 - Excluded `TestCase` and `TestSuite` from pytest discovery. Thanks to @kurtsansom
