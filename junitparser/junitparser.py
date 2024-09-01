@@ -8,10 +8,9 @@ This, according to the document, is Apache Ant's JUnit output.
 
 See the documentation for other supported schemas.
 """
-from __future__ import annotations
 import itertools
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 
 try:
     from lxml import etree
@@ -364,7 +363,7 @@ class TestCase(Element):
         return results
 
     @result.setter
-    def result(self, value: Result | List[Result]):
+    def result(self, value: Union[Result, List[Result]]):
         # First remove all existing results
         for entry in self.result:
             if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
