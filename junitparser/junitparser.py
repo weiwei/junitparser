@@ -10,7 +10,7 @@ See the documentation for other supported schemas.
 """
 import itertools
 from copy import deepcopy
-from typing import List, Union
+from typing import List, Union, Iterator
 
 try:
     from lxml import etree
@@ -500,7 +500,7 @@ class TestSuite(Element):
         self.name = name
         self.filepath = None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[TestCase]:
         return itertools.chain(
             super().iterchildren(TestCase),
             (case for suite in super().iterchildren(TestSuite) for case in suite),
@@ -674,7 +674,7 @@ class JUnitXml(Element):
         self.filepath = None
         self.name = name
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[TestSuite]:
         return super().iterchildren(TestSuite)
 
     def __len__(self):
@@ -748,7 +748,7 @@ class JUnitXml(Element):
     @classmethod
     def fromfile(cls, filepath: str, parse_func=None):
         """Initiate the object from a report file."""
-        if parse_func:
+        if parse_func is not None:
             tree = parse_func(filepath)
         else:
             tree = etree.parse(filepath)  # nosec
