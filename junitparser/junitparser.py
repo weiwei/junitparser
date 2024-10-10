@@ -748,7 +748,7 @@ class JUnitXml(Element):
     @classmethod
     def fromfile(cls, filepath: str, parse_func=None):
         """Initiate the object from a report file."""
-        if parse_func:
+        if parse_func is not None:
             tree = parse_func(filepath)
         else:
             tree = etree.parse(filepath)  # nosec
