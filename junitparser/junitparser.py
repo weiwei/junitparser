@@ -345,6 +345,22 @@ class TestCase(Element):
         return not self.result
 
     @property
+    def is_failure(self):
+        """Whether this testcase failed."""
+        for r in self.result:
+            if isinstance(r, Failure):
+                return True
+        return False
+
+    @property
+    def is_error(self):
+        """Whether this testcase errored."""
+        for r in self.result:
+            if isinstance(r, Error):
+                return True
+        return False
+
+    @property
     def is_skipped(self):
         """Whether this testcase was skipped."""
         for r in self.result:

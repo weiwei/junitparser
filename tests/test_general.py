@@ -685,18 +685,32 @@ class Test_TestCase:
         case.result = [Skipped()]
         assert case.is_skipped
         assert not case.is_passed
+        assert not case.is_failure
+        assert not case.is_error
 
     def test_case_is_passed(self):
         case = TestCase()
         case.result = []
         assert not case.is_skipped
         assert case.is_passed
+        assert not case.is_failure
+        assert not case.is_error
 
     def test_case_is_failed(self):
         case = TestCase()
         case.result = [Failure()]
         assert not case.is_skipped
         assert not case.is_passed
+        assert case.is_failure
+        assert not case.is_error
+
+    def test_case_is_error(self):
+        case = TestCase()
+        case.result = [Error()]
+        assert not case.is_skipped
+        assert not case.is_passed
+        assert not case.is_failure
+        assert case.is_error
 
 
 class Test_Properties:
