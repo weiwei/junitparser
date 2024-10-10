@@ -13,7 +13,7 @@ There may be many others that I'm not aware of.
 """
 
 import itertools
-from typing import List, TypeVar
+from typing import List, TypeVar, Iterator
 from . import junitparser
 
 T = TypeVar("T")
@@ -30,7 +30,7 @@ class TestSuite(junitparser.TestSuite):
     url = junitparser.Attr()
     version = junitparser.Attr()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator["TestCase"]:
         return itertools.chain(
             super().iterchildren(TestCase),
             (case for suite in super().iterchildren(TestSuite) for case in suite),
