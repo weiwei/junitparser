@@ -365,22 +365,25 @@ class TestCase(Element):
         return any(isinstance(r, Skipped) for r in self.result)
 
     @property
-    def result(self) -> list[FinalResult]:
+    def result(self) -> List[FinalResult]:
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
         return [r for r in self if isinstance(r, FinalResult)]
 
     @result.setter
-    def result(self, value: Union[Result, List[Result]]):
+    def result(self, value: Union[FinalResult, List[FinalResult]]):
+        # Check typing
+        if not (isinstance(value, FinalResult) or
+                isinstance(value, list) and all(isinstance(item, FinalResult) for item in value)):
+            raise ValueError("Value must be either FinalResult or list of FinalResult")
+
         # First remove all existing results
         for entry in self.result:
-            if isinstance(entry, FinalResult):
-                self.remove(entry)
-        if isinstance(value, Result):
+            self.remove(entry)
+        if isinstance(value, FinalResult):
             self.append(value)
-        elif isinstance(value, list):
+        else:
             for entry in value:
-                if isinstance(entry, FinalResult):
-                    self.append(entry)
+                self.append(entry)
 
     @property
     def system_out(self):
