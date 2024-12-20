@@ -731,11 +731,12 @@ class JUnitXml(Element):
     @classmethod
     def fromroot(cls, root_elem: Element):
         """Construct JUnit objects from an elementTree root element."""
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = cls.testsuite()
-        else:
+        instance = cls()
+        if root_elem.tag == "testsuite":
+            testsuite_element = root_elem
+            root_elem = testsuite_element.makeelement("testsuites", {})
+            root_elem.append(testsuite_element)
+        if not root_elem.tag == "testsuites":
             raise JUnitXmlError("Invalid format.")
         instance._elem = root_elem
         return instance

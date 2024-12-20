@@ -13,6 +13,13 @@
 - Setter method `TestCase.result` used to ignore values of invalid types. This method now throws a `ValueError` instead.
 - Method `xunit2.TestCase.add_rerun_result` has been renamed to `add_interim_result` result to better reflect class hierarchy
   of interim (rerun and flaky) results.
+- Methods `JUnitXml.fromfile`, `JUnitXml.fromstring`, `JUnitXml.fromroot` always return a `JUnitXml` instance.
+  Earlier versions return a `TestSuite` instance when the root of the file / string / element is a `<TestSuite>`.
+  A `JUnitXml` instance has already been returned by earlier versions when the root of the file / string / element is a `<TestSuites>`.
+
+  If you want to create a `TestSuite` instance from a `<TestSuite>` element, use
+
+    TestSuite.fromelem(elem)
 
 ## [3.1.2] - 2024-08-31
 ### Fixed

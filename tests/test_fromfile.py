@@ -21,13 +21,19 @@ except ImportError:
 
 def do_test_fromfile(fromfile_arg):
     xml = JUnitXml.fromfile(fromfile_arg)
+    assert isinstance(xml, JUnitXml)
     suite1, suite2 = list(iter(xml))
+    assert isinstance(suite1, TestSuite)
+    assert isinstance(suite2, TestSuite)
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
     assert len(suite2) == 3
     assert suite2.name == "JUnitXmlReporter.constructor"
     assert suite2.tests == 3
     cases = list(suite2.iterchildren(TestCase))
+    assert isinstance(cases[0], TestCase)
+    assert isinstance(cases[1], TestCase)
+    assert isinstance(cases[2], TestCase)
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
@@ -98,13 +104,19 @@ def test_fromfile_with_parser():
         os.path.join(os.path.dirname(__file__), "data/normal.xml"),
         parse_func=parse_func,
     )
+    assert isinstance(xml, JUnitXml)
     suite1, suite2 = list(iter(xml))
+    assert isinstance(suite1, TestSuite)
+    assert isinstance(suite2, TestSuite)
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
     assert len(suite2) == 3
     assert suite2.name == "JUnitXmlReporter.constructor"
     assert suite2.tests == 3
     cases = list(suite2.iterchildren(TestCase))
+    assert isinstance(cases[0], TestCase)
+    assert isinstance(cases[1], TestCase)
+    assert isinstance(cases[2], TestCase)
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
@@ -114,20 +126,31 @@ def test_fromfile_without_testsuites_tag():
     xml = JUnitXml.fromfile(
         os.path.join(os.path.dirname(__file__), "data/no_suites_tag.xml")
     )
-    cases = list(iter(xml))
-    properties = list(iter(xml.properties()))
-    assert len(properties) == 3
+    assert isinstance(xml, JUnitXml)
+    suites = list(iter(xml))
+    assert len(suites) == 1
+    suite = suites[0]
+    assert isinstance(suite, TestSuite)
+    assert suite.name == "JUnitXmlReporter.constructor"
+    assert suite.tests == 3
+    cases = list(iter(suite))
     assert len(cases) == 3
-    assert xml.name == "JUnitXmlReporter.constructor"
-    assert xml.tests == 3
+    assert isinstance(cases[0], TestCase)
+    assert isinstance(cases[1], TestCase)
+    assert isinstance(cases[2], TestCase)
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
+    properties = list(iter(suite.properties()))
+    assert len(properties) == 3
 
 
 def test_fromfile_with_testsuite_in_testsuite():
     xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/jenkins.xml"))
+    assert isinstance(xml, JUnitXml)
     suite1, suite2 = list(iter(xml))
+    assert isinstance(suite1, TestSuite)
+    assert isinstance(suite2, TestSuite)
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
     assert len(suite2) == 3
@@ -135,8 +158,11 @@ def test_fromfile_with_testsuite_in_testsuite():
     assert suite2.tests == 3
     direct_cases = list(suite2.iterchildren(TestCase))
     assert len(direct_cases) == 1
+    assert isinstance(direct_cases[0], TestCase)
     assert isinstance(direct_cases[0].result[0], Failure)
     all_cases = list(suite2)
+    assert isinstance(all_cases[0], TestCase)
+    assert isinstance(all_cases[1], TestCase)
     assert isinstance(all_cases[0].result[0], Failure)
     assert isinstance(all_cases[1].result[0], Skipped)
     assert len(all_cases[2].result) == 0
@@ -167,6 +193,9 @@ def test_multi_results_in_case():
    </testsuite>
 </testsuites>"""
     xml = JUnitXml.fromstring(text)
+    assert isinstance(xml, JUnitXml)
     suite = next(iter(xml))
+    assert isinstance(suite, TestSuite)
     case = next(iter(suite))
+    assert isinstance(case, TestCase)
     assert len(case.result) == 2

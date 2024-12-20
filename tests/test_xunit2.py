@@ -129,7 +129,11 @@ class Test_JUnitXml:
          <testcase name="test name 1"/>
          <testcase name="test name 2"/>
         </testsuite>"""
-        suite = JUnitXml.fromstring(text)
+        xml = JUnitXml.fromstring(text)
+        assert isinstance(xml, JUnitXml)
+        suites = list(xml)
+        assert len(suites) == 1
+        suite = suites[0]
         assert isinstance(suite, TestSuite)
         assert suite.name == "suite name"
         cases = list(suite)
