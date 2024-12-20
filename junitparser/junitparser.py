@@ -729,7 +729,7 @@ class JUnitXml(Element):
         self.time = round(time, 3)
 
     @classmethod
-    def fromroot(cls, root_elem: Element):
+    def fromroot(cls, root_elem: Element) -> "JUnitXml":
         """Construct JUnit objects from an elementTree root element."""
         instance = cls()
         if root_elem.tag == "testsuite":
@@ -742,13 +742,13 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
-    def fromstring(cls, text: Union[str, bytes]):
+    def fromstring(cls, text: Union[str, bytes]) -> "JUnitXml":
         """Construct JUnit objects from an XML string (str or bytes)."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
     @classmethod
-    def fromfile(cls, file: Union[str, IO], parse_func=None):
+    def fromfile(cls, file: Union[str, IO], parse_func=None) -> "JUnitXml":
         """
         Construct JUnit objects from an XML file.
 
