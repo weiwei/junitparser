@@ -241,7 +241,12 @@ class Result(Element):
         self._elem.text = value
 
 
-class Skipped(Result):
+class FinalResult(Result):
+    """Base class for final test result (in contrast to XUnit2 RerunResult)."""
+
+    _tag = None
+
+class Skipped(FinalResult):
     """Test result when the case is skipped."""
 
     _tag = "skipped"
@@ -250,7 +255,7 @@ class Skipped(Result):
         return super().__eq__(other)
 
 
-class Failure(Result):
+class Failure(FinalResult):
     """Test result when the case failed."""
 
     _tag = "failure"
@@ -259,7 +264,7 @@ class Failure(Result):
         return super().__eq__(other)
 
 
-class Error(Result):
+class Error(FinalResult):
     """Test result when the case has errors during execution."""
 
     _tag = "error"
@@ -268,7 +273,7 @@ class Error(Result):
         return super().__eq__(other)
 
 
-POSSIBLE_RESULTS = {Failure, Error, Skipped}
+FINAL_RESULTS = {Failure, Error, Skipped}
 
 
 class System(Element):
@@ -329,7 +334,7 @@ class TestCase(Element):
         return super().__hash__()
 
     def __iter__(self):
-        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
+        all_types = set.union(FINAL_RESULTS, {SystemOut}, {SystemErr})
         for elem in self._elem.iter():
             for entry_type in all_types:
                 if elem.tag == entry_type._tag:
@@ -360,21 +365,21 @@ class TestCase(Element):
         return any(isinstance(r, Skipped) for r in self.result)
 
     @property
-    def result(self):
+    def result(self) -> list[FinalResult]:
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
-        return [r for r in self if isinstance(r, tuple(POSSIBLE_RESULTS))]
+        return [r for r in self if isinstance(r, FinalResult)]
 
     @result.setter
     def result(self, value: Union[Result, List[Result]]):
         # First remove all existing results
         for entry in self.result:
-            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+            if isinstance(entry, FinalResult):
                 self.remove(entry)
         if isinstance(value, Result):
             self.append(value)
         elif isinstance(value, list):
             for entry in value:
-                if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+                if isinstance(entry, FinalResult):
                     self.append(entry)
 
     @property
