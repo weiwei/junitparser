@@ -46,14 +46,14 @@ class Test_TestCase:
         rerun_failure.stack_trace = "Stack"
         rerun_failure.system_err = "E404"
         rerun_failure.system_out = "NOT FOUND"
-        case.add_rerun_result(rerun_failure)
+        case.add_interim_result(rerun_failure)
         assert len(case.rerun_failures()) == 1
         # Interesting, same object is only added once by xml libs
         failure2 = deepcopy(rerun_failure)
         failure2.stack_trace = "Stack2"
         failure2.system_err = "E401"
         failure2.system_out = "401 Error"
-        case.add_rerun_result(failure2)
+        case.add_interim_result(failure2)
         assert len(case.rerun_failures()) == 2
 
 

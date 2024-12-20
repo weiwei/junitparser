@@ -99,8 +99,10 @@ class StackTrace(junitparser.System):
     _tag = "stackTrace"
 
 
-class RerunType(junitparser.Result):
-    _tag = "rerunType"
+class InterimResult(junitparser.Result):
+    """Base class for intermediate (rerun and flaky) test result (in contrast to JUnit FinalResult)."""
+
+    _tag = None
 
     @property
     def stack_trace(self):
@@ -157,19 +159,19 @@ class RerunType(junitparser.Result):
             self.append(err)
 
 
-class RerunFailure(RerunType):
+class RerunFailure(InterimResult):
     _tag = "rerunFailure"
 
 
-class RerunError(RerunType):
+class RerunError(InterimResult):
     _tag = "rerunError"
 
 
-class FlakyFailure(RerunType):
+class FlakyFailure(InterimResult):
     _tag = "flakyFailure"
 
 
-class FlakyError(RerunType):
+class FlakyError(InterimResult):
     _tag = "flakyError"
 
 
@@ -199,6 +201,6 @@ class TestCase(junitparser.TestCase):
         """<flakyError>"""
         return self._rerun_results(FlakyError)
 
-    def add_rerun_result(self, result: RerunType):
-        """Append a rerun result to the testcase. A testcase can have multiple rerun results."""
+    def add_interim_result(self, result: InterimResult):
+        """Append an interim (rerun or flaky) result to the testcase. A testcase can have multiple interim results."""
         self.append(result)
