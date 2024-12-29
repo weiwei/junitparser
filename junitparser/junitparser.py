@@ -273,9 +273,6 @@ class Error(FinalResult):
         return super().__eq__(other)
 
 
-FINAL_RESULTS = {Failure, Error, Skipped}
-
-
 class System(Element):
     """Parent class for :class:`SystemOut` and :class:`SystemErr`.
 
@@ -334,7 +331,7 @@ class TestCase(Element):
         return super().__hash__()
 
     def __iter__(self):
-        all_types = set.union(FINAL_RESULTS, {SystemOut}, {SystemErr})
+        all_types = {Failure, Error, Skipped, SystemOut, SystemErr}
         for elem in self._elem.iter():
             for entry_type in all_types:
                 if elem.tag == entry_type._tag:
