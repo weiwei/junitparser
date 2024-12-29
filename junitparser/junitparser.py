@@ -347,36 +347,22 @@ class TestCase(Element):
     @property
     def is_failure(self):
         """Whether this testcase failed."""
-        for r in self.result:
-            if isinstance(r, Failure):
-                return True
-        return False
+        return any(isinstance(r, Failure) for r in self.result)
 
     @property
     def is_error(self):
         """Whether this testcase errored."""
-        for r in self.result:
-            if isinstance(r, Error):
-                return True
-        return False
+        return any(isinstance(r, Error) for r in self.result)
 
     @property
     def is_skipped(self):
         """Whether this testcase was skipped."""
-        for r in self.result:
-            if isinstance(r, Skipped):
-                return True
-        return False
+        return any(isinstance(r, Skipped) for r in self.result)
 
     @property
     def result(self):
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
-        results = []
-        for entry in self:
-            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
-                results.append(entry)
-
-        return results
+        return [r for r in self if isinstance(r, tuple(POSSIBLE_RESULTS))]
 
     @result.setter
     def result(self, value: Union[Result, List[Result]]):
