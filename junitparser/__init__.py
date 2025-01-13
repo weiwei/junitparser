@@ -12,6 +12,8 @@ from .junitparser import (
     Properties,
     IntAttr,
     FloatAttr,
+    SystemOut,
+    SystemErr,
 )
 
 version = "3.2.0"
@@ -30,4 +32,6 @@ __all__ = [
     Properties,
     IntAttr,
     FloatAttr,
+    SystemOut,
+    SystemErr,
 ]
