@@ -41,8 +41,8 @@ class Test_TestCase:
     def test_case_rerun(self):
         case = TestCase("testname")
         rerun_failure = RerunFailure("Not found", "404")
-        assert rerun_failure.system_out == None
-        assert rerun_failure.system_err == None
+        assert rerun_failure.system_out is None
+        assert rerun_failure.system_err is None
         rerun_failure.stack_trace = "Stack"
         rerun_failure.system_err = "E404"
         rerun_failure.system_out = "NOT FOUND"

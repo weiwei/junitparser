@@ -7,14 +7,8 @@ from junitparser import (
     TestSuite,
     Skipped,
     Failure,
-    Error,
-    Attr,
     JUnitXmlError,
     JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
 )
 
 try:
