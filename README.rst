@@ -279,9 +279,18 @@ Command Line
 Test
 ----
 
-The tests are written with python ``unittest``, to run them, use pytest::
+The tests are written with python ``unittest``, to run them, use
+`pytest <https://pypi.org/project/pytest/>`_::
 
-    pytest test.py
+    pytest
+
+If you get a failure like ``unsupported locale setting`` you may need to add
+extra locales that the tests use. Refer to the steps used in the
+`CI build workflow <.github/workflows/build.yml>`_::
+
+        sudo locale-gen en_US.UTF-8
+        sudo locale-gen de_DE.UTF-8
+        sudo update-locale
 
 Contribute
 ----------
