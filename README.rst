@@ -141,8 +141,7 @@ Junitparser also support extra schemas:
 
 .. code-block:: python
 
-    from junitparser.xunit2 import JUnitParser, TestCase, TestSuite, \
-        RerunFailure
+    from junitparser.xunit2 import TestCase, TestSuite, RerunFailure
     # These classes are redefined to support extra properties and attributes
     # of the xunit2 schema.
     suite = TestSuite("mySuite")
