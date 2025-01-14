@@ -86,18 +86,13 @@ def _parser(prog_name=None):  # pragma: no cover
 def main(args=None, prog_name=None):
     """CLI's main runner."""
     args = args or _parser(prog_name=prog_name).parse_args()
+    paths = (
+        chain.from_iterable(iglob(path) for path in args.paths)
+        if args.paths_are_globs
+        else args.paths
+    )
     if args.command == "merge":
-        return merge(
-            chain.from_iterable(iglob(path) for path in args.paths)
-            if args.paths_are_globs
-            else args.paths,
-            args.output,
-            args.suite_name,
-        )
+        return merge(paths, args.output, args.suite_name)
     if args.command == "verify":
-        return verify(
-            chain.from_iterable(iglob(path) for path in args.paths)
-            if args.paths_are_globs
-            else args.paths
-        )
+        return verify(paths)
     return 255
