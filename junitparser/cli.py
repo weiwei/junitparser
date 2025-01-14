@@ -81,7 +81,7 @@ def _parser(prog_name=None):  # pragma: no cover
 
 def main(args=None, prog_name=None):
     """CLI's main runner."""
-    args = args or _parser(prog_name=prog_name).parse_args()
+    args = _parser(prog_name=prog_name).parse_args(args)
     paths = (
         chain.from_iterable(iglob(path) for path in args.paths)
         if args.paths_are_globs
