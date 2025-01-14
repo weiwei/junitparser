@@ -44,18 +44,23 @@ def _parser(prog_name=None):  # pragma: no cover
     command_parser = parser.add_subparsers(dest="command", help="command")
     command_parser.required = True
 
-    # command: merge
-    merge_parser = command_parser.add_parser(
-        "merge", help="Merge JUnit XML format reports with junitparser."
-    )
-    merge_parser.add_argument(
+    # an abstract object that defines common arguments used by multiple commands
+    abstract_parser = ArgumentParser(add_help=False)
+    abstract_parser.add_argument(
         "--glob",
         help="Treat original XML path(s) as glob(s).",
         dest="paths_are_globs",
         action="store_true",
         default=False,
     )
-    merge_parser.add_argument("paths", nargs="+", help="Original XML path(s).")
+    abstract_parser.add_argument("paths", help="Original XML path(s).", nargs="+")
+
+    # command: merge
+    merge_parser = command_parser.add_parser(
+        "merge",
+        help="Merge JUnit XML format reports with junitparser.",
+        parents=[abstract_parser],
+    )
     merge_parser.add_argument(
         "output", help='Merged XML Path, setting to "-" will output to the console'
     )
@@ -65,19 +70,10 @@ def _parser(prog_name=None):  # pragma: no cover
     )
 
     # command: verify
-    merge_parser = command_parser.add_parser(
+    verify_parser = command_parser.add_parser(
         "verify",
         help="Return a non-zero exit code if one of the testcases failed or errored.",
-    )
-    merge_parser.add_argument(
-        "--glob",
-        help="Treat original XML path(s) as glob(s).",
-        dest="paths_are_globs",
-        action="store_true",
-        default=False,
-    )
-    merge_parser.add_argument(
-        "paths", nargs="+", help="XML path(s) of reports to verify."
+        parents=[abstract_parser],
     )
 
     return parser
