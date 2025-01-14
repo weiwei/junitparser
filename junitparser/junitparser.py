@@ -26,14 +26,15 @@ def write_xml(obj, file_or_filename : Union[str, IO] = None, *, pretty: bool = F
         raise JUnitXmlError("Missing file argument.")
 
     if pretty:
-        xml_declaration = b'<?xml version="1.0" encoding="utf-8"?>\n'
-        content = etree.tounicode(obj._elem, pretty_print=True).encode("utf-8")
+        from xml.dom.minidom import parseString
+
+        text = etree.tostring(obj._elem)
+        xml = parseString(text)  # nosec
+        content = xml.toprettyxml(encoding="utf-8")
         if isinstance(file_or_filename, str):
             with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
-                xmlfile.write(xml_declaration)
                 xmlfile.write(content)
         else:
-            file_or_filename.write(xml_declaration)
             file_or_filename.write(content)
     else:
         tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
@@ -747,7 +748,7 @@ class JUnitXml(Element):
         - a file name/path
         - a file object
         - a file-like object
-        - a URL using the HTTP or FTP protocol
+        - a URL using the HTTP or FTP protocol (with lxml only)
         """
         if parse_func is not None:
             tree = parse_func(file)

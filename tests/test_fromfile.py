@@ -2,7 +2,9 @@
 
 import os
 import pytest
+import sys
 from io import StringIO
+from unittest import skipIf
 from junitparser import (
     TestCase,
     TestSuite,
@@ -63,6 +65,7 @@ def test_fromfile_filelike_obj():
     do_test_fromfile(FileObject())
 
 
+@skipIf(sys.version.startswith("3.6.") or not has_lxml, "lxml not installed")
 def test_fromfile_url():
     from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
     import threading

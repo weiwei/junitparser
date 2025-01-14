@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import sys
 from io import BytesIO
 from tempfile import NamedTemporaryFile
+
 from junitparser import (
     TestCase,
     TestSuite,
@@ -26,6 +28,32 @@ except ImportError:
     has_lxml = False
 
 
+def get_expected_xml(test_case_name: str, test_suites: bool = True):
+    if sys.version.startswith("3.6.") and not has_lxml:
+        expected_test_suite = '<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">'
+    else:
+        expected_test_suite = '<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">'
+
+    if has_lxml:
+        encoding = "UTF-8"
+        closing_tag = '/'
+    else:
+        encoding = "utf-8"
+        closing_tag = ' /'
+
+    if test_suites:
+        start_test_suites = "<testsuites>"
+        end_test_suites = "</testsuites>"
+    else:
+        start_test_suites = ""
+        end_test_suites = ""
+
+    return (
+        f"<?xml version='1.0' encoding='{encoding}'?>\n"
+        f'{start_test_suites}{expected_test_suite}<testcase name="{test_case_name}"{closing_tag}></testsuite>{end_test_suites}'
+    )
+
+
 def test_write_xml_without_testsuite_tag():
     suite = TestSuite()
     suite.name = "suite1"
@@ -36,11 +64,7 @@ def test_write_xml_without_testsuite_tag():
     xmlfile = BytesIO()
     suite.write(xmlfile)
 
-    assert xmlfile.getvalue().decode("utf-8") == (
-        "<?xml version='1.0' encoding='UTF-8'?>\n"
-        '<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" '
-        'time="0"><testcase name="case1"/></testsuite>'
-    )
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("case1", False)
 
 
 def do_test_write(write_arg, read_func):
@@ -55,11 +79,7 @@ def do_test_write(write_arg, read_func):
     result.write(write_arg)
     text = read_func()
 
-    assert text == (
-        "<?xml version='1.0' encoding='UTF-8'?>\n"
-        '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
-        'skipped="0" time="0"><testcase name="case1"/></testsuite></testsuites>'
-    )
+    assert text == get_expected_xml("case1")
 
 def test_write():
     with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
@@ -113,11 +133,7 @@ def test_write_nonascii():
     xmlfile = BytesIO()
     result.write(xmlfile)
 
-    assert xmlfile.getvalue().decode("utf-8") == (
-        "<?xml version='1.0' encoding='UTF-8'?>\n"
-        '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
-        'skipped="0" time="0"><testcase name="用例1"/></testsuite></testsuites>'
-    )
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("用例1")
 
 
 def test_read_written_xml():
@@ -132,11 +148,7 @@ def test_read_written_xml():
     xmlfile = BytesIO()
     result.write(xmlfile)
 
-    assert xmlfile.getvalue().decode("utf-8") == (
-        "<?xml version='1.0' encoding='UTF-8'?>\n"
-        '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
-        'skipped="0" time="0"><testcase name="用例1"/></testsuite></testsuites>'
-    )
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("用例1")
 
     xmlfile.seek(0)
     xml = JUnitXml.fromfile(xmlfile)
@@ -157,14 +169,24 @@ def test_write_pretty():
     xmlfile = BytesIO()
     result.write(xmlfile, pretty=True)
 
-    assert xmlfile.getvalue().decode("utf-8") == (
-        '<?xml version="1.0" encoding="utf-8"?>\n'
-        '<testsuites>\n'
-        '  <testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
-        '    <testcase name="用例1"/>\n'
-        '  </testsuite>\n'
-        '</testsuites>\n'
-    )
+    if sys.version.startswith("3.6."):
+        assert xmlfile.getvalue().decode("utf-8") == (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<testsuites>\n'
+            '\t<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">\n'
+            '\t\t<testcase name="用例1"/>\n'
+            '\t</testsuite>\n'
+            '</testsuites>\n'
+        )
+    else:
+        assert xmlfile.getvalue().decode("utf-8") == (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<testsuites>\n'
+            '\t<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
+            '\t\t<testcase name="用例1"/>\n'
+            '\t</testsuite>\n'
+            '</testsuites>\n'
+        )
 
     xmlfile.seek(0)
     xml = JUnitXml.fromfile(xmlfile)
