@@ -45,7 +45,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test
       run: |
-        pytest --junit-xml=test-results-xml.xml
+        pytest --junit-xml=test-results-py${{ matrix.python-version }}-xml.xml
     - name: Test with lxml
       run: |
         pip install lxml
