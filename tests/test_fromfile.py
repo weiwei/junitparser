@@ -2,6 +2,7 @@
 
 import os
 import pytest
+from io import StringIO
 from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
@@ -26,8 +27,8 @@ except ImportError:
     has_lxml = False
 
 
-def test_fromfile():
-    xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
+def do_test_fromfile(fromfile_arg):
+    xml = JUnitXml.fromfile(fromfile_arg)
     suite1, suite2 = list(iter(xml))
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
@@ -38,6 +39,58 @@ def test_fromfile():
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
+
+def test_fromfile():
+    do_test_fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
+
+
+def test_fromfile_file_obj():
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rb") as file_obj:
+        do_test_fromfile(file_obj)
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rt") as file_obj:
+        do_test_fromfile(file_obj)
+
+
+def test_fromfile_filelike_obj():
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "r") as f:
+        text = f.read()
+
+    # a file-like object providing a read method only
+    class FileObject:
+        content = StringIO(text)
+        def read(self, size):
+            return self.content.read(size)
+
+    do_test_fromfile(FileObject())
+
+
+def test_fromfile_url():
+    from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+    import threading
+
+    # the tests/data path where test XML files are stored
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+
+    # request handler that serves files from that directory
+    class ServeDirectory(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super(ServeDirectory, self).__init__(*args, directory=data_dir, **kwargs)
+
+    # spin up an HTTP server serving the tests/data path, so we can load test XML files via HTTP urls
+    with ThreadingHTTPServer(("localhost", 0), ServeDirectory) as server:
+        try:
+            # run the server in a thread
+            t = threading.Thread(target=server.serve_forever, args=(0.001,))
+            t.daemon = True
+            t.start()
+
+            # this is the url of the normal.xml test XML file
+            url = f"http://localhost:{server.server_port}/normal.xml"
+
+            # load the file from the URL
+            do_test_fromfile(url)
+        finally:
+            server.shutdown()
 
 
 @pytest.mark.skipif(not has_lxml, reason="lxml required to run the case")
