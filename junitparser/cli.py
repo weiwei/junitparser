@@ -6,8 +6,8 @@ from itertools import chain
 from . import JUnitXml, version
 
 
-def merge(paths, output, suite_name):
-    """Merge XML report."""
+def merge(paths, output, suite_name=""):
+    """Merge XML reports."""
     result = JUnitXml()
     for path in paths:
         result += JUnitXml.fromfile(path)
