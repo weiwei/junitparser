@@ -313,7 +313,7 @@ class TestCase(Element):
     __test__ = False
 
     # JUnit TestCase children are final results, SystemOut and SystemErr
-    ITER_TYPES = {t._tag: t for t in {Failure, Error, Skipped, SystemOut, SystemErr}}
+    ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}
 
     def __init__(self, name: str = None, classname: str = None, time: float = None):
         super().__init__(self._tag)

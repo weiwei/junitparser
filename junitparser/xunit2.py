@@ -97,17 +97,20 @@ class FlakyError(InterimResult):
     _tag = "flakyError"
 
 
-RERUN_RESULTS = {RerunFailure, RerunError, FlakyFailure, FlakyError}
-
-
 R = TypeVar("R", bound=InterimResult)
 
 
 class TestCase(junitparser.TestCase):
     group = junitparser.Attr()
 
-    # XUnit2 TestCase children are JUnit children and rerun results
-    ITER_TYPES = {t._tag: t for t in list(junitparser.TestCase.ITER_TYPES.values()) + list(RERUN_RESULTS)}
+    # XUnit2 TestCase children are JUnit children and intermediate results
+    ITER_TYPES = {
+        t._tag: t
+        for t in itertools.chain(
+            junitparser.TestCase.ITER_TYPES.values(),
+            (RerunFailure, RerunError, FlakyFailure, FlakyError),
+        )
+    }
 
     def _interim_results(self, _type: Type[R]) -> List[R]:
         return [entry for entry in self if isinstance(entry, _type)]
