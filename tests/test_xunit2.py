@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure
 from junitparser import Failure
 from copy import deepcopy
