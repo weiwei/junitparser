@@ -10,10 +10,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  event_file:
+    name: "Event File"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: Event File
+        path: ${{ github.event_path }}
+
   build-test:
-      # Python version < 3.7 requires ubuntu-20.04
+    # Python version < 3.7 requires ubuntu-20.04
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.6", "3.x"]
     steps:
@@ -34,11 +45,17 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test
       run: |
-        pytest
+        pytest --junit-xml=test-results-xml.xml
     - name: Test with lxml
       run: |
         pip install lxml
-        pytest
+        pytest --junit-xml=test-results-py${{ matrix.python-version }}-lxml.xml
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Test Results (Python ${{ matrix.python-version }})
+        path: test-results-py*-*.xml
 
   coverage-lint:
     needs: build-test
