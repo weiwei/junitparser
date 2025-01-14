@@ -33,11 +33,10 @@ def test_write_xml_without_testsuite_tag():
     case.name = "case1"
     suite.add_testcase(case)
 
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        suite.write(tmpfile.name)
-        text = tmpfile.read()
+    xmlfile = BytesIO()
+    suite.write(xmlfile)
 
-    assert text == (
+    assert xmlfile.getvalue().decode("utf-8") == (
         "<?xml version='1.0' encoding='UTF-8'?>\n"
         '<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" '
         'time="0"><testcase name="case1"/></testsuite>'
@@ -111,11 +110,10 @@ def test_write_nonascii():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        result.write(tmpfile.name)
-        text = tmpfile.read()
+    xmlfile = BytesIO()
+    result.write(xmlfile)
 
-    assert text == (
+    assert xmlfile.getvalue().decode("utf-8") == (
         "<?xml version='1.0' encoding='UTF-8'?>\n"
         '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
         'skipped="0" time="0"><testcase name="用例1"/></testsuite></testsuites>'
@@ -131,17 +129,17 @@ def test_read_written_xml():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        result.write(tmpfile.name)
-        text = tmpfile.read()
-        xml = JUnitXml.fromfile(tmpfile.name)
+    xmlfile = BytesIO()
+    result.write(xmlfile)
 
-    assert text == (
+    assert xmlfile.getvalue().decode("utf-8") == (
         "<?xml version='1.0' encoding='UTF-8'?>\n"
         '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
         'skipped="0" time="0"><testcase name="用例1"/></testsuite></testsuites>'
     )
 
+    xmlfile.seek(0)
+    xml = JUnitXml.fromfile(xmlfile)
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
@@ -156,12 +154,10 @@ def test_write_pretty():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        result.write(tmpfile.name, pretty=True)
-        text = tmpfile.read()
-        xml = JUnitXml.fromfile(tmpfile.name)
+    xmlfile = BytesIO()
+    result.write(xmlfile, pretty=True)
 
-    assert text == (
+    assert xmlfile.getvalue().decode("utf-8") == (
         '<?xml version="1.0" encoding="utf-8"?>\n'
         '<testsuites>\n'
         '  <testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
@@ -170,6 +166,8 @@ def test_write_pretty():
         '</testsuites>\n'
     )
 
+    xmlfile.seek(0)
+    xml = JUnitXml.fromfile(xmlfile)
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"

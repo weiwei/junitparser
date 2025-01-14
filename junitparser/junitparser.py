@@ -26,10 +26,10 @@ def write_xml(obj, file_or_filename : Union[str, IO] = None, *, pretty: bool = F
         raise JUnitXmlError("Missing file argument.")
 
     if pretty:
-        xml_declaration = '<?xml version="1.0" encoding="utf-8"?>\n'
-        content = etree.tounicode(obj._elem, pretty_print=True)
+        xml_declaration = b'<?xml version="1.0" encoding="utf-8"?>\n'
+        content = etree.tounicode(obj._elem, pretty_print=True).encode("utf-8")
         if isinstance(file_or_filename, str):
-            with open(file_or_filename, encoding="utf-8", mode="wt") as xmlfile:
+            with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
                 xmlfile.write(xml_declaration)
                 xmlfile.write(content)
         else:
