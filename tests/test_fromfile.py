@@ -5,6 +5,7 @@ from io import StringIO
 from unittest import skipIf
 from junitparser import (
     TestCase,
+    TestSuite,
     Skipped,
     Failure,
     JUnitXmlError,

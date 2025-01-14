@@ -124,6 +124,7 @@ class Test_JunitXml:
         <testcase name="testname2">
         </testcase></testsuite></testsuites>"""
         result = JUnitXml.fromstring(text)
+        assert isinstance(result, JUnitXml)
         assert len(result) == 2
         assert result.time == 0
 
@@ -132,6 +133,7 @@ class Test_JunitXml:
         <testcase name="testname1">
         </testcase></testsuite>"""
         result = JUnitXml.fromstring(text)
+        assert isinstance(result, JUnitXml)
         assert len(result) == 1
         assert result.time == 0
 
