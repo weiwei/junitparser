@@ -2,6 +2,7 @@
 
 import os
 import pytest
+from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
     TestSuite,
@@ -23,17 +24,6 @@ try:
     has_lxml = True
 except ImportError:
     has_lxml = False
-
-
-@pytest.fixture(scope="module")
-def tmpfile():
-    import tempfile
-
-    fd, tmp = tempfile.mkstemp(suffix=".xml")
-    yield tmp
-    os.close(fd)
-    if os.path.exists(tmp):
-        os.remove(tmp)
 
 
 def test_fromfile():
@@ -104,91 +94,23 @@ def test_fromfile_with_testsuite_in_testsuite():
     assert len(all_cases[2].result) == 0
 
 
-def test_write_xml_without_testsuite_tag(tmpfile):
-    suite = TestSuite()
-    suite.name = "suite1"
-    case = TestCase()
-    case.name = "case1"
-    suite.add_testcase(case)
-    suite.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "case1" in text
-
-
-def test_file_is_not_xml(tmpfile):
+def test_file_is_not_xml():
     text = "Not really an xml file"
-    with open(tmpfile, "w") as f:
-        f.write(text)
-    with pytest.raises(Exception):
-        JUnitXml.fromfile(tmpfile)
-        # Raises lxml.etree.XMLSyntaxError
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="w", delete_on_close=False) as tmpfile:
+        tmpfile.write(text)
+        tmpfile.close()
+        with pytest.raises(Exception):
+            JUnitXml.fromfile(tmpfile.name)
+            # Raises lxml.etree.XMLSyntaxError
 
 
-def test_illegal_xml_file(tmpfile):
+def test_illegal_xml_file():
     text = "<some></some>"
-    with open(tmpfile, "w") as f:
-        f.write(text)
-    with pytest.raises(JUnitXmlError):
-        JUnitXml.fromfile(tmpfile)
-
-
-def test_write(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "case1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "case1" in text
-
-
-def test_write_noarg():
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "case1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    with pytest.raises(JUnitXmlError):
-        result.write()
-
-
-def test_write_nonascii(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile, encoding="utf-8") as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "用例1" in text
-
-
-def test_read_written_xml(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    xml = JUnitXml.fromfile(tmpfile)
-    suite = next(iter(xml))
-    case = next(iter(suite))
-    assert case.name == "用例1"
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="w", delete_on_close=False) as tmpfile:
+        tmpfile.write(text)
+        tmpfile.close()
+        with pytest.raises(JUnitXmlError):
+            JUnitXml.fromfile(tmpfile.name)
 
 
 def test_multi_results_in_case():
@@ -206,18 +128,3 @@ def test_multi_results_in_case():
     suite = next(iter(xml))
     case = next(iter(suite))
     assert len(case.result) == 2
-
-
-def test_write_pretty(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile, pretty=True)
-    xml = JUnitXml.fromfile(tmpfile)
-    suite = next(iter(xml))
-    case = next(iter(suite))
-    assert case.name == "用例1"

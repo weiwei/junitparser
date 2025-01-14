@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os
 import pytest
+from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
     TestSuite,
@@ -25,31 +25,22 @@ except ImportError:
     has_lxml = False
 
 
-@pytest.fixture(scope="module")
-def tmpfile():
-    import tempfile
-
-    fd, tmp = tempfile.mkstemp(suffix=".xml")
-    yield tmp
-    os.close(fd)
-    if os.path.exists(tmp):
-        os.remove(tmp)
-
-
-def test_write_xml_without_testsuite_tag(tmpfile):
+def test_write_xml_without_testsuite_tag():
     suite = TestSuite()
     suite.name = "suite1"
     case = TestCase()
     case.name = "case1"
     suite.add_testcase(case)
-    suite.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
+
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        suite.write(tmpfile.name)
+        text = tmpfile.read()
+
     assert "suite1" in text
     assert "case1" in text
 
 
-def test_write(tmpfile):
+def test_write():
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -57,9 +48,11 @@ def test_write(tmpfile):
     suite1.add_testcase(case1)
     result = JUnitXml()
     result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
+
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        result.write(tmpfile.name)
+        text = tmpfile.read()
+
     assert "suite1" in text
     assert "case1" in text
 
@@ -76,7 +69,7 @@ def test_write_noarg():
         result.write()
 
 
-def test_write_nonascii(tmpfile):
+def test_write_nonascii():
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -84,14 +77,16 @@ def test_write_nonascii(tmpfile):
     suite1.add_testcase(case1)
     result = JUnitXml()
     result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile, encoding="utf-8") as f:
-        text = f.read()
+
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        result.write(tmpfile.name)
+        text = tmpfile.read()
+
     assert "suite1" in text
     assert "用例1" in text
 
 
-def test_read_written_xml(tmpfile):
+def test_read_written_xml():
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -99,14 +94,17 @@ def test_read_written_xml(tmpfile):
     suite1.add_testcase(case1)
     result = JUnitXml()
     result.add_testsuite(suite1)
-    result.write(tmpfile)
-    xml = JUnitXml.fromfile(tmpfile)
+
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        result.write(tmpfile.name)
+        xml = JUnitXml.fromfile(tmpfile.name)
+
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
 
 
-def test_write_pretty(tmpfile):
+def test_write_pretty():
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -114,8 +112,11 @@ def test_write_pretty(tmpfile):
     suite1.add_testcase(case1)
     result = JUnitXml()
     result.add_testsuite(suite1)
-    result.write(tmpfile, pretty=True)
-    xml = JUnitXml.fromfile(tmpfile)
+
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        result.write(tmpfile.name, pretty=True)
+        xml = JUnitXml.fromfile(tmpfile.name)
+
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
