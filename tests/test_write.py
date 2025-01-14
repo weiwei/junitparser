@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+from io import BytesIO
 from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
@@ -43,7 +44,7 @@ def test_write_xml_without_testsuite_tag():
     )
 
 
-def test_write():
+def do_test_write(write_arg, read_func):
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -52,15 +53,42 @@ def test_write():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        result.write(tmpfile.name)
-        text = tmpfile.read()
+    result.write(write_arg)
+    text = read_func()
 
     assert text == (
         "<?xml version='1.0' encoding='UTF-8'?>\n"
         '<testsuites><testsuite name="suite1" tests="1" errors="0" failures="0" '
         'skipped="0" time="0"><testcase name="case1"/></testsuite></testsuites>'
     )
+
+def test_write():
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        do_test_write(tmpfile.name, tmpfile.read)
+
+def test_write_file_obj():
+    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
+        with open(tmpfile.name, "wb") as file_obj:
+            def read():
+                file_obj.close()
+                return tmpfile.read()
+
+            do_test_write(file_obj, read)
+
+def test_write_filelike_obj():
+    # a file-like object providing a write method only
+    class FileObject:
+        content = BytesIO()
+
+        def write(self, buf):
+            return self.content.write(buf)
+
+        def _read(self):
+            self.content.seek(0)
+            return self.content.read().decode("utf-8")
+
+    filelike_obj = FileObject()
+    do_test_write(filelike_obj, filelike_obj._read)
 
 def test_write_noarg():
     suite1 = TestSuite()
@@ -136,9 +164,9 @@ def test_write_pretty():
     assert text == (
         '<?xml version="1.0" encoding="utf-8"?>\n'
         '<testsuites>\n'
-        '\t<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
-        '\t\t<testcase name="用例1"/>\n'
-        '\t</testsuite>\n'
+        '  <testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
+        '    <testcase name="用例1"/>\n'
+        '  </testsuite>\n'
         '</testsuites>\n'
     )
 

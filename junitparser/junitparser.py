@@ -10,7 +10,7 @@ See the documentation for other supported schemas.
 """
 import itertools
 from copy import deepcopy
-from typing import List, Union, Iterator
+from typing import List, Union, Iterator, IO
 
 try:
     from lxml import etree
@@ -18,33 +18,25 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, filepath=None, pretty=False, to_console=False):
+def write_xml(obj, file_or_filename : Union[str, IO] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
-    if filepath is None:
-        filepath = obj.filepath
-    if filepath is None:
-        raise JUnitXmlError("Missing filepath argument.")
+    if file_or_filename is None:
+        file_or_filename = obj.filepath
+    if file_or_filename is None:
+        raise JUnitXmlError("Missing file argument.")
 
     if pretty:
-        from xml.dom.minidom import parseString
-
-        text = etree.tostring(obj._elem)
-        xml = parseString(text)  # nosec
-        content = xml.toprettyxml(encoding="utf-8")
-        if to_console:
-            print(content)
-        else:
-            with open(filepath, "wb") as xmlfile:
+        xml_declaration = '<?xml version="1.0" encoding="utf-8"?>\n'
+        content = etree.tounicode(obj._elem, pretty_print=True)
+        if isinstance(file_or_filename, str):
+            with open(file_or_filename, encoding="utf-8", mode="wt") as xmlfile:
+                xmlfile.write(xml_declaration)
                 xmlfile.write(content)
-    else:
-        if to_console:
-            print(
-                etree.tostring(
-                    obj._elem, encoding="utf-8", xml_declaration=True
-                ).decode("utf-8")
-            )
         else:
-            tree.write(filepath, encoding="utf-8", xml_declaration=True)
+            file_or_filename.write(xml_declaration)
+            file_or_filename.write(content)
+    else:
+        tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -641,8 +633,8 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, filepath: str = None, pretty=False):
-        write_xml(self, filepath=filepath, pretty=pretty)
+    def write(self, file_or_filename: str = None, *, pretty: bool = False):
+        write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
 class JUnitXml(Element):
@@ -740,27 +732,36 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
-    def fromstring(cls, text: str):
-        """Construct JUnit objects from an XML string."""
+    def fromstring(cls, text: Union[str, bytes]):
+        """Construct JUnit objects from an XML string (str or bytes)."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
     @classmethod
-    def fromfile(cls, filepath: str, parse_func=None):
-        """Initiate the object from a report file."""
+    def fromfile(cls, file: Union[str, IO], parse_func=None):
+        """
+        Construct JUnit objects from an XML file.
+
+        The ``file`` can be any of the following:
+
+        - a file name/path
+        - a file object
+        - a file-like object
+        - a URL using the HTTP or FTP protocol
+        """
         if parse_func is not None:
-            tree = parse_func(filepath)
+            tree = parse_func(file)
         else:
-            tree = etree.parse(filepath)  # nosec
+            tree = etree.parse(file)  # nosec
         root_elem = tree.getroot()
         instance = cls.fromroot(root_elem)
-        instance.filepath = filepath
+        instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(self, filepath: str = None, pretty=False, to_console=False):
+    def write(self, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
-        If `file_path` is not specified, it will write to the original file.
+        If `file_or_filename` is not specified, it will write to the original filename.
         If `pretty` is True, the result file will be more human friendly.
         """
-        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
+        write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
