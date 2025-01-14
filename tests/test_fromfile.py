@@ -3,7 +3,6 @@
 import os
 import pytest
 from io import StringIO
-from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
     TestSuite,
@@ -148,22 +147,16 @@ def test_fromfile_with_testsuite_in_testsuite():
 
 
 def test_file_is_not_xml():
-    text = "Not really an xml file"
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="w", delete_on_close=False) as tmpfile:
-        tmpfile.write(text)
-        tmpfile.close()
-        with pytest.raises(Exception):
-            JUnitXml.fromfile(tmpfile.name)
-            # Raises lxml.etree.XMLSyntaxError
+    xmlfile = StringIO("Not really an xml file")
+    with pytest.raises(Exception):
+        JUnitXml.fromfile(xmlfile)
+        # Raises lxml.etree.XMLSyntaxError
 
 
 def test_illegal_xml_file():
-    text = "<some></some>"
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="w", delete_on_close=False) as tmpfile:
-        tmpfile.write(text)
-        tmpfile.close()
-        with pytest.raises(JUnitXmlError):
-            JUnitXml.fromfile(tmpfile.name)
+    xmlfile = StringIO("<some></some>")
+    with pytest.raises(JUnitXmlError):
+        JUnitXml.fromfile(xmlfile)
 
 
 def test_multi_results_in_case():
