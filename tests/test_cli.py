@@ -15,10 +15,10 @@ def test_verify(file: str, expected_exitcode: int):
     assert cli.verify([path]) == expected_exitcode
 
 
-def test_merge():
+def test_merge(tmp_path):
     files = [DATA_DIR / "jenkins.xml", DATA_DIR / "pytest_success.xml"]
     suites = ["JUnitXmlReporter", "JUnitXmlReporter.constructor", "pytest"]
-    outfile = DATA_DIR / "merged.xml"
+    outfile = tmp_path / "merged.xml"
     cli.merge(files, str(outfile))
     xml = outfile.read_text()
     for s in suites:
