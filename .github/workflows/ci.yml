@@ -106,9 +106,27 @@ jobs:
         python-version: 3.x
     - name: Build packages
       run: |
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install setuptools wheel
-        python setup.py sdist bdist_wheel
+        # Build packages
+        echo "::group::build"
+        pip install build
+        python -m build
+        echo "::endgroup::"
+
+        echo "::group::dist/"
+        ls -lah dist/
+        echo "::endgroup::"
+
+        echo "::group::tar.gz"
+        tar -tzvf dist/junitparser-*.tar.gz
+        echo "::endgroup::"
+
+        echo "::group::wheel"
+        unzip -l dist/junitparser-*.whl
+        echo "::endgroup::"
+
+        echo "::group::wheel metadata"
+        unzip -p dist/junitparser-*.whl junitparser-*.dist-info/METADATA
+        echo "::endgroup::"
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
