@@ -19,16 +19,14 @@ Features
 * Merge test result XML files.
 * Specify XML parser. For example you can use lxml to speed things up.
 * Invoke from command line, or `python -m junitparser`
-* Python 2 and 3 support (As of Nov 2020, 1/4 of the users are still on Python
-  2, so there is no plan to drop Python 2 support)
+* Support for `non-EOL Python 3 <https://devguide.python.org/versions/>`_
 
-Note on version 2
+Note on version 4
 -----------------
 
-Version 2 improved support for pytest result XML files by fixing a few issues,
-notably that there could be multiple <Failure> or <Error> entries. There is a
-breaking change that ``TestCase.result`` is now a list instead of a single item.
-If you are using this attribute, please update your code accordingly.
+Python `version 3.8 and earlier <https://devguide.python.org/versions/>`_ are EOL and therefore
+not supported by junitparser anymore. However, junitparser might still continue to work with those
+Python versions for some time.
 
 Installation
 -------------
