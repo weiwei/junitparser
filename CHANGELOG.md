@@ -2,6 +2,14 @@
 
 ## [4.0.0]
 ### Breaking
+- Renamed argument `filepath` of methods `write_xml`, `TestSuite.write`, and `JUnitXml.write`
+  to `file_or_filename`, as these methods now support file objects and file-like objects.
+- Turned positional argument `pretty` of methods `write_xml`, `TestSuite.write`, and `JUnitXml.write` into keyword argument.
+  Use as `write_xml(obj, filename, pretty=True)` and `obj.write(filename, pretty=True)`, respectively.
+- Removed argument `to_console` from methods `write_xml`, `TestSuite.write`, and `JUnitXml.write`.
+  Instead, use `write_xml(obj, sys.stdout)` and `obj.write(sys.stdout)`, respectively.
+- Renamed argument `filepath` of method `JUnitXml.fromfile` to `file`,
+  to reflect that this method supports file objects, file-like objects, and urls.
 - Setter method `TestCase.result` used to ignore values of invalid types. This method now throws a `ValueError` instead.
 - Method `xunit2.TestCase.add_rerun_result` has been renamed to `add_interim_result` result to better reflect class hierarchy
   of interim (rerun and flaky) results.

@@ -1,3 +1,4 @@
+import sys
 from argparse import ArgumentParser
 from glob import iglob
 from itertools import chain
@@ -14,7 +15,7 @@ def merge(paths, output, suite_name):
     result.update_statistics()
     if suite_name:
         result.name = suite_name
-    result.write(output, to_console=output == "-")
+    result.write(sys.stdout if output == "-" else output)
     return 0
 
 
