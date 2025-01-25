@@ -18,7 +18,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, file_or_filename : Union[str, IO] = None, *, pretty: bool = False):
+def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
     if file_or_filename is None:
         file_or_filename = obj.filepath
@@ -238,6 +238,7 @@ class FinalResult(Result):
     """Base class for final test result (in contrast to XUnit2 InterimResult)."""
 
     _tag = None
+
 
 class Skipped(FinalResult):
     """Test result when the case is skipped."""
