@@ -10,6 +10,9 @@
   Instead, use `write_xml(obj, sys.stdout)` and `obj.write(sys.stdout)`, respectively.
 - Renamed argument `filepath` of method `JUnitXml.fromfile` to `file`,
   to reflect that this method supports file objects, file-like objects, and urls.
+- Setter method `TestCase.result` used to ignore values of invalid types. This method now throws a `ValueError` instead.
+- Method `xunit2.TestCase.add_rerun_result` has been renamed to `add_interim_result` result to better reflect class hierarchy
+  of interim (rerun and flaky) results.
 
 ## [3.1.2] - 2024-08-31
 ### Fixed
