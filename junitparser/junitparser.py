@@ -495,6 +495,8 @@ class TestSuite(Element):
     skipped = IntAttr()
     __test__ = False
 
+    testcase = TestCase
+
     def __init__(self, name=None):
         super().__init__(self._tag)
         self.name = name
@@ -502,8 +504,8 @@ class TestSuite(Element):
 
     def __iter__(self) -> Iterator[TestCase]:
         return itertools.chain(
-            super().iterchildren(TestCase),
-            (case for suite in super().iterchildren(TestSuite) for case in suite),
+            super().iterchildren(self.testcase),
+            (case for suite in super().iterchildren(type(self)) for case in suite),
         )
 
     def __len__(self):
@@ -675,7 +677,7 @@ class JUnitXml(Element):
         self.name = name
 
     def __iter__(self) -> Iterator[TestSuite]:
-        return super().iterchildren(TestSuite)
+        return super().iterchildren(self.testsuite)
 
     def __len__(self):
         return len(list(self.__iter__()))

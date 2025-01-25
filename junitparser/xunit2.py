@@ -19,82 +19,6 @@ from . import junitparser
 T = TypeVar("T")
 
 
-class TestSuite(junitparser.TestSuite):
-    """TestSuite for Pytest, with some different attributes."""
-
-    group = junitparser.Attr()
-    id = junitparser.Attr()
-    package = junitparser.Attr()
-    file = junitparser.Attr()
-    log = junitparser.Attr()
-    url = junitparser.Attr()
-    version = junitparser.Attr()
-
-    def __iter__(self) -> Iterator["TestCase"]:
-        return itertools.chain(
-            super().iterchildren(TestCase),
-            (case for suite in super().iterchildren(TestSuite) for case in suite),
-        )
-
-    @property
-    def system_out(self):
-        """<system-out>"""
-        elem = self.child(junitparser.SystemOut)
-        if elem is not None:
-            return elem.text
-        return None
-
-    @system_out.setter
-    def system_out(self, value: str):
-        """<system-out>"""
-        out = self.child(junitparser.SystemOut)
-        if out is not None:
-            out.text = value
-        else:
-            out = junitparser.SystemOut(value)
-            self.append(out)
-
-    @property
-    def system_err(self):
-        """<system-err>"""
-        elem = self.child(junitparser.SystemErr)
-        if elem is not None:
-            return elem.text
-        return None
-
-    @system_err.setter
-    def system_err(self, value: str):
-        """<system-err>"""
-        err = self.child(junitparser.SystemErr)
-        if err is not None:
-            err.text = value
-        else:
-            err = junitparser.SystemErr(value)
-            self.append(err)
-
-
-class JUnitXml(junitparser.JUnitXml):
-    # Pytest and xunit schema doesn't have "skipped" in testsuites
-    skipped = None
-
-    testsuite = TestSuite
-
-    def update_statistics(self):
-        """Update test count, time, etc."""
-        time = 0
-        tests = failures = errors = 0
-        for suite in self:
-            suite.update_statistics()
-            tests += suite.tests
-            failures += suite.failures
-            errors += suite.errors
-            time += suite.time
-        self.tests = tests
-        self.failures = failures
-        self.errors = errors
-        self.time = round(time, 3)
-
-
 class StackTrace(junitparser.System):
     _tag = "stackTrace"
 
@@ -202,3 +126,75 @@ class TestCase(junitparser.TestCase):
     def add_rerun_result(self, result: RerunType):
         """Append a rerun result to the testcase. A testcase can have multiple rerun results."""
         self.append(result)
+
+
+class TestSuite(junitparser.TestSuite):
+    """TestSuite for Pytest, with some different attributes."""
+
+    group = junitparser.Attr()
+    id = junitparser.Attr()
+    package = junitparser.Attr()
+    file = junitparser.Attr()
+    log = junitparser.Attr()
+    url = junitparser.Attr()
+    version = junitparser.Attr()
+
+    testcase = TestCase
+
+    @property
+    def system_out(self):
+        """<system-out>"""
+        elem = self.child(junitparser.SystemOut)
+        if elem is not None:
+            return elem.text
+        return None
+
+    @system_out.setter
+    def system_out(self, value: str):
+        """<system-out>"""
+        out = self.child(junitparser.SystemOut)
+        if out is not None:
+            out.text = value
+        else:
+            out = junitparser.SystemOut(value)
+            self.append(out)
+
+    @property
+    def system_err(self):
+        """<system-err>"""
+        elem = self.child(junitparser.SystemErr)
+        if elem is not None:
+            return elem.text
+        return None
+
+    @system_err.setter
+    def system_err(self, value: str):
+        """<system-err>"""
+        err = self.child(junitparser.SystemErr)
+        if err is not None:
+            err.text = value
+        else:
+            err = junitparser.SystemErr(value)
+            self.append(err)
+
+
+class JUnitXml(junitparser.JUnitXml):
+    # Pytest and xunit schema doesn't have "skipped" in testsuites
+    skipped = None
+
+    testsuite = TestSuite
+
+    def update_statistics(self):
+        """Update test count, time, etc."""
+        time = 0
+        tests = failures = errors = 0
+        for suite in self:
+            suite.update_statistics()
+            tests += suite.tests
+            failures += suite.failures
+            errors += suite.errors
+            time += suite.time
+        self.tests = tests
+        self.failures = failures
+        self.errors = errors
+        self.time = round(time, 3)
