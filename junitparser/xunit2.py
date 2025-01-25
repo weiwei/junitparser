@@ -12,8 +12,7 @@ According to the internet, the schema is compatible with:
 There may be many others that I'm not aware of.
 """
 
-import itertools
-from typing import List, TypeVar, Iterator
+from typing import List, TypeVar
 from . import junitparser
 
 T = TypeVar("T")

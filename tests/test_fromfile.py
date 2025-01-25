@@ -5,7 +5,6 @@ from io import StringIO
 from unittest import skipIf
 from junitparser import (
     TestCase,
-    TestSuite,
     Skipped,
     Failure,
     JUnitXmlError,
@@ -33,6 +32,7 @@ def do_test_fromfile(fromfile_arg):
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
 
+
 def test_fromfile():
     do_test_fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
 
@@ -51,6 +51,7 @@ def test_fromfile_filelike_obj():
     # a file-like object providing a read method only
     class FileObject:
         content = StringIO(text)
+
         def read(self, size):
             return self.content.read(size)
 

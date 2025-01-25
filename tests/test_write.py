@@ -6,21 +6,12 @@ from tempfile import NamedTemporaryFile
 from junitparser import (
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
-    Error,
-    Attr,
     JUnitXmlError,
-    JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
+    JUnitXml
 )
 
 try:
-    from lxml.etree import XMLParser, parse
-
+    from lxml.etree import XMLParser  # noqa: F401
     has_lxml = True
 except ImportError:
     has_lxml = False
@@ -79,9 +70,11 @@ def do_test_write(write_arg, read_func):
 
     assert text == get_expected_xml("case1")
 
+
 def test_write():
     with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
         do_test_write(tmpfile.name, tmpfile.read)
+
 
 def test_write_file_obj():
     with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
@@ -91,6 +84,7 @@ def test_write_file_obj():
                 return tmpfile.read()
 
             do_test_write(file_obj, read)
+
 
 def test_write_filelike_obj():
     # a file-like object providing a write method only
@@ -106,6 +100,7 @@ def test_write_filelike_obj():
 
     filelike_obj = FileObject()
     do_test_write(filelike_obj, filelike_obj._read)
+
 
 def test_write_noarg():
     suite1 = TestSuite()
