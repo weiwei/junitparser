@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure
 from junitparser import Failure
 from copy import deepcopy
@@ -20,6 +18,7 @@ class Test_TestCase:
         <system-err>System err</system-err>
         </testcase>"""
         case = TestCase.fromstring(text)
+        assert isinstance(case, TestCase)
         assert case.name == "testname"
         assert isinstance(case.result[0], Failure)
         assert case.system_out == "System out"
@@ -46,14 +45,14 @@ class Test_TestCase:
         rerun_failure.stack_trace = "Stack"
         rerun_failure.system_err = "E404"
         rerun_failure.system_out = "NOT FOUND"
-        case.add_rerun_result(rerun_failure)
+        case.add_interim_result(rerun_failure)
         assert len(case.rerun_failures()) == 1
         # Interesting, same object is only added once by xml libs
         failure2 = deepcopy(rerun_failure)
         failure2.stack_trace = "Stack2"
         failure2.system_err = "E401"
         failure2.system_out = "401 Error"
-        case.add_rerun_result(failure2)
+        case.add_interim_result(failure2)
         assert len(case.rerun_failures()) == 2
 
 
@@ -103,6 +102,29 @@ class Test_JUnitXml:
         assert xml.tostring().count(b"skipped") == 1
 
     def test_fromstring(self):
+        text = """<testsuites><testsuite name="suitename1">
+        <testcase name="testname1">
+        </testcase></testsuite>
+        <testsuite name="suitename2">
+        <testcase name="testname2"/>
+        <testcase name="testname3">
+        </testcase></testsuite></testsuites>"""
+        xml = JUnitXml.fromstring(text)
+        assert isinstance(xml, JUnitXml)
+        suites = list(xml)
+        assert len(suites) == 2
+        suite1, suite2 = suites
+        assert isinstance(suite1, TestSuite)
+        assert isinstance(suite2, TestSuite)
+        assert suite1.name == "suitename1"
+        assert suite2.name == "suitename2"
+        cases = list(suite2)
+        assert len(cases) == 2
+        assert isinstance(cases[0], TestCase)
+        assert isinstance(cases[1], TestCase)
+        assert [test.name for test in cases] == ["testname2", "testname3"]
+
+    def test_suite_fromstring(self):
         text = """<testsuite name="suite name">
          <testcase name="test name 1"/>
          <testcase name="test name 2"/>
@@ -110,5 +132,8 @@ class Test_JUnitXml:
         suite = JUnitXml.fromstring(text)
         assert isinstance(suite, TestSuite)
         assert suite.name == "suite name"
-        assert len(list(suite)) == 2
+        cases = list(suite)
+        assert len(cases) == 2
+        assert isinstance(cases[0], TestCase)
+        assert isinstance(cases[1], TestCase)
         assert [test.name for test in suite] == ["test name 1", "test name 2"]

@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import os
 import pytest
+import sys
+from io import StringIO
+from unittest import skipIf
 from junitparser import (
     TestCase,
     TestSuite,
@@ -19,19 +20,8 @@ except ImportError:
     has_lxml = False
 
 
-@pytest.fixture(scope="module")
-def tmpfile():
-    import tempfile
-
-    fd, tmp = tempfile.mkstemp(suffix=".xml")
-    yield tmp
-    os.close(fd)
-    if os.path.exists(tmp):
-        os.remove(tmp)
-
-
-def test_fromfile():
-    xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
+def do_test_fromfile(fromfile_arg):
+    xml = JUnitXml.fromfile(fromfile_arg)
     suite1, suite2 = list(iter(xml))
     assert len(list(suite1.properties())) == 0
     assert len(list(suite2.properties())) == 3
@@ -42,6 +32,59 @@ def test_fromfile():
     assert isinstance(cases[0].result[0], Failure)
     assert isinstance(cases[1].result[0], Skipped)
     assert len(cases[2].result) == 0
+
+def test_fromfile():
+    do_test_fromfile(os.path.join(os.path.dirname(__file__), "data/normal.xml"))
+
+
+def test_fromfile_file_obj():
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rb") as file_obj:
+        do_test_fromfile(file_obj)
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rt") as file_obj:
+        do_test_fromfile(file_obj)
+
+
+def test_fromfile_filelike_obj():
+    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "r") as f:
+        text = f.read()
+
+    # a file-like object providing a read method only
+    class FileObject:
+        content = StringIO(text)
+        def read(self, size):
+            return self.content.read(size)
+
+    do_test_fromfile(FileObject())
+
+
+@skipIf(sys.version.startswith("3.6.") or not has_lxml, "lxml not installed")
+def test_fromfile_url():
+    from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+    import threading
+
+    # the tests/data path where test XML files are stored
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+
+    # request handler that serves files from that directory
+    class ServeDirectory(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super(ServeDirectory, self).__init__(*args, directory=data_dir, **kwargs)
+
+    # spin up an HTTP server serving the tests/data path, so we can load test XML files via HTTP urls
+    with ThreadingHTTPServer(("localhost", 0), ServeDirectory) as server:
+        try:
+            # run the server in a thread
+            t = threading.Thread(target=server.serve_forever, args=(0.001,))
+            t.daemon = True
+            t.start()
+
+            # this is the url of the normal.xml test XML file
+            url = f"http://localhost:{server.server_port}/normal.xml"
+
+            # load the file from the URL
+            do_test_fromfile(url)
+        finally:
+            server.shutdown()
 
 
 @pytest.mark.skipif(not has_lxml, reason="lxml required to run the case")
@@ -98,91 +141,17 @@ def test_fromfile_with_testsuite_in_testsuite():
     assert len(all_cases[2].result) == 0
 
 
-def test_write_xml_without_testsuite_tag(tmpfile):
-    suite = TestSuite()
-    suite.name = "suite1"
-    case = TestCase()
-    case.name = "case1"
-    suite.add_testcase(case)
-    suite.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "case1" in text
-
-
-def test_file_is_not_xml(tmpfile):
-    text = "Not really an xml file"
-    with open(tmpfile, "w") as f:
-        f.write(text)
+def test_file_is_not_xml():
+    xmlfile = StringIO("Not really an xml file")
     with pytest.raises(Exception):
-        JUnitXml.fromfile(tmpfile)
+        JUnitXml.fromfile(xmlfile)
         # Raises lxml.etree.XMLSyntaxError
 
 
-def test_illegal_xml_file(tmpfile):
-    text = "<some></some>"
-    with open(tmpfile, "w") as f:
-        f.write(text)
+def test_illegal_xml_file():
+    xmlfile = StringIO("<some></some>")
     with pytest.raises(JUnitXmlError):
-        JUnitXml.fromfile(tmpfile)
-
-
-def test_write(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "case1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile) as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "case1" in text
-
-
-def test_write_noarg():
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "case1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    with pytest.raises(JUnitXmlError):
-        result.write()
-
-
-def test_write_nonascii(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    with open(tmpfile, encoding="utf-8") as f:
-        text = f.read()
-    assert "suite1" in text
-    assert "用例1" in text
-
-
-def test_read_written_xml(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile)
-    xml = JUnitXml.fromfile(tmpfile)
-    suite = next(iter(xml))
-    case = next(iter(suite))
-    assert case.name == "用例1"
+        JUnitXml.fromfile(xmlfile)
 
 
 def test_multi_results_in_case():
@@ -200,18 +169,3 @@ def test_multi_results_in_case():
     suite = next(iter(xml))
     case = next(iter(suite))
     assert len(case.result) == 2
-
-
-def test_write_pretty(tmpfile):
-    suite1 = TestSuite()
-    suite1.name = "suite1"
-    case1 = TestCase()
-    case1.name = "用例1"
-    suite1.add_testcase(case1)
-    result = JUnitXml()
-    result.add_testsuite(suite1)
-    result.write(tmpfile, pretty=True)
-    xml = JUnitXml.fromfile(tmpfile)
-    suite = next(iter(xml))
-    case = next(iter(suite))
-    assert case.name == "用例1"

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import locale
 from copy import deepcopy
 from xml.etree import ElementTree as etree

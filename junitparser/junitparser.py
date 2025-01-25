@@ -10,7 +10,7 @@ See the documentation for other supported schemas.
 """
 import itertools
 from copy import deepcopy
-from typing import List, Union, Iterator
+from typing import List, Union, Iterator, IO
 
 try:
     from lxml import etree
@@ -18,12 +18,12 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, filepath=None, pretty=False, to_console=False):
+def write_xml(obj, file_or_filename : Union[str, IO] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
-    if filepath is None:
-        filepath = obj.filepath
-    if filepath is None:
-        raise JUnitXmlError("Missing filepath argument.")
+    if file_or_filename is None:
+        file_or_filename = obj.filepath
+    if file_or_filename is None:
+        raise JUnitXmlError("Missing file argument.")
 
     if pretty:
         from xml.dom.minidom import parseString
@@ -31,20 +31,13 @@ def write_xml(obj, filepath=None, pretty=False, to_console=False):
         text = etree.tostring(obj._elem)
         xml = parseString(text)  # nosec
         content = xml.toprettyxml(encoding="utf-8")
-        if to_console:
-            print(content)
-        else:
-            with open(filepath, "wb") as xmlfile:
+        if isinstance(file_or_filename, str):
+            with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
                 xmlfile.write(content)
-    else:
-        if to_console:
-            print(
-                etree.tostring(
-                    obj._elem, encoding="utf-8", xml_declaration=True
-                ).decode("utf-8")
-            )
         else:
-            tree.write(filepath, encoding="utf-8", xml_declaration=True)
+            file_or_filename.write(content)
+    else:
+        tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -241,7 +234,12 @@ class Result(Element):
         self._elem.text = value
 
 
-class Skipped(Result):
+class FinalResult(Result):
+    """Base class for final test result (in contrast to XUnit2 InterimResult)."""
+
+    _tag = None
+
+class Skipped(FinalResult):
     """Test result when the case is skipped."""
 
     _tag = "skipped"
@@ -250,7 +248,7 @@ class Skipped(Result):
         return super().__eq__(other)
 
 
-class Failure(Result):
+class Failure(FinalResult):
     """Test result when the case failed."""
 
     _tag = "failure"
@@ -259,16 +257,13 @@ class Failure(Result):
         return super().__eq__(other)
 
 
-class Error(Result):
+class Error(FinalResult):
     """Test result when the case has errors during execution."""
 
     _tag = "error"
 
     def __eq__(self, other):
         return super().__eq__(other)
-
-
-POSSIBLE_RESULTS = {Failure, Error, Skipped}
 
 
 class System(Element):
@@ -329,7 +324,7 @@ class TestCase(Element):
         return super().__hash__()
 
     def __iter__(self) -> Iterator[Union[Result, System]]:
-        all_types = set.union(POSSIBLE_RESULTS, {SystemOut}, {SystemErr})
+        all_types = {Failure, Error, Skipped, SystemOut, SystemErr}
         for elem in self._elem.iter():
             for entry_type in all_types:
                 if elem.tag == entry_type._tag:
@@ -353,27 +348,30 @@ class TestCase(Element):
         return False
 
     @property
-    def result(self):
+    def result(self) -> List[FinalResult]:
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
         results = []
         for entry in self:
-            if isinstance(entry, tuple(POSSIBLE_RESULTS)):
+            if isinstance(entry, FinalResult):
                 results.append(entry)
 
         return results
 
     @result.setter
-    def result(self, value: Union[Result, List[Result]]):
+    def result(self, value: Union[FinalResult, List[FinalResult]]):
+        # Check typing
+        if not (isinstance(value, FinalResult) or
+                isinstance(value, list) and all(isinstance(item, FinalResult) for item in value)):
+            raise ValueError("Value must be either FinalResult or list of FinalResult")
+
         # First remove all existing results
         for entry in self.result:
-            if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
-                self.remove(entry)
-        if isinstance(value, Result):
+            self.remove(entry)
+        if isinstance(value, FinalResult):
             self.append(value)
-        elif isinstance(value, list):
+        else:
             for entry in value:
-                if any(isinstance(entry, r) for r in POSSIBLE_RESULTS):
-                    self.append(entry)
+                self.append(entry)
 
     @property
     def system_out(self):
@@ -495,6 +493,8 @@ class TestSuite(Element):
     skipped = IntAttr()
     __test__ = False
 
+    testcase = TestCase
+
     def __init__(self, name=None):
         super().__init__(self._tag)
         self.name = name
@@ -502,8 +502,8 @@ class TestSuite(Element):
 
     def __iter__(self) -> Iterator[TestCase]:
         return itertools.chain(
-            super().iterchildren(TestCase),
-            (case for suite in super().iterchildren(TestSuite) for case in suite),
+            super().iterchildren(self.testcase),
+            (case for suite in super().iterchildren(type(self)) for case in suite),
         )
 
     def __len__(self):
@@ -641,8 +641,8 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, filepath: str = None, pretty=False):
-        write_xml(self, filepath=filepath, pretty=pretty)
+    def write(self, file_or_filename: str = None, *, pretty: bool = False):
+        write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
 class JUnitXml(Element):
@@ -675,7 +675,7 @@ class JUnitXml(Element):
         self.name = name
 
     def __iter__(self) -> Iterator[TestSuite]:
-        return super().iterchildren(TestSuite)
+        return super().iterchildren(self.testsuite)
 
     def __len__(self):
         return len(list(self.__iter__()))
@@ -740,27 +740,36 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
-    def fromstring(cls, text: str):
-        """Construct JUnit objects from an XML string."""
+    def fromstring(cls, text: Union[str, bytes]):
+        """Construct JUnit objects from an XML string (str or bytes)."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
     @classmethod
-    def fromfile(cls, filepath: str, parse_func=None):
-        """Initiate the object from a report file."""
+    def fromfile(cls, file: Union[str, IO], parse_func=None):
+        """
+        Construct JUnit objects from an XML file.
+
+        The ``file`` can be any of the following:
+
+        - a file name/path
+        - a file object
+        - a file-like object
+        - a URL using the HTTP or FTP protocol (with lxml only)
+        """
         if parse_func is not None:
-            tree = parse_func(filepath)
+            tree = parse_func(file)
         else:
-            tree = etree.parse(filepath)  # nosec
+            tree = etree.parse(file)  # nosec
         root_elem = tree.getroot()
         instance = cls.fromroot(root_elem)
-        instance.filepath = filepath
+        instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(self, filepath: str = None, pretty=False, to_console=False):
+    def write(self, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
-        If `file_path` is not specified, it will write to the original file.
+        If `file_or_filename` is not specified, it will write to the original filename.
         If `pretty` is True, the result file will be more human friendly.
         """
-        write_xml(self, filepath=filepath, pretty=pretty, to_console=to_console)
+        write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
