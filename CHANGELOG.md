@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.0.0]
+### Breaking
+- Setter method `TestCase.result` used to ignore values of invalid types. This method now throws a `ValueError` instead.
+- Method `xunit2.TestCase.add_rerun_result` has been renamed to `add_interim_result` result to better reflect class hierarchy
+  of interim (rerun and flaky) results.
+
 ## [3.1.2] - 2024-08-31
 ### Fixed
 - the `TestCase.result` type annotation

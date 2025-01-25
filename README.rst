@@ -152,7 +152,7 @@ Junitparser also support extra schemas:
     rerun_failure.stack_trace = "Stack"
     rerun_failure.system_err = "E404"
     rerun_failure.system_out = "NOT FOUND"
-    case.add_rerun_result(rerun_failure)
+    case.add_interim_result(rerun_failure)
 
 Currently supported schemas including:
 
