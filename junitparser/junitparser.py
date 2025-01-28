@@ -11,7 +11,7 @@ See the documentation for other supported schemas.
 import io
 import itertools
 from copy import deepcopy
-from typing import List, Union, Iterator, IO
+from typing import List, Union, Iterator, IO, Optional
 
 try:
     from lxml import etree
@@ -19,7 +19,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
     if file_or_filename is None:
         file_or_filename = obj.filepath
@@ -656,7 +656,7 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, file_or_filename: str = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
@@ -781,7 +781,7 @@ class JUnitXml(Element):
         instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(self, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
         If `file_or_filename` is not specified, it will write to the original filename.
