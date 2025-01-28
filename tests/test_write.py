@@ -128,7 +128,8 @@ def test_write_stringio_bytesio():
 
     with pytest.raises(TypeError) as e:
         do_test_write(StringIO(), lambda: "")
-    assert(e.value.args == ("string argument expected, got 'bytes'", ))
+    assert e.value.args == ("string argument expected, got 'bytes'", )
+
 
 def test_write_filelike_obj():
     # a file-like object providing a write method only
