@@ -72,18 +72,26 @@ def do_test_write(write_arg, read_func):
 
 
 def test_write():
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        do_test_write(tmpfile.name, tmpfile.read)
+    with NamedTemporaryFile(suffix=".xml", delete_on_close=False) as tmpfile:
+        # needed by Windows
+        tmpfile.close()
+
+        def read():
+            with open(tmpfile.name, "rt") as file_obj:
+                return file_obj.read()
+
+        do_test_write(tmpfile.name, read)
 
 
 def test_write_file_obj():
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        with open(tmpfile.name, "wb") as file_obj:
-            def read():
-                file_obj.close()
-                return tmpfile.read()
+    with NamedTemporaryFile(suffix=".xml", mode="wb", delete_on_close=False) as tmp_file:
+        def read():
+            # needed by Windows
+            tmp_file.close()
+            with open(tmp_file.name, "rt") as file_obj:
+                return file_obj.read()
 
-            do_test_write(file_obj, read)
+        do_test_write(tmp_file, read)
 
 
 def test_write_filelike_obj():
