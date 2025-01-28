@@ -1,5 +1,7 @@
 import locale
+import os
 from copy import deepcopy
+from unittest import skipIf
 from xml.etree import ElementTree as etree
 import pytest
 
@@ -96,6 +98,7 @@ def locale_fixture():
 
 
 class Test_Locale:
+    @skipIf(os.name == 'nt', "Not tested on Windows")
     @pytest.mark.parametrize("loc", ["", "en_US.UTF-8", "de_DE.UTF-8"])
     def test_fromstring_numbers_locale_insensitive(self, loc, locale_fixture):
         "Case relies on that LC_ALL is set in the console."
