@@ -13,7 +13,7 @@ There may be many others that I'm not aware of.
 """
 
 import itertools
-from typing import Iterator, List, Type, TypeVar
+from typing import List, Type, TypeVar
 from . import junitparser
 
 
@@ -118,7 +118,8 @@ class TestCase(junitparser.TestCase):
     @property
     def interim_result(self) -> List[InterimResult]:
         """
-        A list of interim results: :class:`RerunFailure`, :class:`RerunError`, :class:`FlakyFailure`, or :class:`FlakyError` objects.
+        A list of interim results: :class:`RerunFailure`, :class:`RerunError`,
+        :class:`FlakyFailure`, or :class:`FlakyError` objects.
         This is complementary to the result property returning final results.
         """
         return self._interim_results(InterimResult)

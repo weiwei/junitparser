@@ -25,12 +25,12 @@ class Test_TestCase:
         assert isinstance(case.result[0], Failure)
         assert case.system_out == "System out"
         assert case.system_err == "System err"
-        assert case.is_passed == False
-        assert case.is_failure == True
-        assert case.is_error == False
-        assert case.is_skipped == False
-        assert case.is_rerun == True
-        assert case.is_flaky == False
+        assert case.is_passed is False
+        assert case.is_failure is True
+        assert case.is_error is False
+        assert case.is_skipped is False
+        assert case.is_rerun is True
+        assert case.is_flaky is False
 
         interim_results = case.interim_result
         assert len(interim_results) == 3
@@ -81,12 +81,12 @@ class Test_TestCase:
         assert len(case.result) == 0
         assert case.system_out == "System out"
         assert case.system_err == "System err"
-        assert case.is_passed == True
-        assert case.is_failure == False
-        assert case.is_error == False
-        assert case.is_skipped == False
-        assert case.is_rerun == False
-        assert case.is_flaky == True
+        assert case.is_passed is True
+        assert case.is_failure is False
+        assert case.is_error is False
+        assert case.is_skipped is False
+        assert case.is_rerun is False
+        assert case.is_flaky is True
 
         interim_results = case.interim_result
         assert len(interim_results) == 3
