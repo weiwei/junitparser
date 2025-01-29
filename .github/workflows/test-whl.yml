@@ -1,4 +1,4 @@
-name: Integration Test
+name: Test whl
 
 on:
   workflow_call:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   test:
-    name: Integration Test (python-${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test whl (python-${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

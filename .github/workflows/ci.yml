@@ -121,7 +121,8 @@ jobs:
         user: __token__
         password: ${{ secrets.pypi_password }}
 
-  integration-test:
+  test-whl:
+    name: "Test whl"
     needs: package-publish
     uses: "./.github/workflows/test-whl.yml"
     with:
