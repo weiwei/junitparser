@@ -1,7 +1,7 @@
 import pytest
 import os
 import sys
-from io import BytesIO
+from io import BytesIO, StringIO
 from tempfile import NamedTemporaryFile
 from unittest import skipIf
 
@@ -106,6 +106,31 @@ def test_write_file_obj():
         do_test_write(tmp_file, read)
 
 
+def test_write_stdout_stderr(capsys):
+    def read_stdout():
+        captured = capsys.readouterr()
+        return captured.out
+
+    def read_stderr():
+        captured = capsys.readouterr()
+        return captured.err
+
+    do_test_write(sys.stdout, read_stdout)
+    do_test_write(sys.stderr, read_stderr)
+
+    do_test_write(sys.stdout.buffer, read_stdout)
+    do_test_write(sys.stderr.buffer, read_stderr)
+
+
+def test_write_stringio_bytesio():
+    obj = BytesIO()
+    do_test_write(obj, lambda: obj.getvalue().decode("utf-8"))
+
+    with pytest.raises(TypeError) as e:
+        do_test_write(StringIO(), lambda: "")
+    assert e.value.args == ("string argument expected, got 'bytes'", )
+
+
 def test_write_filelike_obj():
     # a file-like object providing a write method only
     class FileObject:
@@ -170,7 +195,7 @@ def test_read_written_xml():
     assert case.name == "用例1"
 
 
-def test_write_pretty():
+def do_test_write_pretty(write_arg, read_func):
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -179,11 +204,10 @@ def test_write_pretty():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    xmlfile = BytesIO()
-    result.write(xmlfile, pretty=True)
-
+    result.write(write_arg, pretty=True)
+    written = read_func()
     if python_major == 3 and python_minor <= 7:
-        assert xmlfile.getvalue().decode("utf-8") == (
+        assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<testsuites>\n'
             '\t<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">\n'
@@ -192,7 +216,7 @@ def test_write_pretty():
             '</testsuites>\n'
         )
     else:
-        assert xmlfile.getvalue().decode("utf-8") == (
+        assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<testsuites>\n'
             '\t<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
@@ -201,8 +225,31 @@ def test_write_pretty():
             '</testsuites>\n'
         )
 
-    xmlfile.seek(0)
-    xml = JUnitXml.fromfile(xmlfile)
+    xml = JUnitXml.fromstring(written.encode("utf-8"))
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
+
+
+def test_write_pretty(capsys):
+    xmlfile = BytesIO()
+    do_test_write_pretty(xmlfile, lambda: xmlfile.getvalue().decode("utf-8"))
+
+    string = StringIO()
+    with pytest.raises(TypeError) as e:
+        do_test_write_pretty(string, lambda: "")
+    assert (e.value.args == ("string argument expected, got 'bytes'",))
+
+    def read_stdout():
+        captured = capsys.readouterr()
+        return captured.out
+
+    def read_stderr():
+        captured = capsys.readouterr()
+        return captured.err
+
+    do_test_write_pretty(sys.stdout, read_stdout)
+    do_test_write_pretty(sys.stderr, read_stderr)
+
+    do_test_write_pretty(sys.stdout.buffer, read_stdout)
+    do_test_write_pretty(sys.stderr.buffer, read_stderr)
