@@ -8,9 +8,10 @@ This, according to the document, is Apache Ant's JUnit output.
 
 See the documentation for other supported schemas.
 """
+import io
 import itertools
 from copy import deepcopy
-from typing import List, Union, Iterator, IO
+from typing import List, Union, Iterator, IO, Optional
 
 try:
     from lxml import etree
@@ -18,7 +19,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
     if file_or_filename is None:
         file_or_filename = obj.filepath
@@ -35,9 +36,19 @@ def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = Fa
             with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
                 xmlfile.write(content)
         else:
-            file_or_filename.write(content)
+            if isinstance(file_or_filename, io.TextIOWrapper):
+                if file_or_filename.encoding is not None and file_or_filename.encoding.lower() != "utf-8":
+                    raise ValueError(f"Only utf-8 encoding is supported: {file_or_filename.encoding}")
+                file_or_filename.buffer.write(content)
+            else:
+                file_or_filename.write(content)
     else:
-        tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
+        if isinstance(file_or_filename, io.TextIOWrapper):
+            if file_or_filename.encoding is not None and file_or_filename.encoding.lower() != "utf-8":
+                raise ValueError(f"Only utf-8 encoding is supported: {file_or_filename.encoding}")
+            tree.write(file_or_filename.buffer, encoding="utf-8", xml_declaration=True)
+        else:
+            tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -645,7 +656,7 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, file_or_filename: str = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
@@ -770,7 +781,7 @@ class JUnitXml(Element):
         instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(self, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
         If `file_or_filename` is not specified, it will write to the original filename.
