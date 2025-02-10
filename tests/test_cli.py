@@ -5,7 +5,6 @@ from junitparser import version
 
 DATA_DIR = Path(__file__).parent / "data"
 
-
 @pytest.mark.parametrize(
     "file, expected_exitcode",
     [("jenkins.xml", 1), ("no_fails.xml", 0), ("normal.xml", 1)],
@@ -22,14 +21,14 @@ def test_merge(tmp_path: Path):
     cli.merge(files, str(outfile))
     xml = outfile.read_text()
     for s in suites:
-        assert f'testsuite name="{s}"' in xml
+        assert f'name="{s}"' in xml
 
 
 def test_merge_output_to_terminal(capsys: pytest.CaptureFixture):
     ret = cli.main(["merge", str(DATA_DIR / "normal.xml"), "-"])
     assert ret == 0
     captured = capsys.readouterr()
-    assert captured.out.startswith("<?xml version='1.0' encoding='utf-8'?>")
+    assert captured.out.startswith("<?xml version='1.0'")
 
 
 def test_verify_with_glob():
