@@ -1,0 +1,43 @@
+name: Test whl
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      python-version:
+        required: true
+        type: string
+      include:
+        required: true
+        type: string
+
+jobs:
+  test:
+    name: Test whl (python-${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(inputs.os) }}
+        python-version: ${{ fromJson(inputs.python-version) }}
+        include: ${{ fromJson(inputs.include) }}
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Download Binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: Binaries
+        path: dist/
+    - name: Run junitparser CLI
+      run: |
+        pip install dist/junitparser-*.whl
+        wget https://raw.githubusercontent.com/weiwei/junitparser/003587443fd6f332e9a6bd4b027e657a76cca033/tests/data/no_fails.xml
+        junitparser verify no_fails.xml
+        pip install lxml
+        junitparser verify no_fails.xml

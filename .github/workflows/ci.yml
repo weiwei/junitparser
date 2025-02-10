@@ -109,9 +109,30 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: Binaries
+        path: dist/*
     - name: Publish to pypi
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
+
+  test-whl:
+    name: "Test whl"
+    needs: package-publish
+    uses: "./.github/workflows/test-whl.yml"
+    with:
+      os: '["ubuntu-24.04"]'
+      # alive Python versions
+      python-version: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
+      # EOL Python versions
+      include: >
+        [
+          {"os": "ubuntu-20.04", "python-version": "3.6"},
+          {"os": "ubuntu-20.04", "python-version": "3.7"},
+          {"os": "ubuntu-22.04", "python-version": "3.8"},
+        ]
