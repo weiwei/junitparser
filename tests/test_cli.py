@@ -22,3 +22,16 @@ def test_merge(tmp_path: Path):
     xml = outfile.read_text()
     for s in suites:
         assert f'testsuite name="{s}"' in xml
+
+
+def test_merge_output_to_terminal(capsys: pytest.CaptureFixture):
+    ret = cli.main(["merge", str(DATA_DIR / "normal.xml"), "-"])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert captured.out.startswith("<?xml version='1.0' encoding='utf-8'?>")
+
+
+def test_verify_with_glob():
+    ret = cli.main(["verify", "--glob", str(DATA_DIR / "pytest_*.xml")])
+    # we expect failure, as one of the files has errors
+    assert ret == 1
