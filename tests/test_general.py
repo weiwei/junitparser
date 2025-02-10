@@ -1,5 +1,7 @@
 import locale
+import os
 from copy import deepcopy
+from unittest import skipIf
 from xml.etree import ElementTree as etree
 import pytest
 
@@ -96,12 +98,14 @@ def locale_fixture():
 
 
 class Test_Locale:
+    @skipIf(os.name == 'nt', "Not tested on Windows")
     @pytest.mark.parametrize("loc", ["", "en_US.UTF-8", "de_DE.UTF-8"])
     def test_fromstring_numbers_locale_insensitive(self, loc, locale_fixture):
         "Case relies on that LC_ALL is set in the console."
         locale.setlocale(locale.LC_NUMERIC, loc)
         text = """<testsuites>
-        <testsuite errors="0" failures="0" hostname="hooch" name="pytest" skipped="0" tests="2" time="1000.125" timestamp="2020-02-05T10:52:33.843536">
+        <testsuite errors="0" failures="0" hostname="hooch" name="pytest" skipped="0" tests="2" time="1000.125"
+        timestamp="2020-02-05T10:52:33.843536">
         <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="1,000.025"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.1"/>
         </testsuite>
@@ -136,12 +140,14 @@ class Test_JunitXml:
 
     def test_fromstring_multiple_fails(self):
         text = """<testsuites>
-        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025"
+        timestamp="2020-02-05T10:52:33.843536">
         <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
         <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
         <error message="test teardown failure">
-        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E
+        PermissionError test_x.py:6: PermissionError
         </error>
         </testcase>
         </testsuite>
@@ -159,12 +165,14 @@ class Test_JunitXml:
 
     def test_fromroot_testsuite(self):
         text = """
-        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025"
+        timestamp="2020-02-05T10:52:33.843536">
         <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
         <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
         <error message="test teardown failure">
-        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E
+        PermissionError test_x.py:6: PermissionError
         </error>
         </testcase>
         </testsuite>"""
@@ -181,12 +189,14 @@ class Test_JunitXml:
 
     def test_fromroot_testsuites(self):
         text = """<testsuites>
-        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025" timestamp="2020-02-05T10:52:33.843536">
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025"
+        timestamp="2020-02-05T10:52:33.843536">
         <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
         <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
         <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
         <error message="test teardown failure">
-        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E PermissionError test_x.py:6: PermissionError
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E
+        PermissionError test_x.py:6: PermissionError
         </error>
         </testcase>
         </testsuite>
@@ -683,18 +693,32 @@ class Test_TestCase:
         case.result = [Skipped()]
         assert case.is_skipped
         assert not case.is_passed
+        assert not case.is_failure
+        assert not case.is_error
 
     def test_case_is_passed(self):
         case = TestCase()
         case.result = []
         assert not case.is_skipped
         assert case.is_passed
+        assert not case.is_failure
+        assert not case.is_error
 
     def test_case_is_failed(self):
         case = TestCase()
         case.result = [Failure()]
         assert not case.is_skipped
         assert not case.is_passed
+        assert case.is_failure
+        assert not case.is_error
+
+    def test_case_is_error(self):
+        case = TestCase()
+        case.result = [Error()]
+        assert not case.is_skipped
+        assert not case.is_passed
+        assert not case.is_failure
+        assert case.is_error
 
 
 class Test_Properties:

@@ -1,33 +1,29 @@
 import pytest
+import os
 import sys
-from io import BytesIO
+from io import BytesIO, StringIO
 from tempfile import NamedTemporaryFile
+from unittest import skipIf
 
 from junitparser import (
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
-    Error,
-    Attr,
     JUnitXmlError,
-    JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
+    JUnitXml
 )
 
 try:
-    from lxml.etree import XMLParser, parse
-
+    from lxml.etree import XMLParser  # noqa: F401
     has_lxml = True
 except ImportError:
     has_lxml = False
 
+python_major = int(sys.version.split(".")[0])
+python_minor = int(sys.version.split(".")[1])
+
 
 def get_expected_xml(test_case_name: str, test_suites: bool = True):
-    if sys.version.startswith("3.6.") and not has_lxml:
+    if python_major == 3 and python_minor <= 7 and not has_lxml:
         expected_test_suite = '<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">'
     else:
         expected_test_suite = '<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">'
@@ -79,18 +75,61 @@ def do_test_write(write_arg, read_func):
 
     assert text == get_expected_xml("case1")
 
+
+@skipIf(os.name == 'nt' and python_major == 3 and python_minor <= 11, "Not for Windows with Python ≤3.11")
 def test_write():
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        do_test_write(tmpfile.name, tmpfile.read)
+    kwargs = dict(delete_on_close=False) if os.name == 'nt' else {}
+    with NamedTemporaryFile(suffix=".xml", **kwargs) as tmpfile:
+        if os.name == "nt":
+            # needed by Windows
+            tmpfile.close()
 
+        def read():
+            with open(tmpfile.name, "rt") as file_obj:
+                return file_obj.read()
+
+        do_test_write(tmpfile.name, read)
+
+
+@skipIf(os.name == 'nt' and python_major == 3 and python_minor <= 11, "Not for Windows with Python ≤3.11")
 def test_write_file_obj():
-    with NamedTemporaryFile(suffix=".xml", encoding="utf-8", mode="rt") as tmpfile:
-        with open(tmpfile.name, "wb") as file_obj:
-            def read():
-                file_obj.close()
-                return tmpfile.read()
+    kwargs = dict(delete_on_close=False) if os.name == 'nt' else {}
+    with NamedTemporaryFile(suffix=".xml", mode="wb", **kwargs) as tmp_file:
+        def read():
+            tmp_file.flush()
+            if os.name == "nt":
+                # needed by Windows
+                tmp_file.close()
+            with open(tmp_file.name, "rt") as file_obj:
+                return file_obj.read()
 
-            do_test_write(file_obj, read)
+        do_test_write(tmp_file, read)
+
+
+def test_write_stdout_stderr(capsys):
+    def read_stdout():
+        captured = capsys.readouterr()
+        return captured.out
+
+    def read_stderr():
+        captured = capsys.readouterr()
+        return captured.err
+
+    do_test_write(sys.stdout, read_stdout)
+    do_test_write(sys.stderr, read_stderr)
+
+    do_test_write(sys.stdout.buffer, read_stdout)
+    do_test_write(sys.stderr.buffer, read_stderr)
+
+
+def test_write_stringio_bytesio():
+    obj = BytesIO()
+    do_test_write(obj, lambda: obj.getvalue().decode("utf-8"))
+
+    with pytest.raises(TypeError) as e:
+        do_test_write(StringIO(), lambda: "")
+    assert e.value.args == ("string argument expected, got 'bytes'", )
+
 
 def test_write_filelike_obj():
     # a file-like object providing a write method only
@@ -106,6 +145,7 @@ def test_write_filelike_obj():
 
     filelike_obj = FileObject()
     do_test_write(filelike_obj, filelike_obj._read)
+
 
 def test_write_noarg():
     suite1 = TestSuite()
@@ -155,7 +195,7 @@ def test_read_written_xml():
     assert case.name == "用例1"
 
 
-def test_write_pretty():
+def do_test_write_pretty(write_arg, read_func):
     suite1 = TestSuite()
     suite1.name = "suite1"
     case1 = TestCase()
@@ -164,11 +204,10 @@ def test_write_pretty():
     result = JUnitXml()
     result.add_testsuite(suite1)
 
-    xmlfile = BytesIO()
-    result.write(xmlfile, pretty=True)
-
-    if sys.version.startswith("3.6."):
-        assert xmlfile.getvalue().decode("utf-8") == (
+    result.write(write_arg, pretty=True)
+    written = read_func()
+    if python_major == 3 and python_minor <= 7:
+        assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<testsuites>\n'
             '\t<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">\n'
@@ -177,7 +216,7 @@ def test_write_pretty():
             '</testsuites>\n'
         )
     else:
-        assert xmlfile.getvalue().decode("utf-8") == (
+        assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
             '<testsuites>\n'
             '\t<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
@@ -186,8 +225,31 @@ def test_write_pretty():
             '</testsuites>\n'
         )
 
-    xmlfile.seek(0)
-    xml = JUnitXml.fromfile(xmlfile)
+    xml = JUnitXml.fromstring(written.encode("utf-8"))
     suite = next(iter(xml))
     case = next(iter(suite))
     assert case.name == "用例1"
+
+
+def test_write_pretty(capsys):
+    xmlfile = BytesIO()
+    do_test_write_pretty(xmlfile, lambda: xmlfile.getvalue().decode("utf-8"))
+
+    string = StringIO()
+    with pytest.raises(TypeError) as e:
+        do_test_write_pretty(string, lambda: "")
+    assert (e.value.args == ("string argument expected, got 'bytes'",))
+
+    def read_stdout():
+        captured = capsys.readouterr()
+        return captured.out
+
+    def read_stderr():
+        captured = capsys.readouterr()
+        return captured.err
+
+    do_test_write_pretty(sys.stdout, read_stdout)
+    do_test_write_pretty(sys.stderr, read_stderr)
+
+    do_test_write_pretty(sys.stdout.buffer, read_stdout)
+    do_test_write_pretty(sys.stderr.buffer, read_stderr)
