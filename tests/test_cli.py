@@ -1,6 +1,7 @@
 from pathlib import Path
 import pytest
 from junitparser import cli
+from junitparser import version
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -35,3 +36,72 @@ def test_verify_with_glob():
     ret = cli.main(["verify", "--glob", str(DATA_DIR / "pytest_*.xml")])
     # we expect failure, as one of the files has errors
     assert ret == 1
+
+
+class Test_CommandlineOptions:
+
+    @classmethod
+    def setup_class(cls):
+        cls.parser = cli._parser("junitparser")
+
+    @pytest.mark.parametrize("arg", ["-v", "--version"])
+    def test_version(self, arg, capsys):
+        with pytest.raises(SystemExit) as e:
+            self.parser.parse_args([arg])
+        captured = capsys.readouterr()
+        assert e.value.code == 0
+        assert captured.out == f"junitparser {version}\n"
+
+    def test_help_shows_subcommands(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            self.parser.parse_args(["--help"])
+        captured = capsys.readouterr()
+        assert "{merge,verify} ...\n" in captured.out
+        assert e.value.code == 0
+
+    @pytest.mark.parametrize("command", ["merge", "verify"])
+    def test_subcommand_help(self, command):
+        with pytest.raises(SystemExit) as e:
+            self.parser.parse_args([command, "--help"])
+        assert e.value.code == 0
+
+    @pytest.mark.parametrize("command", ["merge", "verify"])
+    def test_subcommands_help_general_options(self, command, capsys):
+        with pytest.raises(SystemExit) as e:
+            self.parser.parse_args([command, "--help"])
+        captured = capsys.readouterr()
+        assert "[--glob]" in captured.out
+        assert "paths [paths ...]" in captured.out
+
+    def test_merge_help_options(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            self.parser.parse_args(["merge", "--help"])
+        captured = capsys.readouterr()
+        assert "[--suite-name SUITE_NAME]" in captured.out
+        assert "output\n" in captured.out
+
+    @pytest.mark.parametrize("command", ["merge", "verify"])
+    def test_option_glob(
+        self,
+        command,
+    ):
+        args = self.parser.parse_args([command, "--glob", "pytest_*.xml", "-"])
+        assert args.paths_are_globs
+
+    def test_verify_argument_path(self):
+        files = ["foo", "bar"]
+        args = self.parser.parse_args(["verify", *files])
+        assert args.paths == files
+
+    def test_merge_argument_path(self):
+        files = ["foo", "bar"]
+        args = self.parser.parse_args(["merge", *files, "-"])
+        assert args.paths == files
+
+    def test_merge_option_suite_name(self):
+        args = self.parser.parse_args(["merge", "--suite-name", "foo", "_", "-"])
+        assert args.suite_name == "foo"
+
+    def test_merge_argument_output(self):
+        args = self.parser.parse_args(["merge", "foo", "bar"])
+        assert args.output == "bar"
