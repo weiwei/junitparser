@@ -70,7 +70,7 @@ def _parser(prog_name=None):  # pragma: no cover
     )
 
     # command: verify
-    verify_parser = command_parser.add_parser(
+    verify_parser = command_parser.add_parser(  # noqa: F841
         "verify",
         help="Return a non-zero exit code if one of the testcases failed or errored.",
         parents=[abstract_parser],
