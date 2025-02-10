@@ -5,6 +5,7 @@ from junitparser import version
 
 DATA_DIR = Path(__file__).parent / "data"
 
+
 @pytest.mark.parametrize(
     "file, expected_exitcode",
     [("jenkins.xml", 1), ("no_fails.xml", 0), ("normal.xml", 1)],
@@ -66,14 +67,14 @@ class Test_CommandlineOptions:
 
     @pytest.mark.parametrize("command", ["merge", "verify"])
     def test_subcommands_help_general_options(self, command, capsys):
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(SystemExit):
             self.parser.parse_args([command, "--help"])
         captured = capsys.readouterr()
         assert "[--glob]" in captured.out
         assert "paths [paths ...]" in captured.out
 
     def test_merge_help_options(self, capsys):
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(SystemExit):
             self.parser.parse_args(["merge", "--help"])
         captured = capsys.readouterr()
         assert "[--suite-name SUITE_NAME]" in captured.out
