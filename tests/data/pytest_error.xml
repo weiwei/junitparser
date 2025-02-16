@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.039" timestamp="2025-01-14T20:33:43.564504+01:00">
+		<testcase classname="tests.test_cli" name="test_merge" time="0.001">
+			<failure message="NameError: name 'file' is not defined" />
+		</testcase>
+	</testsuite>
+</testsuites>

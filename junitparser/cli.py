@@ -6,8 +6,8 @@ from itertools import chain
 from . import JUnitXml, version
 
 
-def merge(paths, output, suite_name):
-    """Merge XML report."""
+def merge(paths, output, suite_name=""):
+    """Merge XML reports."""
     result = JUnitXml()
     for path in paths:
         result += JUnitXml.fromfile(path)
@@ -44,18 +44,23 @@ def _parser(prog_name=None):  # pragma: no cover
     command_parser = parser.add_subparsers(dest="command", help="command")
     command_parser.required = True
 
-    # command: merge
-    merge_parser = command_parser.add_parser(
-        "merge", help="Merge JUnit XML format reports with junitparser."
-    )
-    merge_parser.add_argument(
+    # an abstract object that defines common arguments used by multiple commands
+    abstract_parser = ArgumentParser(add_help=False)
+    abstract_parser.add_argument(
         "--glob",
         help="Treat original XML path(s) as glob(s).",
         dest="paths_are_globs",
         action="store_true",
         default=False,
     )
-    merge_parser.add_argument("paths", nargs="+", help="Original XML path(s).")
+    abstract_parser.add_argument("paths", help="Original XML path(s).", nargs="+")
+
+    # command: merge
+    merge_parser = command_parser.add_parser(
+        "merge",
+        help="Merge JUnit XML format reports with junitparser.",
+        parents=[abstract_parser],
+    )
     merge_parser.add_argument(
         "output", help='Merged XML Path, setting to "-" will output to the console'
     )
@@ -65,19 +70,10 @@ def _parser(prog_name=None):  # pragma: no cover
     )
 
     # command: verify
-    merge_parser = command_parser.add_parser(
+    verify_parser = command_parser.add_parser(  # noqa: F841
         "verify",
         help="Return a non-zero exit code if one of the testcases failed or errored.",
-    )
-    merge_parser.add_argument(
-        "--glob",
-        help="Treat original XML path(s) as glob(s).",
-        dest="paths_are_globs",
-        action="store_true",
-        default=False,
-    )
-    merge_parser.add_argument(
-        "paths", nargs="+", help="XML path(s) of reports to verify."
+        parents=[abstract_parser],
     )
 
     return parser
@@ -85,19 +81,14 @@ def _parser(prog_name=None):  # pragma: no cover
 
 def main(args=None, prog_name=None):
     """CLI's main runner."""
-    args = args or _parser(prog_name=prog_name).parse_args()
+    args = _parser(prog_name=prog_name).parse_args(args)
+    paths = (
+        chain.from_iterable(iglob(path) for path in args.paths)
+        if args.paths_are_globs
+        else args.paths
+    )
     if args.command == "merge":
-        return merge(
-            chain.from_iterable(iglob(path) for path in args.paths)
-            if args.paths_are_globs
-            else args.paths,
-            args.output,
-            args.suite_name,
-        )
+        return merge(paths, args.output, args.suite_name)
     if args.command == "verify":
-        return verify(
-            chain.from_iterable(iglob(path) for path in args.paths)
-            if args.paths_are_globs
-            else args.paths
-        )
+        return verify(paths)
     return 255
