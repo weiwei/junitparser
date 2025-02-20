@@ -1,0 +1,57 @@
+name: Test OS
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      python-version:
+        required: true
+        type: string
+      include:
+        required: true
+        type: string
+
+jobs:
+  test:
+    name: Test (python-${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(inputs.os) }}
+        python-version: ${{ fromJson(inputs.python-version) }}
+        include: ${{ fromJson(inputs.include) }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Setup locales
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo locale-gen en_US.UTF-8
+        sudo locale-gen de_DE.UTF-8
+        sudo update-locale
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      shell: bash
+    - name: Test
+      run: |
+        pytest --junit-xml=test-results-py${{ matrix.python-version }}-xml.xml
+    - name: Test with lxml
+      run: |
+        pip install lxml
+        pytest --junit-xml=test-results-py${{ matrix.python-version }}-lxml.xml
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Test Results (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+        path: test-results-py*-*.xml

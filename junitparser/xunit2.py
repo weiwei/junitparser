@@ -12,10 +12,9 @@ According to the internet, the schema is compatible with:
 There may be many others that I'm not aware of.
 """
 
-from typing import List, TypeVar
+import itertools
+from typing import List, Type, TypeVar
 from . import junitparser
-
-T = TypeVar("T")
 
 
 class StackTrace(junitparser.System):
@@ -98,31 +97,58 @@ class FlakyError(InterimResult):
     _tag = "flakyError"
 
 
+R = TypeVar("R", bound=InterimResult)
+
+
 class TestCase(junitparser.TestCase):
     group = junitparser.Attr()
 
-    def _rerun_results(self, _type: T) -> List[T]:
-        elems = self.iterchildren(_type)
-        results = []
-        for elem in elems:
-            results.append(_type.fromelem(elem))
-        return results
+    # XUnit2 TestCase children are JUnit children and intermediate results
+    ITER_TYPES = {
+        t._tag: t
+        for t in itertools.chain(
+            junitparser.TestCase.ITER_TYPES.values(),
+            (RerunFailure, RerunError, FlakyFailure, FlakyError),
+        )
+    }
 
-    def rerun_failures(self):
+    def _interim_results(self, _type: Type[R]) -> List[R]:
+        return [entry for entry in self if isinstance(entry, _type)]
+
+    @property
+    def interim_result(self) -> List[InterimResult]:
+        """
+        A list of interim results: :class:`RerunFailure`, :class:`RerunError`,
+        :class:`FlakyFailure`, or :class:`FlakyError` objects.
+        This is complementary to the result property returning final results.
+        """
+        return self._interim_results(InterimResult)
+
+    def rerun_failures(self) -> List[RerunFailure]:
         """<rerunFailure>"""
-        return self._rerun_results(RerunFailure)
+        return self._interim_results(RerunFailure)
 
-    def rerun_errors(self):
+    def rerun_errors(self) -> List[RerunError]:
         """<rerunError>"""
-        return self._rerun_results(RerunError)
+        return self._interim_results(RerunError)
 
-    def flaky_failures(self):
+    def flaky_failures(self) -> List[FlakyFailure]:
         """<flakyFailure>"""
-        return self._rerun_results(FlakyFailure)
+        return self._interim_results(FlakyFailure)
 
-    def flaky_errors(self):
+    def flaky_errors(self) -> List[FlakyError]:
         """<flakyError>"""
-        return self._rerun_results(FlakyError)
+        return self._interim_results(FlakyError)
+
+    @property
+    def is_rerun(self) -> bool:
+        """Whether this testcase is rerun, i.e., there are rerun failures or errors."""
+        return any(self.rerun_failures()) or any(self.rerun_errors())
+
+    @property
+    def is_flaky(self) -> bool:
+        """Whether this testcase is flaky, i.e., there are flaky failures or errors."""
+        return any(self.flaky_failures()) or any(self.flaky_errors())
 
     def add_interim_result(self, result: InterimResult):
         """Append an interim (rerun or flaky) result to the testcase. A testcase can have multiple interim results."""

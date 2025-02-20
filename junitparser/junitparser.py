@@ -8,9 +8,10 @@ This, according to the document, is Apache Ant's JUnit output.
 
 See the documentation for other supported schemas.
 """
+import io
 import itertools
 from copy import deepcopy
-from typing import List, Union, Iterator, IO
+from typing import List, Union, Iterator, IO, Optional
 
 try:
     from lxml import etree
@@ -18,7 +19,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
     if file_or_filename is None:
         file_or_filename = obj.filepath
@@ -35,9 +36,19 @@ def write_xml(obj, file_or_filename: Union[str, IO] = None, *, pretty: bool = Fa
             with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
                 xmlfile.write(content)
         else:
-            file_or_filename.write(content)
+            if isinstance(file_or_filename, io.TextIOWrapper):
+                if file_or_filename.encoding is not None and file_or_filename.encoding.lower() != "utf-8":
+                    raise ValueError(f"Only utf-8 encoding is supported: {file_or_filename.encoding}")
+                file_or_filename.buffer.write(content)
+            else:
+                file_or_filename.write(content)
     else:
-        tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
+        if isinstance(file_or_filename, io.TextIOWrapper):
+            if file_or_filename.encoding is not None and file_or_filename.encoding.lower() != "utf-8":
+                raise ValueError(f"Only utf-8 encoding is supported: {file_or_filename.encoding}")
+            tree.write(file_or_filename.buffer, encoding="utf-8", xml_declaration=True)
+        else:
+            tree.write(file_or_filename, encoding="utf-8", xml_declaration=True)
 
 
 class JUnitXmlError(Exception):
@@ -312,6 +323,9 @@ class TestCase(Element):
     time = FloatAttr()
     __test__ = False
 
+    # JUnit TestCase children are final results, SystemOut and SystemErr
+    ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}
+
     def __init__(self, name: str = None, classname: str = None, time: float = None):
         super().__init__(self._tag)
         if name is not None:
@@ -325,11 +339,9 @@ class TestCase(Element):
         return super().__hash__()
 
     def __iter__(self) -> Iterator[Union[Result, System]]:
-        all_types = {Failure, Error, Skipped, SystemOut, SystemErr}
         for elem in self._elem.iter():
-            for entry_type in all_types:
-                if elem.tag == entry_type._tag:
-                    yield entry_type.fromelem(elem)
+            if elem.tag in self.ITER_TYPES:
+                yield self.ITER_TYPES[elem.tag].fromelem(elem)
 
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
@@ -341,22 +353,24 @@ class TestCase(Element):
         return not self.result
 
     @property
+    def is_failure(self):
+        """Whether this testcase failed."""
+        return any(isinstance(r, Failure) for r in self.result)
+
+    @property
+    def is_error(self):
+        """Whether this testcase errored."""
+        return any(isinstance(r, Error) for r in self.result)
+
+    @property
     def is_skipped(self):
         """Whether this testcase was skipped."""
-        for r in self.result:
-            if isinstance(r, Skipped):
-                return True
-        return False
+        return any(isinstance(r, Skipped) for r in self.result)
 
     @property
     def result(self) -> List[FinalResult]:
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
-        results = []
-        for entry in self:
-            if isinstance(entry, FinalResult):
-                results.append(entry)
-
-        return results
+        return [entry for entry in self if isinstance(entry, FinalResult)]
 
     @result.setter
     def result(self, value: Union[FinalResult, List[FinalResult]]):
@@ -642,7 +656,7 @@ class TestSuite(Element):
         for suite in self.iterchildren(TestSuite):
             yield suite
 
-    def write(self, file_or_filename: str = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
@@ -768,7 +782,7 @@ class JUnitXml(Element):
         instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(self, file_or_filename: Union[str, IO] = None, *, pretty: bool = False):
+    def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
         If `file_or_filename` is not specified, it will write to the original filename.
