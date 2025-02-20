@@ -93,8 +93,8 @@ jobs:
         coverage run -m pytest
         bash <(curl -s https://codecov.io/bash)
 
-  package-publish:
-    name: "Publish Package"
+  package-build:
+    name: "Build Package"
     needs: coverage-lint
     runs-on: ubuntu-latest
     steps:
@@ -131,16 +131,10 @@ jobs:
       with:
         name: Binaries
         path: dist/*
-    - name: Publish to pypi
-      if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
 
   test-whl:
     name: "Test whl"
-    needs: package-publish
+    needs: package-build
     uses: "./.github/workflows/test-whl.yml"
     with:
       os: '["ubuntu-24.04"]'
@@ -153,3 +147,24 @@ jobs:
           {"os": "ubuntu-20.04", "python-version": "3.7"},
           {"os": "ubuntu-22.04", "python-version": "3.8"},
         ]
+
+  package-publish:
+    name: "Publish Package"
+    needs: test-whl
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Download Binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: Binaries
+        path: dist/
+    - name: Inspect binaries
+      run: |
+        ls -lah dist/
+    - name: Publish to pypi
+      if: startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
