@@ -1,3 +1,38 @@
 [build-system]
-requires = ["setuptools >=44.0", "wheel >=0.37"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "junitparser"
+dynamic = ["version"]
+authors = [
+  { name="Weiwei Wang", email="gastlygem@gmail.com" },
+]
+description = "Manipulates JUnit/xUnit Result XML files"
+readme = "README.rst"
+requires-python = ">=3.6"
+dependencies = []
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Topic :: Text Processing",
+  "Programming Language :: Python :: 3",
+]
+license = {text = "Apache-2.0"}
+keywords = ["junit", "xunit", "xml", "parser"]
+
+[project.urls]
+Homepage = "https://github.com/weiwei/junitparser"
+Issues = "https://github.com/weiwei/junitparser/issues"
+Documentation = "https://junitparser.readthedocs.io/"
+
+[project.scripts]
+junitparser = "junitparser.cli:main"
+
+[tool.setuptools]
+packages = ["junitparser"]
+license-files = ["LICENSE"]
+
+[tool.setuptools.dynamic]
+version = {attr = "junitparser.version"}
