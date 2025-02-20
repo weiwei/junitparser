@@ -127,6 +127,7 @@ class Test_JunitXml:
         <testcase name="testname2">
         </testcase></testsuite></testsuites>"""
         result = JUnitXml.fromstring(text)
+        assert isinstance(result, JUnitXml)
         assert len(result) == 2
         assert result.time == 0
 
@@ -135,6 +136,7 @@ class Test_JunitXml:
         <testcase name="testname1">
         </testcase></testsuite>"""
         result = JUnitXml.fromstring(text)
+        assert isinstance(result, JUnitXml)
         assert len(result) == 1
         assert result.time == 0
 
@@ -178,10 +180,14 @@ class Test_JunitXml:
         </testsuite>"""
         root_elemt = etree.fromstring(text)
         result = JUnitXml.fromroot(root_elemt)
-        assert isinstance(result, TestSuite)
-        assert result.errors == 1
-        assert result.skipped == 1
-        cases = list(iter(result))
+        assert isinstance(result, JUnitXml)
+        suites = list(iter(result))
+        assert len(suites) == 1
+        suite = suites[0]
+        assert isinstance(suite, TestSuite)
+        assert suite.errors == 1
+        assert suite.skipped == 1
+        cases = list(iter(suite))
         assert len(cases[0].result) == 0
         assert len(cases[1].result) == 2
         text = cases[1].result[1].text
@@ -203,6 +209,7 @@ class Test_JunitXml:
         </testsuites>"""
         root_elemt = etree.fromstring(text)
         result = JUnitXml.fromroot(root_elemt)
+        assert isinstance(result, JUnitXml)
         assert result.errors == 1
         assert result.skipped == 1
         suite = list(iter(result))[0]
