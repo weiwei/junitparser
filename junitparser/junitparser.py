@@ -653,8 +653,7 @@ class TestSuite(Element):
 
     def testsuites(self):
         """Iterate through all testsuites."""
-        for suite in self.iterchildren(TestSuite):
-            yield suite
+        yield from self.iterchildren(type(self))
 
     def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
@@ -696,7 +695,7 @@ class JUnitXml(Element):
         return len(list(self.__iter__()))
 
     def __add__(self, other):
-        result = JUnitXml()
+        result = type(self)()
         for suite in self:
             result.add_testsuite(suite)
         for suite in other:
@@ -708,7 +707,7 @@ class JUnitXml(Element):
             for suite in other:
                 self.add_testsuite(suite)
         elif other._elem.tag == "testsuite":
-            suite = TestSuite(name=other.name)
+            suite = self.testsuite(name=other.name)
             for case in other:
                 suite._add_testcase_no_update_stats(case)
             self.add_testsuite(suite)
