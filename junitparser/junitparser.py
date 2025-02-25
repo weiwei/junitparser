@@ -514,6 +514,7 @@ class TestSuite(Element):
         super().__init__(self._tag)
         self.name = name
         self.filepath = None
+        self.root = JUnitXml
 
     def __iter__(self) -> Iterator[TestCase]:
         return itertools.chain(
@@ -552,7 +553,7 @@ class TestSuite(Element):
             result.update_statistics()
         else:
             # Create a new test result containing two testsuites
-            result = JUnitXml()
+            result = self.root()
             result.add_testsuite(self)
             result.add_testsuite(other)
         return result
@@ -566,7 +567,7 @@ class TestSuite(Element):
             self.update_statistics()
             return self
 
-        result = JUnitXml()
+        result = self.root()
         result.filepath = self.filepath
         result.add_testsuite(self)
         result.add_testsuite(other)
