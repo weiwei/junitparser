@@ -162,6 +162,7 @@ class Test_TestSuite:
         suite = TestSuite("mySuite")
         suite.add_testsuite(TestSuite("suite1"))
         suite = next(suite.testsuites())
+        assert isinstance(suite, TestSuite)
         assert suite.name == "suite1"
 
     def test_remove_case(self):
@@ -170,6 +171,20 @@ class Test_TestSuite:
         suite.add_testcase(test)
         suite.remove_testcase(test)
         assert len(suite) == 0
+
+    def test_add_testsuites(self):
+        suite1 = TestSuite("suite1")
+        suite2 = TestSuite("suite2")
+        suites = suite1 + suite2
+        assert isinstance(suites, JUnitXml)
+        assert len(list(iter(suites))) == 2
+
+    def test_iadd_testsuites(self):
+        suite1 = TestSuite("suite1")
+        suite2 = TestSuite("suite2")
+        suite1 += suite2
+        assert isinstance(suite1, JUnitXml)
+        assert len(list(iter(suite1))) == 2
 
 
 class Test_JUnitXml:
