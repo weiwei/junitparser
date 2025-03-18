@@ -1,7 +1,7 @@
 junitparser -- Pythonic JUnit/xUnit Result XML Parser
 ======================================================
 
-.. image:: https://github.com/weiwei/junitparser/workflows/build/badge.svg?branch=master
+.. image:: https://github.com/weiwei/junitparser/actions/workflows/ci.yml/badge.svg?branch=master
    :target: https://github.com/weiwei/junitparser/actions
 .. image:: https://codecov.io/gh/weiwei/junitparser/branch/master/graph/badge.svg?token=UotlfRXNnK
    :target: https://codecov.io/gh/weiwei/junitparser
