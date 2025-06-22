@@ -514,6 +514,7 @@ class TestSuite(Element):
         super().__init__(self._tag)
         self.name = name
         self.filepath = None
+        self.root = JUnitXml
 
     def __iter__(self) -> Iterator[TestCase]:
         return itertools.chain(
@@ -552,7 +553,7 @@ class TestSuite(Element):
             result.update_statistics()
         else:
             # Create a new test result containing two testsuites
-            result = JUnitXml()
+            result = self.root()
             result.add_testsuite(self)
             result.add_testsuite(other)
         return result
@@ -566,7 +567,7 @@ class TestSuite(Element):
             self.update_statistics()
             return self
 
-        result = JUnitXml()
+        result = self.root()
         result.filepath = self.filepath
         result.add_testsuite(self)
         result.add_testsuite(other)
@@ -653,8 +654,7 @@ class TestSuite(Element):
 
     def testsuites(self):
         """Iterate through all testsuites."""
-        for suite in self.iterchildren(TestSuite):
-            yield suite
+        yield from self.iterchildren(type(self))
 
     def write(self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
@@ -696,7 +696,7 @@ class JUnitXml(Element):
         return len(list(self.__iter__()))
 
     def __add__(self, other):
-        result = JUnitXml()
+        result = type(self)()
         for suite in self:
             result.add_testsuite(suite)
         for suite in other:
@@ -708,7 +708,7 @@ class JUnitXml(Element):
             for suite in other:
                 self.add_testsuite(suite)
         elif other._elem.tag == "testsuite":
-            suite = TestSuite(name=other.name)
+            suite = self.testsuite(name=other.name)
             for case in other:
                 suite._add_testcase_no_update_stats(case)
             self.add_testsuite(suite)

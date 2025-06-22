@@ -168,6 +168,10 @@ class TestSuite(junitparser.TestSuite):
 
     testcase = TestCase
 
+    def __init__(self, name=None):
+        super().__init__(name)
+        self.root = JUnitXml
+
     @property
     def system_out(self):
         """<system-out>"""
