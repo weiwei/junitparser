@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.0.0]
+## [4.0.0] - 2025-06-22
 ### Breaking
 - Renamed argument `filepath` of methods `write_xml`, `TestSuite.write`, and `JUnitXml.write`
   to `file_or_filename`, as these methods now support file objects and file-like objects.
@@ -19,7 +19,7 @@
 
   If you want to create a `TestSuite` instance from a `<TestSuite>` element, use
 
-    TestSuite.fromelem(elem)
+    `TestSuite.fromelem(elem)`
 
 ## [3.1.2] - 2024-08-31
 ### Fixed
