@@ -743,25 +743,26 @@ class JUnitXml(Element):
         self.time = round(time, 3)
 
     @classmethod
-    def fromroot(cls, root_elem: Element):
+    def fromroot(cls, root_elem: Element) -> "JUnitXml":
         """Construct JUnit objects from an elementTree root element."""
-        if root_elem.tag == "testsuites":
-            instance = cls()
-        elif root_elem.tag == "testsuite":
-            instance = cls.testsuite()
-        else:
+        instance = cls()
+        if root_elem.tag == "testsuite":
+            testsuite_element = root_elem
+            root_elem = testsuite_element.makeelement("testsuites", {})
+            root_elem.append(testsuite_element)
+        if not root_elem.tag == "testsuites":
             raise JUnitXmlError("Invalid format.")
         instance._elem = root_elem
         return instance
 
     @classmethod
-    def fromstring(cls, text: Union[str, bytes]):
+    def fromstring(cls, text: Union[str, bytes]) -> "JUnitXml":
         """Construct JUnit objects from an XML string (str or bytes)."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
     @classmethod
-    def fromfile(cls, file: Union[str, IO], parse_func=None):
+    def fromfile(cls, file: Union[str, IO], parse_func=None) -> "JUnitXml":
         """
         Construct JUnit objects from an XML file.
 

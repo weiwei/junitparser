@@ -22,7 +22,7 @@ python_major = int(sys.version.split(".")[0])
 python_minor = int(sys.version.split(".")[1])
 
 
-def get_expected_xml(test_case_name: str, test_suites: bool = True):
+def get_expected_xml(test_case_name: str, test_suites: bool = True, newlines: bool = False):
     if python_major == 3 and python_minor <= 7 and not has_lxml:
         expected_test_suite = '<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">'
     else:
@@ -42,9 +42,13 @@ def get_expected_xml(test_case_name: str, test_suites: bool = True):
         start_test_suites = ""
         end_test_suites = ""
 
+    eol = "\n" if newlines else ""
+    indent = " " if newlines else ""
     return (
         f"<?xml version='1.0' encoding='{encoding}'?>\n"
-        f'{start_test_suites}{expected_test_suite}<testcase name="{test_case_name}"{closing_tag}></testsuite>{end_test_suites}'
+        f'{start_test_suites}{expected_test_suite}{eol}'
+        f'{indent}<testcase name="{test_case_name}"{closing_tag}>{eol}'
+        f'</testsuite>{end_test_suites}'
     )
 
 
@@ -172,6 +176,31 @@ def test_write_nonascii():
     result.write(xmlfile)
 
     assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("用例1")
+
+
+def test_write_no_testsuites():
+    # Has to be a binary string to include xml declarations.
+    text = b"""<?xml version='1.0' encoding='UTF-8'?>
+<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">
+ <testcase name="case1"/>
+</testsuite>"""
+    xml = JUnitXml.fromstring(text)
+    assert isinstance(xml, JUnitXml)
+    suite = next(iter(xml))
+    assert isinstance(suite, TestSuite)
+    case = next(iter(suite))
+    assert isinstance(case, TestCase)
+    assert len(case.result) == 0
+
+    # writing this JUnitXml object contains a root <testsuites> element
+    xmlfile = BytesIO()
+    xml.write(xmlfile)
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("case1", test_suites=True, newlines=True)
+
+    # writing the inner testsuite reproduces the input string
+    xmlfile = BytesIO()
+    suite.write(xmlfile)
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("case1", test_suites=False, newlines=True)
 
 
 def test_read_written_xml():
