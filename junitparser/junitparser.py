@@ -33,7 +33,7 @@ def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty:
         xml = parseString(text)  # nosec
         content = xml.toprettyxml(encoding="utf-8")
         if isinstance(file_or_filename, str):
-            with open(file_or_filename, encoding="utf-8", mode="wb") as xmlfile:
+            with open(file_or_filename, mode="wb") as xmlfile:
                 xmlfile.write(content)
         else:
             if isinstance(file_or_filename, io.TextIOWrapper):

@@ -1,5 +1,9 @@
 # Changelog
 
+## [4.0.1] - 2025-06-23
+### Fixed
+-  `write_xml` - Remove encoding kwarg to fix `binary mode doesn't take an encoding argument`
+
 ## [4.0.0] - 2025-06-22
 ### Breaking
 - Renamed argument `filepath` of methods `write_xml`, `TestSuite.write`, and `JUnitXml.write`
