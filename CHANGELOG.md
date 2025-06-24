@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.0.2] - 2025-06-23
+### Fixed
+-  `write_xml` - now supports `Path` from `pathlib`.
+
+
 ## [4.0.1] - 2025-06-23
 ### Fixed
 -  `write_xml` - Remove encoding kwarg to fix `binary mode doesn't take an encoding argument`

@@ -11,6 +11,7 @@ See the documentation for other supported schemas.
 import io
 import itertools
 from copy import deepcopy
+from pathlib import Path
 from typing import List, Union, Iterator, IO, Optional
 
 try:
@@ -19,7 +20,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 
-def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False):
+def write_xml(obj, file_or_filename: Optional[Union[str, IO, Path]] = None, *, pretty: bool = False):
     tree = etree.ElementTree(obj._elem)
     if file_or_filename is None:
         file_or_filename = obj.filepath
@@ -32,6 +33,9 @@ def write_xml(obj, file_or_filename: Optional[Union[str, IO]] = None, *, pretty:
         text = etree.tostring(obj._elem)
         xml = parseString(text)  # nosec
         content = xml.toprettyxml(encoding="utf-8")
+        if isinstance(file_or_filename, Path):
+            file_or_filename = str(file_or_filename)
+
         if isinstance(file_or_filename, str):
             with open(file_or_filename, mode="wb") as xmlfile:
                 xmlfile.write(content)
