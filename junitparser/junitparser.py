@@ -313,7 +313,7 @@ class SystemErr(System):
 
 
 class Property(Element):
-    """A key/value pare that's stored in the testsuite or testcase properties.
+    """A key/value pair that's stored in the testsuite or testcase properties.
 
     Use it to store anything you find interesting or useful.
 
