@@ -704,6 +704,18 @@ class Test_TestCase:
             b'<failure message="A"/>',
         ]
 
+    def test_add_remove_property(self):
+        case = TestCase()
+        case.add_property("prop1", "foo")
+        case.add_property("prop2", "bar")
+        prop_to_remove = Property("prop1", "foo")
+        case.remove_property(prop_to_remove)
+        assert len(list(case.properties())) == 1
+        assert case.tostring() in [
+            b'<testcase><properties><property name="prop2" value="bar" /></properties></testcase>',
+            b'<testcase><properties><property name="prop2" value="bar"/></properties></testcase>',
+        ]
+
     def test_add_child_element(self):
         class CustomElement(Element):
             _tag = "custom"
