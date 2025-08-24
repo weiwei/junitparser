@@ -574,10 +574,9 @@ class Test_TestCase:
             </testcase>
         """)
         case = TestCase.fromstring(text)
-        # no assertion raised
         assert case.name == "test_pushstringvector"
         assert case.system_out == "\na line of output\nanother line\n"
-        # Check that there are two properties in the case and check the values.
+        # Check that there are two properties in the TestCase, then check the values.
         case_properties = list(case.properties())
         assert len(case_properties) == 2
         prop1, prop2 = case_properties
