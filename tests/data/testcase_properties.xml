@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="Linux-gcc">
+<testcase name="test_util_pushstringvector" classname="test_util_pushstringvector" time="18.43" status="run">
+    <properties>
+        <property name="cmake_labels" value="util;script"/>
+        <property name="TestType" value="LATENCY_EDMA" />
+    </properties>
+<system-out>
+a line of output
+another line
+</system-out>
+</testcase>
+</testsuite>

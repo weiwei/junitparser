@@ -170,6 +170,27 @@ def test_fromfile_with_testsuite_in_testsuite():
     assert len(all_cases[2].result) == 0
 
 
+def test_fromfile_testcase_properties():
+    xml = JUnitXml.fromfile(os.path.join(os.path.dirname(__file__), "data/testcase_properties.xml"))
+    assert isinstance(xml, JUnitXml)
+    suite = list(iter(xml))[0]
+    assert isinstance(suite, TestSuite)
+    assert len(list(suite.properties())) == 0
+    assert suite.name == "Linux-gcc"
+    # Check that there is one case in the suite.
+    cases = list(suite.iterchildren(TestCase))
+    assert len(cases) == 1
+    case = cases[0]
+    assert isinstance(case, TestCase)
+    assert case.system_out == "\na line of output\nanother line\n"
+    # Check that there are two properties in the case and check the values.
+    case_properties = list(case.properties())
+    assert len(case_properties) == 2
+    prop1, prop2 = case_properties
+    assert prop1.name == "cmake_labels" and prop1.value == "util;script"
+    assert prop2.name == "TestType" and prop2.value == "LATENCY_EDMA"
+
+
 def test_file_is_not_xml():
     xmlfile = StringIO("Not really an xml file")
     with pytest.raises(Exception):
