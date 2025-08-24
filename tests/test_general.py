@@ -1,5 +1,6 @@
 import locale
 import os
+import textwrap
 from copy import deepcopy
 from unittest import skipIf
 from xml.etree import ElementTree as etree
@@ -558,6 +559,30 @@ class Test_TestCase:
         assert len(case.result) == 4
         case.result += [fail4]
         assert len(case.result) == 5
+
+    def test_properties_and_output(self):
+        text = textwrap.dedent("""
+            <testcase name="test_pushstringvector" classname="test_pushstringvector" status="run">
+            <properties>
+                <property name="cmake_labels" value="util;script"/>
+                <property name="TestType" value="LATENCY_EDMA" />
+            </properties>
+            <system-out>
+            a line of output
+            another line
+            </system-out>
+            </testcase>
+        """)
+        case = TestCase.fromstring(text)
+        # no assertion raised
+        assert case.name == "test_pushstringvector"
+        assert case.system_out == "\na line of output\nanother line\n"
+        # Check that there are two properties in the case and check the values.
+        case_properties = list(case.properties())
+        assert len(case_properties) == 2
+        prop1, prop2 = case_properties
+        assert prop1.name == "cmake_labels" and prop1.value == "util;script"
+        assert prop2.name == "TestType" and prop2.value == "LATENCY_EDMA"
 
     def test_case_attributes(self):
         case = TestCase()
