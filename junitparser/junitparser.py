@@ -312,66 +312,6 @@ class SystemErr(System):
     _tag = "system-err"
 
 
-class Property(Element):
-    """A key/value pair that's stored in the testsuite or testcase properties.
-
-    Use it to store anything you find interesting or useful.
-
-    Attributes:
-        name: The property name.
-        value: The property value.
-    """
-
-    _tag = "property"
-    name = Attr()
-    value = Attr()
-
-    def __init__(self, name: str = None, value: str = None):
-        super().__init__(self._tag)
-        self.name = name
-        self.value = value
-
-    def __eq__(self, other):
-        return self.name == other.name and self.value == other.value
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __lt__(self, other):
-        """Supports sort() for properties."""
-        return self.name > other.name
-
-
-class Properties(Element):
-    """A list of properties inside a testsuite or testcase.
-
-    See :class:`Property`
-    """
-
-    _tag = "properties"
-
-    def __init__(self):
-        super().__init__(self._tag)
-
-    def add_property(self, property_: Property):
-        self.append(property_)
-
-    def __iter__(self) -> Iterator[Property]:
-        return super().iterchildren(Property)
-
-    def __eq__(self, other):
-        p1 = list(self)
-        p2 = list(other)
-        p1.sort()
-        p2.sort()
-        if len(p1) != len(p2):
-            return False
-        for e1, e2 in zip(p1, p2):
-            if e1 != e2:
-                return False
-        return True
-
-
 class TestCase(Element):
     """Object to store a testcase and its result.
 
@@ -410,36 +350,6 @@ class TestCase(Element):
     def __eq__(self, other):
         # TODO: May not work correctly if unreliable hash method is used.
         return hash(self) == hash(other)
-
-    def add_property(self, name: str, value: str):
-        """Add a property *name* = *value* to the testcase.
-
-        See :class:`Property` and :class:`Properties`.
-        """
-
-        props = self.child(Properties)
-        if props is None:
-            props = Properties()
-            self.append(props)
-        prop = Property(name, value)
-        props.add_property(prop)
-
-    def properties(self):
-        """Iterate through all :class:`Property` elements in the testcase."""
-        props = self.child(Properties)
-        if props is None:
-            return
-        for prop in props:
-            yield prop
-
-    def remove_property(self, property_: Property):
-        """Remove property *property_* from the testcase."""
-        props = self.child(Properties)
-        if props is None:
-            return
-        for prop in props:
-            if prop == property_:
-                props.remove(property_)
 
     @property
     def is_passed(self):
@@ -515,6 +425,66 @@ class TestCase(Element):
         else:
             err = SystemErr(value)
             self.append(err)
+
+
+class Property(Element):
+    """A key/value pair that's stored in the testsuite or testcase properties.
+
+    Use it to store anything you find interesting or useful.
+
+    Attributes:
+        name: The property name.
+        value: The property value.
+    """
+
+    _tag = "property"
+    name = Attr()
+    value = Attr()
+
+    def __init__(self, name: str = None, value: str = None):
+        super().__init__(self._tag)
+        self.name = name
+        self.value = value
+
+    def __eq__(self, other):
+        return self.name == other.name and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        """Supports sort() for properties."""
+        return self.name > other.name
+
+
+class Properties(Element):
+    """A list of properties inside a testsuite or testcase.
+
+    See :class:`Property`
+    """
+
+    _tag = "properties"
+
+    def __init__(self):
+        super().__init__(self._tag)
+
+    def add_property(self, property_: Property):
+        self.append(property_)
+
+    def __iter__(self) -> Iterator[Property]:
+        return super().iterchildren(Property)
+
+    def __eq__(self, other):
+        p1 = list(self)
+        p2 = list(other)
+        p1.sort()
+        p2.sort()
+        if len(p1) != len(p2):
+            return False
+        for e1, e2 in zip(p1, p2):
+            if e1 != e2:
+                return False
+        return True
 
 
 class TestSuite(Element):

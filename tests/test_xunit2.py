@@ -1,4 +1,5 @@
-from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure, RerunError, FlakyFailure, FlakyError
+import textwrap
+from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure, RerunError, FlakyFailure, FlakyError, Property
 from junitparser import Failure
 from copy import deepcopy
 
@@ -137,6 +138,40 @@ class Test_TestCase:
         case.add_interim_result(failure2)
         assert len(case.rerun_failures()) == 2
 
+    def test_properties_and_output(self):
+        text = textwrap.dedent("""
+            <testcase name="test_pushstringvector" classname="test_pushstringvector" status="run">
+            <properties>
+                <property name="cmake_labels" value="util;script"/>
+                <property name="TestType" value="LATENCY_EDMA" />
+            </properties>
+            <system-out>
+            a line of output
+            another line
+            </system-out>
+            </testcase>
+        """)
+        case = TestCase.fromstring(text)
+        assert case.name == "test_pushstringvector"
+        assert case.system_out == "\na line of output\nanother line\n"
+        # Check that there are two properties in the TestCase, then check the values.
+        case_properties = list(case.properties())
+        assert len(case_properties) == 2
+        prop1, prop2 = case_properties
+        assert prop1.name == "cmake_labels" and prop1.value == "util;script"
+        assert prop2.name == "TestType" and prop2.value == "LATENCY_EDMA"
+
+    def test_add_remove_property(self):
+        case = TestCase()
+        case.add_property("prop1", "foo")
+        case.add_property("prop2", "bar")
+        prop_to_remove = Property("prop1", "foo")
+        case.remove_property(prop_to_remove)
+        assert len(list(case.properties())) == 1
+        assert case.tostring() in [
+            b'<testcase><properties><property name="prop2" value="bar" /></properties></testcase>',
+            b'<testcase><properties><property name="prop2" value="bar"/></properties></testcase>',
+        ]
 
 class Test_TestSuite:
     def test_properties(self):
