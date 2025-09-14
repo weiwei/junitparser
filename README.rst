@@ -141,17 +141,23 @@ Junitparser also support extra schemas:
 
 .. code-block:: python
 
+    # Extended with extra properties/attributes from the xunit2 schema
     from junitparser.xunit2 import TestCase, TestSuite, RerunFailure
-    # These classes are redefined to support extra properties and attributes
-    # of the xunit2 schema.
+
+    # TestSuite supports system_err.
     suite = TestSuite("mySuite")
     suite.system_err = "System err" # xunit2 specific property
+
+    # TestCase supports interim results.
     case = TestCase("myCase")
     rerun_failure = RerunFailure("Not found", "404") # case property
     rerun_failure.stack_trace = "Stack"
     rerun_failure.system_err = "E404"
     rerun_failure.system_out = "NOT FOUND"
     case.add_interim_result(rerun_failure)
+
+    # TestCase supports properties.
+    case.add_property("cmake_labels", "cuda;tier2")
 
 Currently supported schemas including:
 
