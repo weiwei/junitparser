@@ -146,11 +146,11 @@ Junitparser also support extra schemas:
 
     # TestSuite supports system_err.
     suite = TestSuite("mySuite")
-    suite.system_err = "System err" # xunit2 specific property
+    suite.system_err = "System err"
 
     # TestCase supports interim results.
     case = TestCase("myCase")
-    rerun_failure = RerunFailure("Not found", "404") # case property
+    rerun_failure = RerunFailure("Not found", "404")
     rerun_failure.stack_trace = "Stack"
     rerun_failure.system_err = "E404"
     rerun_failure.system_out = "NOT FOUND"
