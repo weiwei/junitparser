@@ -141,7 +141,7 @@ Junitparser also support extra schemas:
 
 .. code-block:: python
 
-    # Extended with extra properties/attributes from the xunit2 schema
+    # Extended with extra properties/attributes from the xunit2 schema.
     from junitparser.xunit2 import TestCase, TestSuite, RerunFailure
 
     # TestSuite supports system_err.
