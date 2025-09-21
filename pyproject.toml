@@ -15,11 +15,11 @@ dependencies = []
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Topic :: Text Processing",
   "Programming Language :: Python :: 3",
 ]
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 keywords = ["junit", "xunit", "xml", "parser"]
 
 [project.urls]
