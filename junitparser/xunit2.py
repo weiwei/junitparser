@@ -15,6 +15,7 @@ There may be many others that I'm not aware of.
 import itertools
 from typing import List, Type, TypeVar
 from . import junitparser
+from .junitparser import Properties, Property
 
 
 class StackTrace(junitparser.System):
@@ -153,6 +154,36 @@ class TestCase(junitparser.TestCase):
     def add_interim_result(self, result: InterimResult):
         """Append an interim (rerun or flaky) result to the testcase. A testcase can have multiple interim results."""
         self.append(result)
+
+    def add_property(self, name: str, value: str):
+        """Add a property *name* = *value* to the testcase.
+
+        See :class:`Property` and :class:`Properties`.
+        """
+
+        props = self.child(Properties)
+        if props is None:
+            props = Properties()
+            self.append(props)
+        prop = Property(name, value)
+        props.add_property(prop)
+
+    def properties(self):
+        """Iterate through all :class:`Property` elements in the testcase."""
+        props = self.child(Properties)
+        if props is None:
+            return
+        for prop in props:
+            yield prop
+
+    def remove_property(self, property_: Property):
+        """Remove property *property_* from the testcase."""
+        props = self.child(Properties)
+        if props is None:
+            return
+        for prop in props:
+            if prop == property_:
+                props.remove(property_)
 
 
 class TestSuite(junitparser.TestSuite):
