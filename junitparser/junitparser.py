@@ -514,7 +514,7 @@ class TestSuite(Element):
 
     testcase = TestCase
 
-    def __init__(self, name=None):
+    def __init__(self, name: str =None):
         super().__init__(self._tag)
         self.name = name
         self.filepath = None
@@ -688,7 +688,7 @@ class JUnitXml(Element):
 
     testsuite = TestSuite
 
-    def __init__(self, name=None):
+    def __init__(self, name: str =None):
         super().__init__(self._tag)
         self.filepath = None
         self.name = name
