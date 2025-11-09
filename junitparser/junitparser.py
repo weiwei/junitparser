@@ -68,7 +68,7 @@ class Attr(object):
     Also see: :class:`IntAttr`, :class:`FloatAttr`.
     """
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         self.name = name
 
     def __get__(self, instance, cls):
@@ -141,7 +141,7 @@ class junitxml(type):
 class Element(metaclass=junitxml):
     """Base class for all JUnit XML elements."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         if not name:
             name = self._tag
         self._elem = etree.Element(name)
@@ -226,7 +226,7 @@ class Result(Element):
     message = Attr()
     type = Attr()
 
-    def __init__(self, message: str = None, type_: str = None):
+    def __init__(self, message: str | None = None, type_: str | None = None):
         super(Result, self).__init__(self._tag)
         if message:
             self.message = message
@@ -291,7 +291,7 @@ class System(Element):
 
     _tag = ""
 
-    def __init__(self, content: str = None):
+    def __init__(self, content: str | None = None):
         super().__init__(self._tag)
         self.text = content
 
@@ -330,7 +330,7 @@ class TestCase(Element):
     # JUnit TestCase children are final results, SystemOut and SystemErr
     ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}
 
-    def __init__(self, name: str = None, classname: str = None, time: float = None):
+    def __init__(self, name: str | None = None, classname: str | None = None, time: float = None):
         super().__init__(self._tag)
         if name is not None:
             self.name = name
@@ -441,7 +441,7 @@ class Property(Element):
     name = Attr()
     value = Attr()
 
-    def __init__(self, name: str = None, value: str = None):
+    def __init__(self, name: str | None = None, value: str | None = None):
         super().__init__(self._tag)
         self.name = name
         self.value = value
