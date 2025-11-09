@@ -688,7 +688,7 @@ class JUnitXml(Element):
 
     testsuite = TestSuite
 
-    def __init__(self, name: str =None):
+    def __init__(self, name: str | None =None):
         super().__init__(self._tag)
         self.filepath = None
         self.name = name
