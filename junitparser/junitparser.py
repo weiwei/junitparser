@@ -330,7 +330,7 @@ class TestCase(Element):
     # JUnit TestCase children are final results, SystemOut and SystemErr
     ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}
 
-    def __init__(self, name: str | None = None, classname: str | None = None, time: float = None):
+    def __init__(self, name: str | None = None, classname: str | None = None, time: float | None = None):
         super().__init__(self._tag)
         if name is not None:
             self.name = name
