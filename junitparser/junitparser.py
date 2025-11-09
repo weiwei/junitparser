@@ -514,7 +514,7 @@ class TestSuite(Element):
 
     testcase = TestCase
 
-    def __init__(self, name: str =None):
+    def __init__(self, name: str | None = None):
         super().__init__(self._tag)
         self.name = name
         self.filepath = None
