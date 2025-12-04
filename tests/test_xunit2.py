@@ -1,6 +1,6 @@
 import textwrap
-from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure, RerunError, FlakyFailure, FlakyError, Property
-from junitparser import Failure
+from junitparser.xunit2 import JUnitXml, TestSuite, TestCase, RerunFailure, RerunError, FlakyFailure, FlakyError
+from junitparser import Failure, Property
 from copy import deepcopy
 
 
@@ -139,7 +139,7 @@ class Test_TestCase:
         assert len(case.rerun_failures()) == 2
 
     def test_properties_and_output(self):
-        text = textwrap.dedent("""
+        text = textwrap.dedent("""\
             <testcase name="test_pushstringvector" classname="test_pushstringvector" status="run">
             <properties>
                 <property name="cmake_labels" value="util;script"/>
@@ -160,6 +160,28 @@ class Test_TestCase:
         prop1, prop2 = case_properties
         assert prop1.name == "cmake_labels" and prop1.value == "util;script"
         assert prop2.name == "TestType" and prop2.value == "LATENCY_EDMA"
+
+    def test_suite_parses_testcase_properties(self):
+        text = textwrap.dedent("""\
+        <testsuite name="suitename1" tests="1" failures="0">
+            <testcase name="testname1">
+                <properties>
+                    <property name="labels" value="foo;bar"/>
+                    <property name="test_type" value="latency" />
+                </properties>
+            </testcase>
+        </testsuite>"""
+        )
+        test_suite1 = TestSuite.fromstring(text)
+        assert test_suite1.name == "suitename1"
+        cases = list(iter(test_suite1))
+        assert len(cases) == 1
+        case = cases[0]
+        case_properties = list(case.properties())
+        assert len(case_properties) == 2
+        prop1, prop2 = case_properties
+        assert prop1.name == "labels" and prop1.value == "foo;bar"
+        assert prop2.name == "test_type" and prop2.value == "latency"
 
     def test_add_remove_property(self):
         case = TestCase()

@@ -15,7 +15,6 @@ There may be many others that I'm not aware of.
 import itertools
 from typing import List, Type, TypeVar
 from . import junitparser
-from .junitparser import Properties, Property
 
 
 class StackTrace(junitparser.System):
@@ -158,27 +157,27 @@ class TestCase(junitparser.TestCase):
     def add_property(self, name: str, value: str):
         """Add a property *name* = *value* to the testcase.
 
-        See :class:`Property` and :class:`Properties`.
+        See :class:`junitparser.Property` and :class:`junitparser.Properties`.
         """
 
-        props = self.child(Properties)
+        props = self.child(junitparser.Properties)
         if props is None:
-            props = Properties()
+            props = junitparser.Properties()
             self.append(props)
-        prop = Property(name, value)
+        prop = junitparser.Property(name, value)
         props.add_property(prop)
 
     def properties(self):
-        """Iterate through all :class:`Property` elements in the testcase."""
-        props = self.child(Properties)
+        """Iterate through all :class:`junitparser.Property` elements in the testcase."""
+        props = self.child(junitparser.Properties)
         if props is None:
             return
         for prop in props:
             yield prop
 
-    def remove_property(self, property_: Property):
+    def remove_property(self, property_: junitparser.Property):
         """Remove property *property_* from the testcase."""
-        props = self.child(Properties)
+        props = self.child(junitparser.Properties)
         if props is None:
             return
         for prop in props:
