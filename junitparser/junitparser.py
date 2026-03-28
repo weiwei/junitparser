@@ -428,7 +428,7 @@ class TestCase(Element):
 
 
 class Property(Element):
-    """A key/value pare that's stored in the testsuite.
+    """A key/value pair that's stored in the testsuite or testcase properties.
 
     Use it to store anything you find interesting or useful.
 
@@ -458,7 +458,7 @@ class Property(Element):
 
 
 class Properties(Element):
-    """A list of properties inside a testsuite.
+    """A list of properties inside a testsuite or testcase.
 
     See :class:`Property`
     """
