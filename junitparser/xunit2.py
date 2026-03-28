@@ -154,6 +154,36 @@ class TestCase(junitparser.TestCase):
         """Append an interim (rerun or flaky) result to the testcase. A testcase can have multiple interim results."""
         self.append(result)
 
+    def add_property(self, name: str, value: str):
+        """Add a property *name* = *value* to the testcase.
+
+        See :class:`junitparser.Property` and :class:`junitparser.Properties`.
+        """
+
+        props = self.child(junitparser.Properties)
+        if props is None:
+            props = junitparser.Properties()
+            self.append(props)
+        prop = junitparser.Property(name, value)
+        props.add_property(prop)
+
+    def properties(self):
+        """Iterate through all :class:`junitparser.Property` elements in the testcase."""
+        props = self.child(junitparser.Properties)
+        if props is None:
+            return
+        for prop in props:
+            yield prop
+
+    def remove_property(self, property_: junitparser.Property):
+        """Remove property *property_* from the testcase."""
+        props = self.child(junitparser.Properties)
+        if props is None:
+            return
+        for prop in props:
+            if prop == property_:
+                props.remove(property_)
+
 
 class TestSuite(junitparser.TestSuite):
     """TestSuite for Pytest, with some different attributes."""

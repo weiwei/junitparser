@@ -32,7 +32,6 @@ junitparser = "junitparser.cli:main"
 
 [tool.setuptools]
 packages = ["junitparser"]
-license-files = ["LICENSE"]
 
 [tool.setuptools.dynamic]
 version = {attr = "junitparser.version"}

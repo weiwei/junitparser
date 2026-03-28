@@ -10,8 +10,9 @@ on:
         required: true
         type: string
       include:
-        required: true
+        required: false
         type: string
+        default: '[]'
 
 jobs:
   test:
