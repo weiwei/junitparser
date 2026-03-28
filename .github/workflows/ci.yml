@@ -25,43 +25,21 @@ jobs:
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["ubuntu-24.04"]'
-      # alive Python versions
-      python-version: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-      # EOL Python versions
-      include: >
-        [
-          {"os": "ubuntu-22.04", "python-version": "3.8"},
-        ]
+      python-version: '["3.10", "3.11", "3.12", "3.13"]'
 
   test-win:
     name: "Test Windows"
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["windows-2025"]'
-      # alive Python versions
-      python-version: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-      # EOL Python versions
-      include: >
-        [
-          {"os": "windows-2019", "python-version": "3.6"},
-          {"os": "windows-2019", "python-version": "3.7"},
-          {"os": "windows-2022", "python-version": "3.8"},
-        ]
+      python-version: '["3.10", "3.11", "3.12", "3.13"]'
 
   test-mac:
     name: "Test macOS"
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["macos-15"]'
-      # alive Python versions
-      python-version: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-      # EOL Python versions
-      include: >
-        [
-          {"os": "macos-13", "python-version": "3.6"},
-          {"os": "macos-13", "python-version": "3.7"},
-          {"os": "macos-14", "python-version": "3.8"},
-        ]
+      python-version: '["3.10", "3.11", "3.12", "3.13"]'
 
   coverage-lint:
     name: "Coverage & Lint"
@@ -136,13 +114,7 @@ jobs:
     uses: "./.github/workflows/test-whl.yml"
     with:
       os: '["ubuntu-24.04"]'
-      # alive Python versions
-      python-version: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-      # EOL Python versions
-      include: >
-        [
-          {"os": "ubuntu-22.04", "python-version": "3.8"},
-        ]
+      python-version: '["3.10", "3.11", "3.12", "3.13"]'
 
   package-publish:
     name: "Publish Package"

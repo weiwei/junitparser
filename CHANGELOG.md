@@ -1,13 +1,19 @@
 # Changelog
 
+## [5.0.0] - 2026-03-28
+### Breaking
+- Drop support for Python 3.9 and below. Use version 4 if you're still on an older Python version.
+- Update type annotations thanks to @nkr0
+- Make TestCase support Properties tags thanks to @eap
+
 ## [4.0.2] - 2025-06-23
 ### Fixed
--  `write_xml` - now supports `Path` from `pathlib`.
+- `write_xml` - now supports `Path` from `pathlib`.
 
 
 ## [4.0.1] - 2025-06-23
 ### Fixed
--  `write_xml` - Remove encoding kwarg to fix `binary mode doesn't take an encoding argument`
+- `write_xml` - Remove encoding kwarg to fix `binary mode doesn't take an encoding argument`
 
 ## [4.0.0] - 2025-06-22
 ### Breaking

@@ -16,7 +16,7 @@ from .junitparser import (
     TestSuite,
 )
 
-version = "4.0.2"
+version = "5.0.0"
 
 __all__ = [
     "Attr",

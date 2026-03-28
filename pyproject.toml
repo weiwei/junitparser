@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Manipulates JUnit/xUnit Result XML files"
 readme = "README.rst"
-requires-python = ">=3.6"
+requires-python = ">=3.10"
 dependencies = []
 classifiers = [
   "Development Status :: 5 - Production/Stable",

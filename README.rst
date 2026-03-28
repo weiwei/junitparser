@@ -19,8 +19,11 @@ Features
 * Merge test result XML files.
 * Specify XML parser. For example you can use lxml to speed things up.
 * Invoke from command line, or `python -m junitparser`
-* Python 2 and 3 support (As of Nov 2020, 1/4 of the users are still on Python
-  2, so there is no plan to drop Python 2 support)
+
+Note on version 5
+-----------------
+
+Python 3.10 or above is now required. If you are still using Python 3.9 or below, please use version 4.0.2.
 
 Note on version 2
 -----------------
@@ -32,8 +35,6 @@ If you are using this attribute, please update your code accordingly.
 
 Installation
 -------------
-
-::
 
     pip install junitparser
 
