@@ -188,7 +188,7 @@ wheels = [
 
 [[package]]
 name = "junitparser"
-version = "5.0.0"
+version = "5.0.1a1"
 source = { editable = "." }
 
 [package.dev-dependencies]

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "junitparser"
-version = "5.0.0"
+version = "5.0.1a1"
 authors = [
   { name="Weiwei Wang", email="gastlygem@gmail.com" },
 ]

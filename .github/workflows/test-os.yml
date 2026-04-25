@@ -16,13 +16,14 @@ on:
 
 jobs:
   test:
-    name: Test (python-${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test (python-${{ matrix.python-version }}, ${{ matrix.os }}, ${{ matrix.lxml != '' && 'lxml' || 'no-lxml' }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ${{ fromJson(inputs.os) }}
         python-version: ${{ fromJson(inputs.python-version) }}
+        lxml: ["", "lxml"]
         include: ${{ fromJson(inputs.include) }}
 
     steps:
@@ -40,14 +41,14 @@ jobs:
     - name: Install dependencies
       run: uv sync --group dev
     - name: Test
-      run: |
-        uv run pytest --junit-xml=test-results-py${{ matrix.python-version }}-xml.xml
-    - name: Test with lxml
-      run: |
-        uv run --with lxml pytest --junit-xml=test-results-py${{ matrix.python-version }}-lxml.xml
+      run: >
+        uv run
+        ${{ matrix.lxml != '' && '--with lxml' || '' }}
+        pytest
+        --junit-xml=test-results-py${{ matrix.python-version }}-${{ matrix.lxml != '' && 'lxml' || 'xml' }}.xml
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: Test Results (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+        name: Test Results (Python ${{ matrix.python-version }}, ${{ matrix.os }}, ${{ matrix.lxml != '' && 'lxml' || 'no-lxml' }})
         path: test-results-py*-*.xml
