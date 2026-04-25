@@ -26,8 +26,8 @@ jobs:
         include: ${{ fromJson(inputs.include) }}
 
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Download Binaries
@@ -37,8 +37,8 @@ jobs:
         path: dist/
     - name: Run junitparser CLI
       run: |
-        pip install dist/junitparser-*.whl
+        uv pip install --system dist/junitparser-*.whl
         tar -xzf dist/junitparser-*.tar.gz --to-stdout --wildcards "junitparser-*/tests/data/no_fails.xml" > no_fails.xml
         junitparser verify no_fails.xml
-        pip install lxml
+        uv pip install --system lxml
         junitparser verify no_fails.xml
