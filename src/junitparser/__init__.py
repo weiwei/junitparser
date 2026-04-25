@@ -34,5 +34,5 @@ __all__ = [
     "SystemErr",
     "TestCase",
     "TestSuite",
-    "version"
+    "version",
 ]

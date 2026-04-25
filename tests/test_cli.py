@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
-from junitparser import cli
-from junitparser import version
+from src.junitparser import cli
+from src.junitparser import version
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -39,7 +39,6 @@ def test_verify_with_glob():
 
 
 class Test_CommandlineOptions:
-
     @classmethod
     def setup_class(cls):
         cls.parser = cli._parser("junitparser")

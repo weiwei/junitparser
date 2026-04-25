@@ -1,5 +1,5 @@
 import textwrap
-from junitparser.xunit2 import (
+from src.junitparser.xunit2 import (
     JUnitXml,
     TestSuite,
     TestCase,
@@ -8,7 +8,7 @@ from junitparser.xunit2 import (
     FlakyFailure,
     FlakyError,
 )
-from junitparser import Failure, Property
+from src.junitparser import Failure, Property
 from copy import deepcopy
 
 

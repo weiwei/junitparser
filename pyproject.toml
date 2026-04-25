@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
 
 [project]
 name = "junitparser"
-dynamic = ["version"]
+version = "5.0.0"
 authors = [
   { name="Weiwei Wang", email="gastlygem@gmail.com" },
 ]
@@ -30,8 +30,8 @@ Documentation = "https://junitparser.readthedocs.io/"
 [project.scripts]
 junitparser = "junitparser.cli:main"
 
-[tool.setuptools]
-packages = ["junitparser"]
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
+]
 
-[tool.setuptools.dynamic]
-version = {attr = "junitparser.version"}
