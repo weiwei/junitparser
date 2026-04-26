@@ -26,6 +26,7 @@ jobs:
         include: ${{ fromJson(inputs.include) }}
 
     steps:
+    - uses: actions/checkout@v4
     - name: Install uv
       uses: astral-sh/setup-uv@v5
       with:
@@ -38,7 +39,5 @@ jobs:
     - name: Run junitparser CLI
       run: |
         wheel=$(echo dist/junitparser-*.whl)
-        sdist=$(echo dist/junitparser-*.tar.gz)
-        tar -xzf "$sdist" --to-stdout --wildcards "junitparser-*/tests/data/no_fails.xml" > no_fails.xml
-        uv run --with "$wheel" junitparser verify no_fails.xml
-        uv run --with "$wheel" --with lxml junitparser verify no_fails.xml
+        uv run --with "$wheel" junitparser verify tests/data/no_fails.xml
+        uv run --with "$wheel" --with lxml junitparser verify tests/data/no_fails.xml
