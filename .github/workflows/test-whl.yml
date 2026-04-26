@@ -37,8 +37,8 @@ jobs:
         path: dist/
     - name: Run junitparser CLI
       run: |
-        uv pip install --system dist/junitparser-*.whl
-        tar -xzf dist/junitparser-*.tar.gz --to-stdout --wildcards "junitparser-*/tests/data/no_fails.xml" > no_fails.xml
-        junitparser verify no_fails.xml
-        uv pip install --system lxml
-        junitparser verify no_fails.xml
+        wheel=$(echo dist/junitparser-*.whl)
+        sdist=$(echo dist/junitparser-*.tar.gz)
+        tar -xzf "$sdist" --to-stdout --wildcards "junitparser-*/tests/data/no_fails.xml" > no_fails.xml
+        uv run --with "$wheel" junitparser verify no_fails.xml
+        uv run --with "$wheel" --with lxml junitparser verify no_fails.xml
