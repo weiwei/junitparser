@@ -1,3 +1,5 @@
+from importlib.metadata import version as _dist_version
+
 from .junitparser import (
     Attr,
     Element,
@@ -16,7 +18,7 @@ from .junitparser import (
     TestSuite,
 )
 
-version = "5.0.0"
+version = _dist_version("junitparser")
 
 __all__ = [
     "Attr",
