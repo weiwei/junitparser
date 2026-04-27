@@ -9,6 +9,10 @@ on:
       python-version:
         required: true
         type: string
+      lxml:
+        required: false
+        type: string
+        default: '[""]'
       include:
         required: false
         type: string
@@ -16,13 +20,14 @@ on:
 
 jobs:
   test:
-    name: Test whl (python-${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test whl (python-${{ matrix.python-version }}, ${{ matrix.os }}, ${{ matrix.lxml != '' && 'lxml' || 'no-lxml' }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ${{ fromJson(inputs.os) }}
         python-version: ${{ fromJson(inputs.python-version) }}
+        lxml: ${{ fromJson(inputs.lxml) }}
         include: ${{ fromJson(inputs.include) }}
 
     steps:
@@ -39,5 +44,4 @@ jobs:
     - name: Run junitparser CLI
       run: |
         wheel=$(echo dist/junitparser-*.whl)
-        uv run --with "$wheel" junitparser verify tests/data/no_fails.xml
-        uv run --with "$wheel" --with lxml junitparser verify tests/data/no_fails.xml
+        uv run --with "$wheel" ${{ matrix.lxml != '' && '--with lxml' || '' }} junitparser verify tests/data/no_fails.xml

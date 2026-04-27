@@ -33,6 +33,7 @@ jobs:
     with:
       os: '["windows-2025"]'
       python-version: '["3.14"]'
+      lxml: '["", "lxml"]'
 
   test-mac:
     name: "Test macOS"

@@ -9,6 +9,10 @@ on:
       python-version:
         required: true
         type: string
+      lxml:
+        required: false
+        type: string
+        default: '[""]'
       include:
         required: false
         type: string
@@ -23,7 +27,7 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         python-version: ${{ fromJson(inputs.python-version) }}
-        lxml: ["", "lxml"]
+        lxml: ${{ fromJson(inputs.lxml) }}
         include: ${{ fromJson(inputs.include) }}
 
     steps:
