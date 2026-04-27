@@ -5,15 +5,11 @@ from io import BytesIO, StringIO
 from tempfile import NamedTemporaryFile
 from unittest import skipIf
 
-from junitparser import (
-    TestCase,
-    TestSuite,
-    JUnitXmlError,
-    JUnitXml
-)
+from src.junitparser import TestCase, TestSuite, JUnitXmlError, JUnitXml
 
 try:
     from lxml.etree import XMLParser  # noqa: F401
+
     has_lxml = True
 except ImportError:
     has_lxml = False
@@ -22,7 +18,9 @@ python_major = int(sys.version.split(".")[0])
 python_minor = int(sys.version.split(".")[1])
 
 
-def get_expected_xml(test_case_name: str, test_suites: bool = True, newlines: bool = False):
+def get_expected_xml(
+    test_case_name: str, test_suites: bool = True, newlines: bool = False
+):
     if python_major == 3 and python_minor <= 7 and not has_lxml:
         expected_test_suite = '<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">'
     else:
@@ -30,10 +28,10 @@ def get_expected_xml(test_case_name: str, test_suites: bool = True, newlines: bo
 
     if has_lxml:
         encoding = "UTF-8"
-        closing_tag = '/'
+        closing_tag = "/"
     else:
         encoding = "utf-8"
-        closing_tag = ' /'
+        closing_tag = " /"
 
     if test_suites:
         start_test_suites = "<testsuites>"
@@ -46,9 +44,9 @@ def get_expected_xml(test_case_name: str, test_suites: bool = True, newlines: bo
     indent = " " if newlines else ""
     return (
         f"<?xml version='1.0' encoding='{encoding}'?>\n"
-        f'{start_test_suites}{expected_test_suite}{eol}'
+        f"{start_test_suites}{expected_test_suite}{eol}"
         f'{indent}<testcase name="{test_case_name}"{closing_tag}>{eol}'
-        f'</testsuite>{end_test_suites}'
+        f"</testsuite>{end_test_suites}"
     )
 
 
@@ -80,9 +78,12 @@ def do_test_write(write_arg, read_func):
     assert text == get_expected_xml("case1")
 
 
-@skipIf(os.name == 'nt' and python_major == 3 and python_minor <= 11, "Not for Windows with Python ≤3.11")
+@skipIf(
+    os.name == "nt" and python_major == 3 and python_minor <= 11,
+    "Not for Windows with Python ≤3.11",
+)
 def test_write():
-    kwargs = dict(delete_on_close=False) if os.name == 'nt' else {}
+    kwargs = dict(delete_on_close=False) if os.name == "nt" else {}
     with NamedTemporaryFile(suffix=".xml", **kwargs) as tmpfile:
         if os.name == "nt":
             # needed by Windows
@@ -95,10 +96,14 @@ def test_write():
         do_test_write(tmpfile.name, read)
 
 
-@skipIf(os.name == 'nt' and python_major == 3 and python_minor <= 11, "Not for Windows with Python ≤3.11")
+@skipIf(
+    os.name == "nt" and python_major == 3 and python_minor <= 11,
+    "Not for Windows with Python ≤3.11",
+)
 def test_write_file_obj():
-    kwargs = dict(delete_on_close=False) if os.name == 'nt' else {}
+    kwargs = dict(delete_on_close=False) if os.name == "nt" else {}
     with NamedTemporaryFile(suffix=".xml", mode="wb", **kwargs) as tmp_file:
+
         def read():
             tmp_file.flush()
             if os.name == "nt":
@@ -132,7 +137,7 @@ def test_write_stringio_bytesio():
 
     with pytest.raises(TypeError) as e:
         do_test_write(StringIO(), lambda: "")
-    assert e.value.args == ("string argument expected, got 'bytes'", )
+    assert e.value.args == ("string argument expected, got 'bytes'",)
 
 
 def test_write_filelike_obj():
@@ -195,12 +200,16 @@ def test_write_no_testsuites():
     # writing this JUnitXml object contains a root <testsuites> element
     xmlfile = BytesIO()
     xml.write(xmlfile)
-    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("case1", test_suites=True, newlines=True)
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml(
+        "case1", test_suites=True, newlines=True
+    )
 
     # writing the inner testsuite reproduces the input string
     xmlfile = BytesIO()
     suite.write(xmlfile)
-    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml("case1", test_suites=False, newlines=True)
+    assert xmlfile.getvalue().decode("utf-8") == get_expected_xml(
+        "case1", test_suites=False, newlines=True
+    )
 
 
 def test_read_written_xml():
@@ -238,20 +247,20 @@ def do_test_write_pretty(write_arg, read_func):
     if python_major == 3 and python_minor <= 7:
         assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
-            '<testsuites>\n'
+            "<testsuites>\n"
             '\t<testsuite errors="0" failures="0" name="suite1" skipped="0" tests="1" time="0">\n'
             '\t\t<testcase name="用例1"/>\n'
-            '\t</testsuite>\n'
-            '</testsuites>\n'
+            "\t</testsuite>\n"
+            "</testsuites>\n"
         )
     else:
         assert written == (
             '<?xml version="1.0" encoding="utf-8"?>\n'
-            '<testsuites>\n'
+            "<testsuites>\n"
             '\t<testsuite name="suite1" tests="1" errors="0" failures="0" skipped="0" time="0">\n'
             '\t\t<testcase name="用例1"/>\n'
-            '\t</testsuite>\n'
-            '</testsuites>\n'
+            "\t</testsuite>\n"
+            "</testsuites>\n"
         )
 
     xml = JUnitXml.fromstring(written.encode("utf-8"))
@@ -267,7 +276,7 @@ def test_write_pretty(capsys):
     string = StringIO()
     with pytest.raises(TypeError) as e:
         do_test_write_pretty(string, lambda: "")
-    assert (e.value.args == ("string argument expected, got 'bytes'",))
+    assert e.value.args == ("string argument expected, got 'bytes'",)
 
     def read_stdout():
         captured = capsys.readouterr()

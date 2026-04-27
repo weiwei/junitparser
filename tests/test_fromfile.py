@@ -3,7 +3,7 @@ import pytest
 import sys
 from io import StringIO
 from unittest import skipIf
-from junitparser import (
+from src.junitparser import (
     TestCase,
     TestSuite,
     Skipped,
@@ -45,9 +45,13 @@ def test_fromfile():
 
 
 def test_fromfile_file_obj():
-    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rb") as file_obj:
+    with open(
+        os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rb"
+    ) as file_obj:
         do_test_fromfile(file_obj)
-    with open(os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rt") as file_obj:
+    with open(
+        os.path.join(os.path.dirname(__file__), "data/normal.xml"), "rt"
+    ) as file_obj:
         do_test_fromfile(file_obj)
 
 
@@ -66,7 +70,10 @@ def test_fromfile_filelike_obj():
 
 
 # TODO: fix the test which is failing on non-Windows platforms
-@skipIf(sys.version.startswith("3.6.") or not has_lxml or sys.platform != "win32", "lxml not installed")
+@skipIf(
+    not has_lxml or sys.platform != "win32",
+    "lxml not installed",
+)
 def test_fromfile_url():
     from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
     import threading

@@ -5,7 +5,7 @@ from unittest import skipIf
 from xml.etree import ElementTree as etree
 import pytest
 
-from junitparser import (
+from src.junitparser import (
     TestCase,
     TestSuite,
     Skipped,
@@ -35,13 +35,13 @@ except ImportError:
 class Test_XmlPackage:
     @pytest.mark.skipif(has_lxml, reason="xml package is used unless lxml is installed")
     def test_xml_etree(self):
-        from junitparser.junitparser import etree as actual_etree
+        from src.junitparser.junitparser import etree as actual_etree
 
         assert actual_etree == expected_xml_etree
 
     @pytest.mark.skipif(not has_lxml, reason="lxml package has to be installed")
     def test_lxml_etree(self):
-        from junitparser.junitparser import etree as actual_etree
+        from src.junitparser.junitparser import etree as actual_etree
 
         assert actual_etree == expected_lxml_etree
 
@@ -98,7 +98,7 @@ def locale_fixture():
 
 
 class Test_Locale:
-    @skipIf(os.name == 'nt', "Not tested on Windows")
+    @skipIf(os.name == "nt", "Not tested on Windows")
     @pytest.mark.parametrize("loc", ["", "en_US.UTF-8", "de_DE.UTF-8"])
     def test_fromstring_numbers_locale_insensitive(self, loc, locale_fixture):
         "Case relies on that LC_ALL is set in the console."
