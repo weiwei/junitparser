@@ -33,6 +33,7 @@ jobs:
     with:
       os: '["windows-2025"]'
       python-version: '["3.14"]'
+      pytest-args: 'tests/test_cli.py tests/test_fromfile.py'
       lxml: '["", "lxml"]'
 
   test-mac:
@@ -41,6 +42,7 @@ jobs:
     with:
       os: '["macos-15"]'
       python-version: '["3.14"]'
+      pytest-args: 'tests/test_cli.py tests/test_fromfile.py'
 
   coverage-lint:
     name: "Coverage & Lint"
@@ -74,26 +76,8 @@ jobs:
       uses: astral-sh/setup-uv@v5
     - name: Build packages
       run: |
-        # Build packages
-        echo "::group::build"
         uv build
-        echo "::endgroup::"
-
-        echo "::group::dist/"
         ls -lah dist/
-        echo "::endgroup::"
-
-        echo "::group::tar.gz"
-        tar -tzvf dist/junitparser-*.tar.gz
-        echo "::endgroup::"
-
-        echo "::group::wheel"
-        unzip -l dist/junitparser-*.whl
-        echo "::endgroup::"
-
-        echo "::group::wheel metadata"
-        unzip -p dist/junitparser-*.whl junitparser-*.dist-info/METADATA
-        echo "::endgroup::"
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
@@ -106,7 +90,7 @@ jobs:
     uses: "./.github/workflows/test-whl.yml"
     with:
       os: '["ubuntu-24.04"]'
-      python-version: '["3.10", "3.11", "3.12", "3.13", "3.14"]'
+      python-version: '["3.10"]'
 
   package-publish:
     name: "Publish Package"

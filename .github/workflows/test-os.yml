@@ -9,6 +9,10 @@ on:
       python-version:
         required: true
         type: string
+      pytest-args:
+        required: false
+        type: string
+        default: ''
       lxml:
         required: false
         type: string
@@ -49,6 +53,7 @@ jobs:
         uv run
         ${{ matrix.lxml != '' && '--with lxml' || '' }}
         pytest
+        ${{ inputs.pytest-args }}
         --junit-xml=test-results-py${{ matrix.python-version }}-${{ matrix.lxml != '' && 'lxml' || 'xml' }}.xml
     - name: Upload Test Results
       if: always()
