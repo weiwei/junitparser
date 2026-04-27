@@ -35,9 +35,9 @@ jobs:
         include: ${{ fromJson(inputs.include) }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v8
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup locales
@@ -57,7 +57,7 @@ jobs:
         --junit-xml=test-results-py${{ matrix.python-version }}-${{ matrix.lxml != '' && 'lxml' || 'xml' }}.xml
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Test Results (Python ${{ matrix.python-version }}, ${{ matrix.os }}, ${{ matrix.lxml != '' && 'lxml' || 'no-lxml' }})
         path: test-results-py*-*.xml

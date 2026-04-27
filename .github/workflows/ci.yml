@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Upload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Event File
         path: ${{ github.event_path }}
@@ -49,9 +49,9 @@ jobs:
     needs: ["test-linux", "test-win", "test-mac"]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v8
     - name: Setup locales
       run: |
         sudo locale-gen en_US.UTF-8
@@ -71,15 +71,15 @@ jobs:
     needs: coverage-lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v8
     - name: Build packages
       run: |
         uv build
         ls -lah dist/
     - name: Upload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Binaries
         path: dist/*
@@ -101,9 +101,9 @@ jobs:
       id-token: write
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v8
     - name: Download Binaries
       uses: actions/download-artifact@v4
       with:
