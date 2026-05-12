@@ -728,9 +728,9 @@ class JUnitXml(Element):
     def __add__(self, other):
         result = type(self)()
         for suite in self:
-            result.add_testsuite(suite)
+            result.add_testsuite(deepcopy(suite))
         for suite in other:
-            result.add_testsuite(suite)
+            result.add_testsuite(deepcopy(suite))
         return result
 
     def __iadd__(self, other):
