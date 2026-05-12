@@ -747,6 +747,7 @@ class JUnitXml(Element):
         return self
 
     def add_testsuite(self, suite: TestSuite):
+        suite = deepcopy(suite)
         """Add a testsuite."""
         for existing_suite in self:
             if existing_suite == suite:
