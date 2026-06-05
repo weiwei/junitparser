@@ -249,6 +249,31 @@ class Test_JunitXml:
         assert len(case) == 1
         assert case[0].attrib["name"] == "case1"
 
+    def test_add_does_not_mutate_operands(self):
+        text = """<testsuites>
+        <testsuite errors="1" failures="0" hostname="hooch" name="pytest" skipped="1" tests="3" time="0.025"
+        timestamp="2020-02-05T10:52:33.843536">
+        <testcase classname="test_x" file="test_x.py" line="7" name="test_comp_1" time="0.000"/>
+        <testcase classname="test_x" file="test_x.py" line="10" name="test_comp_2" time="0.000">
+        <skipped message="unconditional skip" type="pytest.skip">test_x.py:11: unconditional skip</skipped>
+        <error message="test teardown failure">
+        @pytest.fixture(scope="module") def compb(): yield > raise PermissionError E
+        PermissionError test_x.py:6: PermissionError
+        </error>
+        </testcase>
+        </testsuite>
+        </testsuites>"""
+        a = JUnitXml.fromstring(text)
+        b = JUnitXml.fromstring(text)
+
+        result = a + b
+        assert a.tests == 2, f"Operand 'a' was mutated! tests={a.tests}"
+        assert b.tests == 2, f"Operand 'b' was mutated! tests={b.tests}"
+        assert result.tests == 4, f"Result wrong: tests={result.tests}"
+        _ = a + b
+        assert a.tests == 2, "Operand 'a' emptied after uncaptured +"
+        assert b.tests == 2, "Operand 'b' emptied after uncaptured +"
+
     def test_add(self):
         result1 = JUnitXml()
         suite1 = TestSuite("suite1")
