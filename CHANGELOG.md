@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.0.1] - 2026-06-04
+### Fixed
+- `__add__`: mutated arguments after operation thanks @miguelflor.
+
 ## [5.0.0] - 2026-03-28
 ### Breaking
 - Drop support for Python 3.9 and below. Use version 4 if you're still on an older Python version.
@@ -9,7 +13,6 @@
 ## [4.0.2] - 2025-06-23
 ### Fixed
 - `write_xml` - now supports `Path` from `pathlib`.
-
 
 ## [4.0.1] - 2025-06-23
 ### Fixed

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "junitparser"
-version = "5.0.1a1"
+version = "5.0.1"
 authors = [
   { name="Weiwei Wang", email="gastlygem@gmail.com" },
 ]
@@ -37,4 +37,3 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.15.12",
 ]
-
