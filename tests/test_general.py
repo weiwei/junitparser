@@ -3,24 +3,24 @@ import os
 from copy import deepcopy
 from unittest import skipIf
 from xml.etree import ElementTree as etree
+
 import pytest
 
 from src.junitparser import (
+    Attr,
+    Element,
+    Error,
+    Failure,
+    FloatAttr,
+    IntAttr,
+    JUnitXml,
+    JUnitXmlError,
+    Properties,
+    Property,
+    Skipped,
     TestCase,
     TestSuite,
-    Skipped,
-    Failure,
-    Error,
-    Attr,
-    JUnitXmlError,
-    JUnitXml,
-    Property,
-    Properties,
-    IntAttr,
-    FloatAttr,
-    Element,
 )
-
 
 try:
     from lxml import etree as expected_lxml_etree
@@ -83,7 +83,7 @@ class Test_MergeSuiteCounts:
         combined_suites = JUnitXml()
         combined_suites += test_suite1
         combined_suites += test_suite2
-        suites = list(suite for suite in combined_suites)
+        suites = list(combined_suites)
         assert len(suites) == 1
         assert combined_suites.tests == 4
         assert combined_suites.failures == 1
@@ -111,7 +111,7 @@ class Test_Locale:
         </testsuite>
         </testsuites>"""
         result = JUnitXml.fromstring(text)
-        suite = list(iter(result))[0]
+        suite = next(iter(result))
         assert suite.time == 1000.125
         cases = list(iter(suite))
         assert cases[0].time == 1000.025
@@ -158,7 +158,7 @@ class Test_JunitXml:
         assert isinstance(result, JUnitXml)
         assert result.errors == 1
         assert result.skipped == 1
-        suite = list(iter(result))[0]
+        suite = next(iter(result))
         cases = list(iter(suite))
         assert len(cases[0].result) == 0
         assert len(cases[1].result) == 2
@@ -212,7 +212,7 @@ class Test_JunitXml:
         assert isinstance(result, JUnitXml)
         assert result.errors == 1
         assert result.skipped == 1
-        suite = list(iter(result))[0]
+        suite = next(iter(result))
         cases = list(iter(suite))
         assert len(cases[0].result) == 0
         assert len(cases[1].result) == 2
@@ -248,6 +248,44 @@ class Test_JunitXml:
         case = suite[0].findall("testcase")
         assert len(case) == 1
         assert case[0].attrib["name"] == "case1"
+
+    def test_add_testsuite_keeps_live_reference(self):
+        """Regression test for #180."""
+        report = JUnitXml()
+        suite = TestSuite("suite")
+        report.add_testsuite(suite)
+        case1 = TestCase("case 1")
+        case1.result = [Failure("message")]
+        case2 = TestCase("case 2")
+        case2.result = [Failure("message")]
+        suite.add_testcase(case1)
+        suite.add_testcase(case2)
+        report.update_statistics()
+
+        assert len(report) == 1
+        attached = next(iter(report))
+        assert [case.name for case in attached] == ["case 1", "case 2"]
+        assert attached.tests == 2
+        assert attached.failures == 2
+        assert report.tests == 2
+        assert report.failures == 2
+
+    def test_add_testsuite_merge_keeps_live_reference(self):
+        """Regression test for #180, merge branch of ``add_testsuite``."""
+        report = JUnitXml()
+        suite = TestSuite("suite")
+        report.add_testsuite(suite)
+        # An equal suite is merged into the existing one instead of appended.
+        other = TestSuite("suite")
+        other.add_testcase(TestCase("case 1"))
+        report.add_testsuite(other)
+        # The caller's original suite object still points into the report.
+        suite.add_testcase(TestCase("case 2"))
+        report.update_statistics()
+
+        assert len(report) == 1
+        assert [case.name for case in next(iter(report))] == ["case 1", "case 2"]
+        assert report.tests == 2
 
     def test_add_does_not_mutate_operands(self):
         text = """<testsuites>

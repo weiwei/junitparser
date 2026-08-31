@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.0.2] - 2026-08-31
+### Fixed
+- Issue 180: Fix `add_testsuite` regression caused by 5.0.1. 
+
 ## [5.0.1] - 2026-06-04
 ### Fixed
 - `__add__`: mutated arguments after operation thanks @miguelflor.

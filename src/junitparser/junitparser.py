@@ -13,7 +13,7 @@ import io
 import itertools
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Union, Iterator, IO, Optional
+from typing import List, Iterator, IO
 
 try:
     from lxml import etree
@@ -23,7 +23,7 @@ except ImportError:
 
 def write_xml(
     obj,
-    file_or_filename: Optional[Union[str, IO, Path]] = None,
+    file_or_filename: str | IO | Path | None = None,
     *,
     pretty: bool = False,
 ):
@@ -75,7 +75,7 @@ class JUnitXmlError(Exception):
     """Exception for JUnit XML related errors."""
 
 
-class Attr(object):
+class Attr:
     """An attribute for an XML element.
 
     By default they are all string values. To support different value types,
@@ -132,7 +132,7 @@ class FloatAttr(Attr):
         return float(result.replace(",", "")) if result else None
 
     def __set__(self, instance, value: float):
-        if not (isinstance(value, float) or isinstance(value, int)):
+        if not (isinstance(value, (float, int))):
             raise TypeError("Expected float value.")
         super().__set__(instance, value)
 
@@ -149,7 +149,7 @@ class junitxml(type):
     """Metaclass to decorate the XML class."""
 
     def __new__(meta, name, bases, methods):
-        cls = super(junitxml, meta).__new__(meta, name, bases, methods)
+        cls = super().__new__(meta, name, bases, methods)
         cls = attributed(cls)
         return cls
 
@@ -169,12 +169,10 @@ class Element(metaclass=junitxml):
         tag = self._elem.tag
         keys = sorted(self._elem.attrib.keys())
         if keys:
-            attrs_str = " ".join(
-                '%s="%s"' % (key, self._elem.attrib[key]) for key in keys
-            )
-            return """<Element '%s' %s>""" % (tag, attrs_str)
+            attrs_str = " ".join(f'{key}="{self._elem.attrib[key]}"' for key in keys)
+            return f"""<Element '{tag}' {attrs_str}>"""
 
-        return """<Element '%s'>""" % tag
+        return f"""<Element '{tag}'>"""
 
     def append(self, sub_elem):
         """Add the element subelement to the end of this elements internal
@@ -186,7 +184,7 @@ class Element(metaclass=junitxml):
         """Add elements subelement to the end of this elements internal
         list of subelements.
         """
-        self._elem.extend((sub_elem._elem for sub_elem in sub_elems))
+        self._elem.extend(sub_elem._elem for sub_elem in sub_elems)
 
     @classmethod
     def fromstring(cls, text: str):
@@ -243,7 +241,7 @@ class Result(Element):
     type = Attr()
 
     def __init__(self, message: str | None = None, type_: str | None = None):
-        super(Result, self).__init__(self._tag)
+        super().__init__(self._tag)
         if message:
             self.message = message
         if type_:
@@ -344,7 +342,7 @@ class TestCase(Element):
     __test__ = False
 
     # JUnit TestCase children are final results, SystemOut and SystemErr
-    ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}
+    ITER_TYPES = {t._tag: t for t in (Failure, Error, Skipped, SystemOut, SystemErr)}  # noqa: RUF012
 
     def __init__(
         self,
@@ -363,7 +361,7 @@ class TestCase(Element):
     def __hash__(self):
         return super().__hash__()
 
-    def __iter__(self) -> Iterator[Union[Result, System]]:
+    def __iter__(self) -> Iterator[Result | System]:
         for elem in self._elem.iter():
             if elem.tag in self.ITER_TYPES:
                 yield self.ITER_TYPES[elem.tag].fromelem(elem)
@@ -393,12 +391,12 @@ class TestCase(Element):
         return any(isinstance(r, Skipped) for r in self.result)
 
     @property
-    def result(self) -> List[FinalResult]:
+    def result(self) -> list[FinalResult]:
         """A list of :class:`Failure`, :class:`Skipped`, or :class:`Error` objects."""
         return [entry for entry in self if isinstance(entry, FinalResult)]
 
     @result.setter
-    def result(self, value: Union[FinalResult, List[FinalResult]]):
+    def result(self, value: FinalResult | list[FinalResult]):
         # Check typing
         if not (
             isinstance(value, FinalResult)
@@ -575,30 +573,30 @@ class TestSuite(Element):
             # Merge the two testsuites
             result = deepcopy(self)
             for case in other:
-                result._add_testcase_no_update_stats(case)
+                result._add_testcase_no_update_stats(deepcopy(case))
             for suite in other.testsuites():
-                result.add_testsuite(suite)
+                result.add_testsuite(deepcopy(suite))
             result.update_statistics()
         else:
             # Create a new test result containing two testsuites
             result = self.root()
-            result.add_testsuite(self)
-            result.add_testsuite(other)
+            result.add_testsuite(deepcopy(self))
+            result.add_testsuite(deepcopy(other))
         return result
 
     def __iadd__(self, other):
         if self == other:
             for case in other:
-                self._add_testcase_no_update_stats(case)
+                self._add_testcase_no_update_stats(deepcopy(case))
             for suite in other.testsuites():
-                self.add_testsuite(suite)
+                self.add_testsuite(deepcopy(suite))
             self.update_statistics()
             return self
 
         result = self.root()
         result.filepath = self.filepath
         result.add_testsuite(self)
-        result.add_testsuite(other)
+        result.add_testsuite(deepcopy(other))
         return result
 
     def remove_testcase(self, testcase: TestCase):
@@ -668,8 +666,7 @@ class TestSuite(Element):
         props = self.child(Properties)
         if props is None:
             return
-        for prop in props:
-            yield prop
+        yield from props
 
     def remove_property(self, property_: Property):
         """Remove property *property_* from the testsuite."""
@@ -684,9 +681,7 @@ class TestSuite(Element):
         """Iterate through all testsuites."""
         yield from self.iterchildren(type(self))
 
-    def write(
-        self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False
-    ):
+    def write(self, file_or_filename: str | IO | None = None, *, pretty: bool = False):
         write_xml(self, file_or_filename=file_or_filename, pretty=pretty)
 
 
@@ -728,26 +723,25 @@ class JUnitXml(Element):
     def __add__(self, other):
         result = type(self)()
         for suite in self:
-            result.add_testsuite(suite)
+            result.add_testsuite(deepcopy(suite))
         for suite in other:
-            result.add_testsuite(suite)
+            result.add_testsuite(deepcopy(suite))
         return result
 
     def __iadd__(self, other):
         if other._elem.tag == "testsuites":
             for suite in other:
-                self.add_testsuite(suite)
+                self.add_testsuite(deepcopy(suite))
         elif other._elem.tag == "testsuite":
             suite = self.testsuite(name=other.name)
             for case in other:
-                suite._add_testcase_no_update_stats(case)
+                suite._add_testcase_no_update_stats(deepcopy(case))
             self.add_testsuite(suite)
             self.update_statistics()
 
         return self
 
     def add_testsuite(self, suite: TestSuite):
-        suite = deepcopy(suite)
         """Add a testsuite."""
         for existing_suite in self:
             if existing_suite == suite:
@@ -787,13 +781,13 @@ class JUnitXml(Element):
         return instance
 
     @classmethod
-    def fromstring(cls, text: Union[str, bytes]) -> "JUnitXml":
+    def fromstring(cls, text: str | bytes) -> "JUnitXml":
         """Construct JUnit objects from an XML string (str or bytes)."""
         root_elem = etree.fromstring(text)  # nosec
         return cls.fromroot(root_elem)
 
     @classmethod
-    def fromfile(cls, file: Union[str, IO], parse_func=None) -> "JUnitXml":
+    def fromfile(cls, file: str | IO, parse_func=None) -> "JUnitXml":
         """
         Construct JUnit objects from an XML file.
 
@@ -813,9 +807,7 @@ class JUnitXml(Element):
         instance.filepath = file if isinstance(file, str) else None
         return instance
 
-    def write(
-        self, file_or_filename: Optional[Union[str, IO]] = None, *, pretty: bool = False
-    ):
+    def write(self, file_or_filename: str | IO | None = None, *, pretty: bool = False):
         """Write the object into a JUnit XML file.
 
         If `file_or_filename` is not specified, it will write to the original filename.
