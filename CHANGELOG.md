@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.0.3] - 2026-08-31
+### Fixed
+- Issue 177: Fix 177 different behavior of + and +=.
+
 ## [5.0.2] - 2026-08-31
 ### Fixed
 - Issue 180: Fix `add_testsuite` regression caused by 5.0.1. 

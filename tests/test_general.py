@@ -250,7 +250,8 @@ class Test_JunitXml:
         assert case[0].attrib["name"] == "case1"
 
     def test_add_testsuite_keeps_live_reference(self):
-        """Regression test for #180."""
+        # issue 180: add_testsuite used to deepcopy, so cases added afterwards
+        # went nowhere
         report = JUnitXml()
         suite = TestSuite("suite")
         report.add_testsuite(suite)
@@ -271,15 +272,15 @@ class Test_JunitXml:
         assert report.failures == 2
 
     def test_add_testsuite_merge_keeps_live_reference(self):
-        """Regression test for #180, merge branch of ``add_testsuite``."""
+        # issue 180, this time down the merge branch
         report = JUnitXml()
         suite = TestSuite("suite")
         report.add_testsuite(suite)
-        # An equal suite is merged into the existing one instead of appended.
+        # equal suites get merged, not appended
         other = TestSuite("suite")
         other.add_testcase(TestCase("case 1"))
         report.add_testsuite(other)
-        # The caller's original suite object still points into the report.
+        # suite is still the one in the report
         suite.add_testcase(TestCase("case 2"))
         report.update_statistics()
 
@@ -401,6 +402,90 @@ class Test_JunitXml:
         suite1 += suite2
         assert isinstance(suite1, JUnitXml)
         assert len(list(iter(suite1))) == 2
+
+    def _xml_with_stats(self, name, passes, failures):
+        # one suite, counts already written out
+        xml = JUnitXml()
+        suite = TestSuite(name)
+        for i in range(passes):
+            suite.add_testcase(TestCase(f"{name}_pass{i}"))
+        for i in range(failures):
+            case = TestCase(f"{name}_fail{i}")
+            case.result = [Failure("boom")]
+            suite.add_testcase(case)
+        xml.add_testsuite(suite)
+        xml.update_statistics()
+        return xml
+
+    def test_iadd_refreshes_stale_statistics(self):
+        # issue 177: IntAttr only counts when the attr is missing, so += has to
+        # refresh it by hand
+        a = self._xml_with_stats("A", 5, 2)
+        b = self._xml_with_stats("B", 3, 1)
+        assert (a.tests, a.failures) == (7, 2)
+
+        a += b
+
+        assert a.tests == 11
+        assert a.failures == 3
+        assert sum(1 for suite in a for _ in suite) == 11
+
+    def test_iadd_self_merge_refreshes_statistics(self):
+        # issue 177, x += x
+        xml = self._xml_with_stats("A", 4, 0)
+        xml += xml
+        assert sum(1 for suite in xml for _ in suite) == 8
+        assert xml.tests == 8
+
+    def test_add_and_iadd_agree(self):
+        # issue 177: + and += must give the same thing
+        added = self._xml_with_stats("A", 5, 2) + self._xml_with_stats("B", 3, 1)
+        inplace = self._xml_with_stats("A", 5, 2)
+        inplace += self._xml_with_stats("B", 3, 1)
+
+        assert (added.tests, added.failures) == (inplace.tests, inplace.failures)
+        assert len(added) == len(inplace)
+        assert [suite.name for suite in added] == [suite.name for suite in inplace]
+
+    def test_add_bare_testsuite_matches_iadd(self):
+        # += takes a bare testsuite, + used to iterate it as if it were a
+        # testsuites and drop the cases under the root
+        suite = TestSuite("B")
+        suite.add_testcase(TestCase("b0"))
+        suite.add_testcase(TestCase("b1"))
+
+        added = self._xml_with_stats("A", 1, 0) + suite
+        inplace = self._xml_with_stats("A", 1, 0)
+        inplace += deepcopy(suite)
+
+        assert len(added) == 2
+        assert added.tests == 3
+        assert (added.tests, len(added)) == (inplace.tests, len(inplace))
+        # no testcase directly under testsuites
+        assert added._elem.find("testcase") is None
+
+    def test_add_iterable_of_suites(self):
+        # + never looked at the operand's element, so a plain list works.
+        # += takes one now too.
+        suites = [TestSuite("B"), TestSuite("C")]
+        for i, suite in enumerate(suites):
+            suite.add_testcase(TestCase(f"case{i}"))
+
+        added = self._xml_with_stats("A", 2, 0) + suites
+        inplace = self._xml_with_stats("A", 2, 0)
+        inplace += deepcopy(suites)
+
+        assert len(added) == 3
+        assert added.tests == 4
+        assert (len(added), added.tests) == (len(inplace), inplace.tests)
+
+    def test_add_generator_of_suites(self):
+        # NOTE: single pass, don't iterate the operand twice
+        suite = TestSuite("B")
+        suite.add_testcase(TestCase("b0"))
+        result = self._xml_with_stats("A", 2, 0) + (s for s in [suite])
+        assert len(result) == 2
+        assert result.tests == 3
 
     def test_xml_statistics(self):
         result1 = JUnitXml()

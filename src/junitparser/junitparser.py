@@ -722,22 +722,21 @@ class JUnitXml(Element):
 
     def __add__(self, other):
         result = type(self)()
-        for suite in self:
-            result.add_testsuite(deepcopy(suite))
-        for suite in other:
-            result.add_testsuite(deepcopy(suite))
+        result += self
+        result += other
         return result
 
     def __iadd__(self, other):
-        if other._elem.tag == "testsuites":
-            for suite in other:
-                self.add_testsuite(deepcopy(suite))
-        elif other._elem.tag == "testsuite":
+        if isinstance(other, TestSuite):
             suite = self.testsuite(name=other.name)
             for case in other:
                 suite._add_testcase_no_update_stats(deepcopy(case))
             self.add_testsuite(suite)
-            self.update_statistics()
+        else:
+            # A testsuites container, or any iterable of testsuites.
+            for suite in other:
+                self.add_testsuite(deepcopy(suite))
+        self.update_statistics()
 
         return self
 
