@@ -15,6 +15,28 @@ def test_verify(file: str, expected_exitcode: int):
     assert cli.verify([path]) == expected_exitcode
 
 
+@pytest.mark.parametrize(
+    "results, expected_exitcode",
+    [
+        ("", 0),
+        ("<skipped/>", 0),
+        ("<failure/>", 1),
+        ("<error/>", 1),
+        ("<skipped/><failure/>", 1),
+        ("<failure/><skipped/>", 1),
+        ("<skipped/><error/>", 1),
+        ("<error/><skipped/>", 1),
+    ],
+)
+def test_verify_mixed_results(tmp_path, results, expected_exitcode):
+    path = tmp_path / "report.xml"
+    path.write_text(
+        f'<testsuite><testcase name="test">{results}</testcase></testsuite>'
+    )
+
+    assert cli.main(["verify", str(path)]) == expected_exitcode
+
+
 def test_merge(tmp_path: Path):
     files = [DATA_DIR / "jenkins.xml", DATA_DIR / "pytest_success.xml"]
     suites = ["JUnitXmlReporter", "JUnitXmlReporter.constructor", "pytest"]
