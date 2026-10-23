@@ -11,7 +11,7 @@ See the documentation for other supported schemas.
 
 import io
 import itertools
-from copy import deepcopy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import List, Iterator, IO
 
@@ -97,6 +97,16 @@ class Attr:
             instance._elem.attrib[self.name] = str(value)
 
 
+def _update_missing_statistics(instance):
+    """Fill absent summary attributes without rewriting supplied XML values."""
+    calculated = copy(instance)
+    calculated._elem = deepcopy(instance._elem)
+    calculated.update_statistics()
+    for name, value in calculated._elem.attrib.items():
+        if name not in instance._elem.attrib:
+            instance._elem.attrib[name] = value
+
+
 class IntAttr(Attr):
     """An integer attribute for an XML element.
 
@@ -107,7 +117,7 @@ class IntAttr(Attr):
     def __get__(self, instance, cls):
         result = super().__get__(instance, cls)
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-            instance.update_statistics()
+            _update_missing_statistics(instance)
             result = super().__get__(instance, cls)
         return int(result) if result else None
 
@@ -127,7 +137,7 @@ class FloatAttr(Attr):
     def __get__(self, instance, cls):
         result = super().__get__(instance, cls)
         if result is None and isinstance(instance, (JUnitXml, TestSuite)):
-            instance.update_statistics()
+            _update_missing_statistics(instance)
             result = super().__get__(instance, cls)
         return float(result.replace(",", "")) if result else None
 
