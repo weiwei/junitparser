@@ -28,7 +28,7 @@ def verify(paths):
         xml = JUnitXml.fromfile(path)
         for suite in xml:
             for case in suite:
-                if not case.is_passed and not case.is_skipped:
+                if case.is_failure or case.is_error:
                     return 1
     return 0
 
